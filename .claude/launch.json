@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "typeread",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "8888", "/Users/bradk/Desktop/typeread_backup"],
+      "port": 8888
+    }
+  ]
+}

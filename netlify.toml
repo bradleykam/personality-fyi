@@ -1,0 +1,20 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/assess"
+  to = "/assess.html"
+  status = 200
+
+# Canonical aliases: /type/intj -> /blog/intj-personality
+[[redirects]]
+  from = "/type/:type"
+  to = "/blog/:type-personality"
+  status = 301
+
+# Environment variables to set in Netlify UI:
+# SUPABASE_URL = your Supabase project URL
+# SUPABASE_ANON_KEY = your Supabase anon/public key
+# SUPABASE_SERVICE_ROLE_KEY = your Supabase service role secret key
+# ANTHROPIC_API_KEY = your Anthropic API key (already set)

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeRead — Personality Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0e0e0e;
+  --paper: #f5f2ed;
+  --cream: #ede9e1;
+  --accent: #c8411a;
+  --accent-light: #f5e8e3;
+  --muted: #7a7670;
+  --border: #d4cfc7;
+  --card: #ffffff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  font-size: 13px;
+}
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+.assess-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.wordmark {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  letter-spacing: -1px;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.wordmark span { color: var(--accent); font-style: italic; }
+.assess-company {
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.assess-job-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-top: 4px;
+}
+@keyframes fadeInCard {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.assess-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 28px;
+  animation: fadeInCard .25s ease;
+}
+.assess-intro {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+.assess-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--cream);
+  color: var(--ink);
+  outline: none;
+  transition: border-color .2s;
+  margin-bottom: 12px;
+}
+.assess-input:focus { border-color: var(--accent); }
+.assess-input::placeholder { color: var(--muted); }
+.assess-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.assess-consent input[type="checkbox"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+.assess-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  cursor: pointer;
+  transition: background .2s;
+}
+.assess-btn:hover { background: var(--accent); }
+.assess-btn:disabled { background: var(--muted); cursor: not-allowed; }
+.assess-error {
+  font-size: 11px;
+  color: var(--accent);
+  margin-bottom: 10px;
+  display: none;
+}
+.assess-error.show { display: block; }
+/* Chat UI */
+.test-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 24px;
+  min-height: 200px;
+}
+.test-bubble {
+  max-width: 80%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  animation: fadeInCard .25s ease;
+}
+.test-bubble.app {
+  align-self: flex-start;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+.test-bubble.user {
+  align-self: flex-end;
+  background: var(--ink);
+  color: var(--paper);
+}
+.test-bubble.result {
+  max-width: 100%;
+  align-self: flex-start;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+.test-bubble .result-type {
+  font-family: 'DM Serif Display', serif;
+  font-size: 48px;
+  letter-spacing: -2px;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.test-bubble .result-type .accent-letter { color: var(--accent); font-style: italic; }
+.test-bubble .result-conf {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.test-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.test-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--cream);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.test-btn:hover { border-color: var(--ink); }
+.test-btn.primary {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+.test-btn.primary:hover { background: var(--accent); border-color: var(--accent); }
+.test-qcount {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .06em;
+  margin-top: 6px;
+}
+@media (max-width: 640px) {
+  .test-buttons { display: grid; grid-template-columns: 1fr 1fr; }
+  .test-bubble { max-width: 90%; }
+}
+.assess-complete {
+  text-align: center;
+  padding: 32px 0;
+  animation: fadeInCard .3s ease;
+}
+.assess-complete h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 24px;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+.assess-complete p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+.assess-link-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  text-decoration: none;
+  transition: all .15s;
+}
+.assess-link-btn:hover { color: var(--accent); border-color: var(--accent); }
+.assess-loading {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--muted);
+}
+.loading-dots span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin: 0 3px;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: .2s; }
+.loading-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes pulse {
+  0%, 80%, 100% { opacity: .2; transform: scale(.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="assess-header">
+    <div class="wordmark">Type<span>Read</span></div>
+    <div class="assess-company" id="assess-company"></div>
+    <div class="assess-job-title" id="assess-job-title"></div>
+  </div>
+
+  <div id="assess-loading" class="assess-loading">
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+    <div style="margin-top:14px;font-size:11px;letter-spacing:.06em;text-transform:uppercase">Loading assessment...</div>
+  </div>
+
+  <div id="assess-error-page" style="display:none">
+    <div class="assess-card" style="text-align:center">
+      <p style="color:var(--accent);font-size:13px;line-height:1.7" id="assess-error-msg">This assessment link is invalid or has expired.</p>
+      <a href="/" class="assess-link-btn" style="margin-top:16px">Go to TypeRead</a>
+    </div>
+  </div>
+
+  <div id="assess-intro-section" style="display:none">
+    <div class="assess-card">
+      <div class="assess-intro" id="assess-intro-text"></div>
+      <input type="email" class="assess-input" id="assess-email" placeholder="Enter the email you used to apply">
+      <div class="assess-error" id="assess-email-error"></div>
+      <label class="assess-consent">
+        <input type="checkbox" id="assess-consent-check">
+        <span id="assess-consent-text"></span>
+      </label>
+      <button class="assess-btn" id="assess-start-btn" disabled onclick="assessStartTest()">Start assessment &rarr;</button>
+    </div>
+  </div>
+
+  <div id="assess-test-section" style="display:none">
+    <div class="test-chat" id="test-chat"></div>
+    <div id="test-buttons-area"></div>
+  </div>
+
+  <div id="assess-complete-section" style="display:none"></div>
+</div>
+
+<script>
+// ── Assessment page state ─────────────────────────────────────────
+let assessData = null; // { companyName, employerId }
+let assessEmail = '';
+
+const TYPE_NAMES = {
+  'INTJ':'Architect','INTP':'Logician','ENTJ':'Commander','ENTP':'Debater',
+  'INFJ':'Advocate','INFP':'Mediator','ENFJ':'Protagonist','ENFP':'Campaigner',
+  'ISTJ':'Logistician','ISFJ':'Defender','ESTJ':'Executive','ESFJ':'Consul',
+  'ISTP':'Virtuoso','ISFP':'Adventurer','ESTP':'Entrepreneur','ESFP':'Entertainer'
+};
+
+// ── Load employer info ────────────────────────────────────────────
+async function loadAssessment() {
+  const params = new URLSearchParams(window.location.search);
+  const company = params.get('company');
+
+  if (!company) {
+    showError('This assessment link is missing required parameters.');
+    return;
+  }
+
+  try {
+    const resp = await fetch('/.netlify/functions/get-posting?company=' + encodeURIComponent(company));
+    const data = await resp.json();
+    if (!resp.ok || data.error) {
+      showError(data.error || 'Company not found.');
+      return;
+    }
+    assessData = data;
+    showIntro();
+  } catch(e) {
+    showError('Could not load assessment. Please check your connection and try again.');
+  }
+}
+
+function showError(msg) {
+  document.getElementById('assess-loading').style.display = 'none';
+  document.getElementById('assess-error-msg').textContent = msg;
+  document.getElementById('assess-error-page').style.display = 'block';
+}
+
+function showIntro() {
+  document.getElementById('assess-loading').style.display = 'none';
+  document.getElementById('assess-company').textContent = 'Assessment for ' + assessData.companyName;
+  document.getElementById('assess-job-title').textContent = '';
+  document.getElementById('assess-intro-text').textContent =
+    'This assessment takes about 5 minutes. ' + assessData.companyName +
+    ' will use your results to understand how you work and communicate. Your results will be shared with them.';
+  document.getElementById('assess-consent-text').textContent =
+    'I agree to share my personality assessment results with ' + assessData.companyName;
+  document.getElementById('assess-intro-section').style.display = 'block';
+
+  // Enable button when email + consent
+  const emailInput = document.getElementById('assess-email');
+  const checkbox = document.getElementById('assess-consent-check');
+  const btn = document.getElementById('assess-start-btn');
+  function checkReady() {
+    btn.disabled = !(emailInput.value.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim()) && checkbox.checked);
+  }
+  emailInput.addEventListener('input', checkReady);
+  checkbox.addEventListener('change', checkReady);
+}
+
+function assessStartTest() {
+  const email = document.getElementById('assess-email').value.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('assess-email-error').textContent = 'Please enter a valid email address.';
+    document.getElementById('assess-email-error').className = 'assess-error show';
+    return;
+  }
+  assessEmail = email;
+  document.getElementById('assess-intro-section').style.display = 'none';
+  document.getElementById('assess-test-section').style.display = 'block';
+  testStart();
+}
+
+// ── Test engine (extracted from main app) ─────────────────────────
+const TEST_QS = [
+  {q:"After a long social event, do you usually need time alone to recharge?", ax:"I_E", yes:"I", no:"E"},
+  {q:"Do you tend to focus more on possibilities and what could be than on what currently is?", ax:"N_S", yes:"N", no:"S"},
+  {q:"When making a decision, do you prioritize logic and what makes sense over how it affects people?", ax:"T_F", yes:"T", no:"F"},
+  {q:"Do you prefer having a plan and sticking to it over keeping your options open?", ax:"J_P", yes:"J", no:"P"},
+  {q:"Do you tend to think things through before speaking rather than thinking out loud?", ax:"I_E", yes:"I", no:"E"},
+  {q:"Do you often find yourself reading between the lines rather than taking things at face value?", ax:"N_S", yes:"N", no:"S"},
+  {q:"Do you think it's more important to be honest than to be tactful, even if it stings?", ax:"T_F", yes:"T", no:"F"},
+  {q:"Does leaving things unfinished or unresolved bother you more than most?", ax:"J_P", yes:"J", no:"P"},
+  {q:"Would you rather have a deep conversation with one person than mingle with a group?", ax:"I_E", yes:"I", no:"E"},
+  {q:"Do you prefer thinking about the big picture over focusing on specific details?", ax:"N_S", yes:"N", no:"S"},
+  {q:"When a friend comes to you with a problem, is your first instinct to help them solve it rather than just listen?", ax:"T_F", yes:"T", no:"F"},
+  {q:"Do you usually decide early and commit, rather than waiting to see how things develop?", ax:"J_P", yes:"J", no:"P"},
+  {q:"Do you find that too much social time leaves you feeling drained, even when you enjoyed it?", ax:"I_E", yes:"I", no:"E"},
+  {q:"Do you tend to trust a hunch even when you can't fully explain why?", ax:"N_S", yes:"N", no:"S"},
+  {q:"Do you find it easier to stay objective when there's emotional conflict around you?", ax:"T_F", yes:"T", no:"F"},
+  {q:"Do you find it easier to work with deadlines than without them?", ax:"J_P", yes:"J", no:"P"},
+  {q:"Do you prefer working independently over collaborating in real time?", ax:"I_E", yes:"I", no:"E"},
+  {q:"Do you find abstract or theoretical conversations more interesting than practical ones?", ax:"N_S", yes:"N", no:"S"},
+  {q:"Do you tend to evaluate ideas on their merit rather than who proposed them?", ax:"T_F", yes:"T", no:"F"},
+  {q:"Do you generally prefer structure and clear expectations over flexibility and improvisation?", ax:"J_P", yes:"J", no:"P"},
+  {q:"Do you tend to have a small circle of close friends rather than a wide network?", ax:"I_E", yes:"I", no:"E"},
+  {q:"Do you often think about patterns and connections between ideas, even in unrelated areas?", ax:"N_S", yes:"N", no:"S"},
+  {q:"Do you find that you're rarely swayed by appeals to emotion when making important decisions?", ax:"T_F", yes:"T", no:"F"},
+  {q:"Do you tend to finish tasks well before the deadline rather than working up to the wire?", ax:"J_P", yes:"J", no:"P"}
+];
+
+let testScores = {I:0, E:0, N:0, S:0, T:0, F:0, J:0, P:0};
+let testQueueIdx = 0;
+let testQueue = [];
+let testAnswered = 0;
+
+function testReset() {
+  testScores = {I:0, E:0, N:0, S:0, T:0, F:0, J:0, P:0};
+  testQueueIdx = 0;
+  testQueue = TEST_QS.map(function(q, i) { return i; });
+  testAnswered = 0;
+  document.getElementById('test-chat').innerHTML = '';
+  document.getElementById('test-buttons-area').innerHTML = '';
+}
+
+function testAddBubble(text, type) {
+  var chat = document.getElementById('test-chat');
+  var div = document.createElement('div');
+  div.className = 'test-bubble ' + type;
+  div.innerHTML = text;
+  chat.appendChild(div);
+  setTimeout(function() { div.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, 50);
+}
+
+function testSetButtons(buttons, qCountText) {
+  var area = document.getElementById('test-buttons-area');
+  area.innerHTML = '';
+  var wrap = document.createElement('div');
+  wrap.className = 'test-buttons';
+  buttons.forEach(function(b) {
+    var btn = document.createElement('button');
+    btn.className = b.primary ? 'test-btn primary' : 'test-btn';
+    btn.textContent = b.label;
+    btn.addEventListener('click', b.action);
+    wrap.appendChild(btn);
+  });
+  area.appendChild(wrap);
+  if (qCountText) {
+    var qc = document.createElement('div');
+    qc.className = 'test-qcount';
+    qc.textContent = qCountText;
+    area.appendChild(qc);
+  }
+}
+
+function testStart() {
+  testReset();
+  testAddBubble("Let\u2019s find your type. I\u2019ll ask you up to 24 questions \u2014 answer honestly, not how you think you should answer. Ready?", 'app');
+  testSetButtons([{ label: "Let's go", primary: true, action: testBegin }]);
+}
+
+function testBegin() {
+  document.getElementById('test-buttons-area').innerHTML = '';
+  testShowNext();
+}
+
+function testRemainingForAxis(ax) {
+  var count = 0;
+  for (var i = testQueueIdx; i < testQueue.length; i++) {
+    if (TEST_QS[testQueue[i]].ax === ax) count++;
+  }
+  return count;
+}
+
+function testAxisDecided(ax) {
+  var letters = ax.split('_');
+  var a = letters[0], b = letters[1];
+  var remaining = testRemainingForAxis(ax);
+  var maxRemaining = remaining * 2;
+  var diff = Math.abs(testScores[a] - testScores[b]);
+  return diff > maxRemaining;
+}
+
+function testShouldSkip(qIndex) {
+  return testAxisDecided(TEST_QS[qIndex].ax);
+}
+
+function testCountRemaining() {
+  var count = 0;
+  for (var i = testQueueIdx; i < testQueue.length; i++) {
+    if (!testShouldSkip(testQueue[i])) count++;
+  }
+  return count;
+}
+
+function testShowNext() {
+  while (testQueueIdx < testQueue.length && testShouldSkip(testQueue[testQueueIdx])) {
+    testQueueIdx++;
+  }
+  if (testQueueIdx >= testQueue.length) {
+    testFinish();
+    return;
+  }
+  var qi = testQueue[testQueueIdx];
+  var q = TEST_QS[qi];
+  var remaining = testCountRemaining();
+  setTimeout(function() {
+    testAddBubble(q.q, 'app');
+    testSetButtons([
+      { label: 'Yes', primary: false, action: function() { testAnswer('yes'); } },
+      { label: 'No', primary: false, action: function() { testAnswer('no'); } },
+      { label: 'In Between', primary: false, action: function() { testAnswer('between'); } },
+      { label: 'Not Sure', primary: false, action: function() { testAnswer('unsure'); } }
+    ], 'Question ' + (testAnswered + 1) + ' of ' + (testAnswered + remaining));
+  }, 400);
+}
+
+function testAnswer(choice) {
+  var qi = testQueue[testQueueIdx];
+  var q = TEST_QS[qi];
+  var labels = { yes: 'Yes', no: 'No', between: 'In Between', unsure: 'Not Sure' };
+  testAddBubble(labels[choice], 'user');
+  if (choice === 'yes') testScores[q.yes] += 2;
+  else if (choice === 'no') testScores[q.no] += 2;
+  else if (choice === 'between') { testScores[q.yes] += 1; testScores[q.no] += 1; }
+  testAnswered++;
+  testQueueIdx++;
+  document.getElementById('test-buttons-area').innerHTML = '';
+  testShowNext();
+}
+
+async function testFinish() {
+  document.getElementById('test-buttons-area').innerHTML = '';
+  testAddBubble('Calculating your type...', 'app');
+
+  var axes = [['I','E'],['N','S'],['T','F'],['J','P']];
+  var defaults = ['I','N','T','J'];
+  var resultType = '';
+  var conf = 0;
+  var axisBreakdown = {};
+
+  axes.forEach(function(pair, idx) {
+    var a = pair[0], b = pair[1];
+    var maxPossible = 12;
+    var winner, diff;
+    if (testScores[a] > testScores[b]) { winner = a; diff = testScores[a] - testScores[b]; resultType += a; }
+    else if (testScores[b] > testScores[a]) { winner = b; diff = testScores[b] - testScores[a]; resultType += b; }
+    else { winner = defaults[idx]; diff = 0; resultType += defaults[idx]; }
+    conf += diff / maxPossible * 25;
+
+    var axKey = pair.join('_');
+    axisBreakdown[axKey] = winner + '+' + diff;
+  });
+
+  conf = Math.round(conf);
+  var confLabel = conf >= 75 ? 'High' : conf >= 45 ? 'Moderate' : 'Low';
+
+  var letters = resultType.split('').map(function(l, i) {
+    return i === 0 ? '<span class="accent-letter">' + l + '</span>' : l;
+  }).join('');
+
+  testAddBubble(
+    '<div class="result-type">' + letters + '</div>' +
+    '<div style="font-family:\'DM Serif Display\',serif;font-size:18px;color:var(--muted);margin-bottom:4px">' + (TYPE_NAMES[resultType] || '') + '</div>' +
+    '<div class="result-conf">' + conf + '% confidence \u00B7 ' + confLabel + '</div>',
+    'result'
+  );
+
+  // Submit results
+  testAddBubble('Submitting your results...', 'app');
+
+  try {
+    var resp = await fetch('/.netlify/functions/create-candidate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: assessEmail,
+        type: resultType,
+        confidenceScore: conf,
+        employerId: assessData.employerId,
+        axisIE: axisBreakdown['I_E'],
+        axisNS: axisBreakdown['N_S'],
+        axisTF: axisBreakdown['T_F'],
+        axisJP: axisBreakdown['J_P']
+      })
+    });
+    var result = await resp.json();
+    if (!resp.ok) throw new Error(result.error || 'Submit failed');
+  } catch(e) {
+    console.error('Submit error:', e);
+  }
+
+  // Show completion
+  setTimeout(function() {
+    document.getElementById('assess-test-section').style.display = 'none';
+    var el = document.getElementById('assess-complete-section');
+    el.innerHTML =
+      '<div class="assess-complete">' +
+      '<h2>Assessment complete</h2>' +
+      '<p>Your results have been submitted to ' + assessData.companyName + '.</p>' +
+      '<p style="margin-top:24px;font-size:11px;color:var(--muted)">Want to explore your personality type further?</p>' +
+      '<a href="/?type=' + resultType + '" class="assess-link-btn">See your full TypeRead profile &rarr;</a>' +
+      '</div>';
+    el.style.display = 'block';
+  }, 1000);
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', loadAssessment);
+</script>
+</body>
+</html>
