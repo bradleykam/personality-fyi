@@ -57,33 +57,56 @@ exports.handler = async function(event) {
   if (secret !== SHARED_SECRET) return { statusCode: 403, headers: CORS, body: JSON.stringify({ error: 'forbidden' }) };
 
   try {
-    // 1. Fetch current file contents from GitHub (uses default branch = main)
+    // 1. First pass: ask Claude which files (from the allowlist) need to change.
+    //    Send just the list of file names + the task. No contents. Cheap prompt.
+    const fileListMsg = `INSTRUCTION:\n${task}\n\nEDITABLE FILES (you may only propose edits to these):\n${FILE_ALLOWLIST.map(p => '- ' + p).join('\n')}\n\nReturn ONLY a JSON object: { "files": ["<path>", ...] } listing which files need edits. Empty array if nothing to change.`;
+    const pickResp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 200,
+        system: 'You identify which files must change to satisfy a code task. You return ONLY a JSON object: { "files": [paths] }. No prose.',
+        messages: [{ role: 'user', content: fileListMsg }]
+      })
+    });
+    const pickData = await pickResp.json();
+    if (!pickResp.ok) {
+      return { statusCode: 502, headers: CORS, body: JSON.stringify({ error: 'anthropic(pick)', detail: pickData }) };
+    }
+    let pick;
+    try {
+      const txt = ((pickData.content||[])[0]||{}).text || '';
+      pick = JSON.parse(txt.replace(/^```(json)?/, '').replace(/```$/, '').trim());
+    } catch(e) { pick = { files: [] }; }
+    const targetPaths = (pick.files || []).filter(p => FILE_ALLOWLIST.includes(p));
+    if (targetPaths.length === 0) {
+      return { statusCode: 200, headers: { ...CORS, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ok: true, noChanges: true, summary: 'no files identified for edit' }) };
+    }
+
+    // 2. Fetch only the files Claude asked for.
     const files = {};
-    for (const path of FILE_ALLOWLIST) {
+    for (const path of targetPaths) {
       try {
         const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`, {
           headers: { 'Authorization': `Bearer ${GITHUB_TOKEN}`, 'User-Agent': 'personality-fyi-claude' }
         });
         if (!r.ok) continue;
         const j = await r.json();
-        files[path] = {
-          sha: j.sha,
-          content: Buffer.from(j.content, 'base64').toString('utf8')
-        };
-      } catch (e) {
-        console.warn('skip', path, e.message);
-      }
+        files[path] = { sha: j.sha, content: Buffer.from(j.content, 'base64').toString('utf8') };
+      } catch (e) { console.warn('skip', path, e.message); }
     }
 
-    // 2. Call Claude with strict output protocol
+    // 3. Second pass: send the task + the actual file contents. Get full rewrites.
     const system = [
       'You are personality.fyi\u2019s autonomous code editor.',
       'You receive one plain-English instruction from the site owner and a set of files.',
       'You return ONLY a raw JSON object (no prose, no markdown) matching this schema:',
       '{ "edits": [ { "path": "<file>", "new_content": "<full new file content>" } ], "summary": "<one-sentence what you did>" }',
       'Rules:',
-      '- Every edited file must appear in full \u2014 not a diff, not a patch. The new_content replaces the file entirely.',
-      '- Only edit files from the provided file list. If a change requires a new file or outside file, return edits: [] with a summary explaining why.',
+      '- Every edited file must appear in full \u2014 not a diff, not a patch. new_content replaces the file entirely.',
+      '- Only edit files provided. If a change would need a file not provided, return edits: [] with a summary explaining why.',
       '- If the instruction is ambiguous, dangerous, or destructive, return edits: [] with summary: "refused: <reason>".',
       '- Keep changes minimal. Preserve all unrelated code exactly as-is.',
       '- Never change the paywall system, the auth system, the Stripe integration, or anything under /.netlify/functions/ unless the instruction explicitly names it.',
