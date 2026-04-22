@@ -182,13 +182,100 @@ exports.handler = async function(event) {
       results.push({ path: edit.path, ok: putResp.ok, sha: putJson.content && putJson.content.sha, error: putResp.ok ? undefined : putJson.message });
     }
 
+    // 4. Directly deploy the updated tree to Netlify (bypasses GitHub-build requirement).
+    let deployResult = null;
+    try {
+      deployResult = await deployToNetlify(GITHUB_REPO, GITHUB_TOKEN, process.env.NETLIFY_PAT, process.env.NETLIFY_SITE_ID);
+    } catch (e) {
+      console.error('deployToNetlify failed:', e);
+      deployResult = { error: e.message };
+    }
+
     return {
       statusCode: 200,
       headers: { ...CORS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ok: true, summary: plan.summary, results })
+      body: JSON.stringify({ ok: true, summary: plan.summary, results, deploy: deployResult })
     };
   } catch (err) {
     console.error('claude-run error:', err);
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: err.message }) };
   }
 };
+
+// ── Netlify direct-file deploy ─────────────────────────────────────
+// Fetches the full repo tree from GitHub, uploads each file to Netlify via the
+// file-manifest deploy API. This lets us push a live deploy without needing the
+// Netlify<->GitHub OAuth integration installed.
+const crypto = require('crypto');
+
+async function deployToNetlify(repo, githubToken, netlifyToken, siteId) {
+  if (!netlifyToken || !siteId) throw new Error('Netlify credentials missing');
+
+  // 1. Get the default branch's latest tree recursively
+  const treeResp = await fetch(`https://api.github.com/repos/${repo}/git/trees/main?recursive=1`, {
+    headers: { 'Authorization': `Bearer ${githubToken}`, 'User-Agent': 'personality-fyi-claude' }
+  });
+  if (!treeResp.ok) throw new Error('github tree fetch failed: ' + treeResp.status);
+  const tree = await treeResp.json();
+  const blobs = (tree.tree || []).filter(x => x.type === 'blob');
+
+  // 2. Filter out paths we don't want to deploy (functions dir, tools dir, config files)
+  //    Netlify handles functions separately; tools are local dev; don't deploy those.
+  const EXCLUDE_PATTERNS = [
+    /^netlify\/functions\//,
+    /^tools\//,
+    /^node_modules\//,
+    /^\.github\//,
+    /^package.*\.json$/,
+    /^\.gitignore$/,
+    /^\.netlify/
+  ];
+  const includeBlobs = blobs.filter(b => !EXCLUDE_PATTERNS.some(rx => rx.test(b.path)));
+
+  // 3. Fetch each file's raw bytes and compute its sha1 (Netlify uses sha1)
+  const files = {};            // "/path" -> sha1
+  const contents = {};         // sha1 -> Buffer
+  for (const b of includeBlobs) {
+    const blobResp = await fetch(`https://api.github.com/repos/${repo}/git/blobs/${b.sha}`, {
+      headers: { 'Authorization': `Bearer ${githubToken}`, 'User-Agent': 'personality-fyi-claude' }
+    });
+    if (!blobResp.ok) { console.warn('skip blob', b.path); continue; }
+    const blobJson = await blobResp.json();
+    const buf = Buffer.from(blobJson.content || '', blobJson.encoding || 'base64');
+    const sha1 = crypto.createHash('sha1').update(buf).digest('hex');
+    files['/' + b.path] = sha1;
+    contents[sha1] = buf;
+  }
+
+  // 4. Create a deploy with the manifest
+  const createResp = await fetch(`https://api.netlify.com/api/v1/sites/${siteId}/deploys`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${netlifyToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ files, async: false })
+  });
+  const createJson = await createResp.json();
+  if (!createResp.ok) throw new Error('netlify create deploy failed: ' + JSON.stringify(createJson).slice(0, 300));
+  const deployId = createJson.id;
+  const required = createJson.required || [];
+
+  // 5. Upload each required file
+  for (const sha1 of required) {
+    // Find path for this sha1
+    const entry = Object.entries(files).find(([, v]) => v === sha1);
+    if (!entry) continue;
+    const path = entry[0];
+    const buf = contents[sha1];
+    if (!buf) continue;
+    const upResp = await fetch(`https://api.netlify.com/api/v1/deploys/${deployId}/files${path}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${netlifyToken}`, 'Content-Type': 'application/octet-stream' },
+      body: buf
+    });
+    if (!upResp.ok) {
+      const txt = await upResp.text();
+      console.warn('upload failed', path, upResp.status, txt.slice(0, 200));
+    }
+  }
+
+  return { deploy_id: deployId, uploaded: required.length, total_files: Object.keys(files).length };
+}
