@@ -32,3 +32,5 @@ User-agent: anthropic-ai
 Disallow: /
 
 Sitemap: https://personality.fyi/sitemap.xml
+
+# claude-run end-to-end test OK
