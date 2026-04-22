@@ -1,0 +1,52 @@
+# personality.fyi
+
+> Free MBTI personality platform: 60-second test, all 16 type guides, 136 compatibility pairings, 30+ career-fit pages, and an AI type advisor. Honest, specific analysis — no horoscope language, no therapy hedging.
+
+## Core product
+
+- [Take the test](https://personality.fyi/): 60-second MBTI test that analyzes writing style against patterns for each of the 16 types.
+- [All 16 types (browser)](https://personality.fyi/?tab=alltypes): filterable 16-card grid with descriptions and traits.
+- [Career Advisor](https://personality.fyi/?tab=advisor): AI chat that recommends careers calibrated to your cognitive wiring.
+- [Ask a Type](https://personality.fyi/?tab=ask): AI chat that answers questions about any of the 16 types — how they think, how they handle conflict, what drains them.
+- [Compatibility](https://personality.fyi/?tab=compat): compares any two types across all MBTI axes in plain English.
+- [Never Have I Ever](https://personality.fyi/?tab=nhie): anonymous polling that shows how each type answers life questions.
+
+## Type guides (16)
+
+- [INTJ Personality Type — The Architect](https://personality.fyi/type/intj)
+- [INTP Personality Type — The Logician](https://personality.fyi/type/intp)
+- [ENTJ Personality Type — The Commander](https://personality.fyi/type/entj)
+- [ENTP Personality Type — The Debater](https://personality.fyi/type/entp)
+- [INFJ Personality Type — The Advocate](https://personality.fyi/type/infj)
+- [INFP Personality Type — The Mediator](https://personality.fyi/type/infp)
+- [ENFJ Personality Type — The Protagonist](https://personality.fyi/type/enfj)
+- [ENFP Personality Type — The Campaigner](https://personality.fyi/type/enfp)
+- [ISTJ Personality Type — The Logistician](https://personality.fyi/type/istj)
+- [ISFJ Personality Type — The Defender](https://personality.fyi/type/isfj)
+- [ESTJ Personality Type — The Executive](https://personality.fyi/type/estj)
+- [ESFJ Personality Type — The Consul](https://personality.fyi/type/esfj)
+- [ISTP Personality Type — The Virtuoso](https://personality.fyi/type/istp)
+- [ISFP Personality Type — The Adventurer](https://personality.fyi/type/isfp)
+- [ESTP Personality Type — The Entrepreneur](https://personality.fyi/type/estp)
+- [ESFP Personality Type — The Entertainer](https://personality.fyi/type/esfp)
+
+Deeper type guides with FAQs: `/blog/[type]-personality` (e.g. [INTJ full guide](https://personality.fyi/blog/intj-personality)).
+
+## Learn
+
+- [Learn hub](https://personality.fyi/blog): index of all 16 type guides, 136 compatibility pages, 30 career guides, and 16 type comparisons.
+- Compatibility pages live at `/blog/[typeA]-[typeB]-compatibility` (alphabetical, e.g. [enfp-intj-compatibility](https://personality.fyi/blog/enfp-intj-compatibility)). All 136 pairings including same-type combinations.
+- Career pages live at `/blog/best-personality-types-for-[career]`. Examples: [software engineering](https://personality.fyi/blog/best-personality-types-for-software-engineering), [finance](https://personality.fyi/blog/best-personality-types-for-finance), [medicine](https://personality.fyi/blog/best-personality-types-for-medicine).
+- Comparison pages live at `/blog/[typeA]-vs-[typeB]`. Examples: [INTJ vs ENTJ](https://personality.fyi/blog/intj-vs-entj), [INFP vs INFJ](https://personality.fyi/blog/infp-vs-infj).
+
+## About the site
+
+- [About](https://personality.fyi/about): how the analysis works, who runs the site, stance on MBTI's scientific limits.
+- [Privacy](https://personality.fyi/privacy): data handling, no tracking, data deletion process.
+- [Terms](https://personality.fyi/terms): subscription and AI output disclaimers.
+- [Contact](https://personality.fyi/contact): hello@personality.fyi.
+
+## Optional
+
+- [Sitemap](https://personality.fyi/sitemap.xml): all 216 indexed URLs.
+- [Robots](https://personality.fyi/robots.txt): crawler directives. AI retrieval bots (ChatGPT-User, PerplexityBot, ClaudeBot, OAI-SearchBot) are allowed. Training bots (GPTBot, CCBot, Google-Extended, anthropic-ai) are blocked.

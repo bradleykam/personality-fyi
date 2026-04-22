@@ -1423,12 +1423,20 @@ function renderCompatPage(t1, t2) {
   const slug = pairSlug(t1, t2) + '-compatibility';
   const url = 'https://personality.fyi/blog/' + slug;
   const isStrong = score >= 70;
+  const sameType = t1 === t2;
 
-  const verdict = isStrong
+  const verdict = sameType
+    ? `Two ${t1}s together score ${score}/100. Same-type pairings run smoothly at the surface \u2014 shared language, shared cognitive rhythm \u2014 but can amplify each other's blind spots instead of counterbalancing them.`
+    : isStrong
     ? `${t1}s and ${t2}s are ${tier.label} (${score}/100). They complement each other's cognitive functions and rarely generate chronic friction.`
     : `${t1}s and ${t2}s are ${tier.label} (${score}/100). The clash is usually ${score < 50 ? 'values-based or energy-based' : 'style-based'} \u2014 workable with deliberate effort, exhausting without it.`;
 
-  const strengths = isStrong ? [
+  const strengths = sameType ? [
+    `Instant rapport and shared cognitive language \u2014 neither has to translate.`,
+    `Common values and priorities; fewer "why are you like this" moments.`,
+    `When both are at their best, they reinforce each other's ${d1.strengths.toLowerCase().split(',')[0]}.`,
+    `Low friction on day-to-day coordination and decision style.`
+  ] : isStrong ? [
     `Shared or complementary cognitive rhythm \u2014 ${t1}s' ${d1.strengths.toLowerCase()} meshes with ${t2}s' ${d2.strengths.toLowerCase()}.`,
     `Lower coordination cost: both types generally read each other's signals without translation.`,
     `Each type's blind spots tend to be covered by the other's strengths, so joint decisions are usually stronger than either alone.`,
@@ -1440,7 +1448,12 @@ function renderCompatPage(t1, t2) {
     `With explicit norms (meeting cadence, decision ownership), the pair can be durable.`
   ];
 
-  const frictions = isStrong ? [
+  const frictions = sameType ? [
+    `Shared blind spots amplify: ${d1.shadow.toLowerCase()} \u2014 neither will catch the other doing it.`,
+    `Shared sensitivities to ${d1.drains.toLowerCase()} \u2014 when both are drained at the same time, no one holds the room.`,
+    `Group dynamics get lopsided: two ${t1}s can drift into an echo chamber without realizing.`,
+    `When things go sideways, both default to the same shadow behavior, compounding the problem.`
+  ] : isStrong ? [
     `Overlap zones: when they're too similar, neither compensates for the other's blind spots.`,
     `Both may reinforce each other's patterns rather than challenge them \u2014 e.g. both avoiding a hard conversation.`,
     `In group settings, they can read as a closed unit and miss other perspectives.`,
@@ -1452,15 +1465,24 @@ function renderCompatPage(t1, t2) {
     `Under stress, ${t1}s default to "${d1.shadow.toLowerCase().split(',')[0]}" while ${t2}s default to "${d2.shadow.toLowerCase().split(',')[0]}" \u2014 neither response lands well.`
   ];
 
-  const workplace = isStrong
+  const workplace = sameType
+    ? `<strong>As coworkers:</strong> Two ${t1}s can sprint together but risk tunnel vision. Bring in a contrasting type for any big decision. <strong>As manager/report:</strong> The manager understands the report intuitively \u2014 which is both a shortcut and a trap. Without deliberate feedback, same-type dynamics can drift into unspoken assumptions.`
+    : isStrong
     ? `<strong>As coworkers:</strong> Split the work along their strengths and the output is typically better than sum-of-parts. <strong>As manager/report:</strong> Either direction works. The manager gets honest pushback; the report gets clear expectations.`
     : `<strong>As coworkers:</strong> Works best when roles are clearly separated and the axis they differ on doesn't force daily negotiation. <strong>As manager/report:</strong> The ${t1[0] === 'E' ? t1 : t2} generally leads more naturally. The report needs explicit norms about communication cadence.`;
 
-  const romance = isStrong
+  const romance = sameType
+    ? `Romantically, two ${t1}s understand each other without translation, which is its own kind of intimacy. The risk is that nobody ever challenges the shared worldview \u2014 ${t1}s in long-term same-type relationships should actively seek outside perspective to avoid an echo chamber.`
+    : isStrong
     ? `Romantically, this is a pairing that tends to deepen over time rather than flame out. The cognitive rhythm means fewer "lost in translation" moments, though neither type is exempt from the usual relationship maintenance.`
     : `Romantically, this pairing either forces real growth or quietly wears people down. The difference is whether both partners are willing to name the friction out loud. If they are, the relationship can thrive; if they aren't, it drifts.`;
 
-  const tips = isStrong ? [
+  const tips = sameType ? [
+    `Deliberately surround yourselves with other types \u2014 don't become a two-person echo chamber.`,
+    `Watch for shared blind spots. Ask a trusted outsider to gut-check major decisions.`,
+    `Don't mistake shared worldview for shared values \u2014 check in explicitly.`,
+    `Play to your type's opposite-direction growth edge: force yourselves to practice what ${t1}s typically avoid.`
+  ] : isStrong ? [
     `Don't confuse easy for effortless. Check in on the basics even when nothing is wrong.`,
     `Use your complementary strengths on high-stakes decisions \u2014 talk it through rather than assume alignment.`,
     `Watch for groupthink: your similarity can turn into an echo chamber.`,
@@ -1731,7 +1753,207 @@ const CAREER_PAGES = {
       { type: 'ESFP', why: 'The paperwork volume and adversarial structure clash with their in-the-moment style.' },
       { type: 'INFP', why: 'Adversarial work often grates on their values; better in public-interest or policy law.' }
     ]
-  }
+  },
+  'finance': { title: 'Finance', best: [
+      { type: 'INTJ', why: 'Strategic long-term thinking; shines in corporate finance, FP&A, and portfolio strategy.' },
+      { type: 'INTP', why: 'Quantitative modeling and valuation work \u2014 the analyst\'s analyst.' },
+      { type: 'ISTJ', why: 'Controllership, treasury, and compliance-heavy roles \u2014 precision matters.' },
+      { type: 'ENTJ', why: 'CFO and finance leadership \u2014 runs the function, owns the numbers, drives decisions.' },
+      { type: 'ESTJ', why: 'Operational finance and FP&A management \u2014 process, deadlines, accountability.' }
+    ], struggle: [
+      { type: 'ESFP', why: 'Too much solo modeling without enough real-time human energy.' },
+      { type: 'INFP', why: 'Values misalignment in some corporate finance work grinds them down.' }
+    ] },
+  'accounting': { title: 'Accounting', best: [
+      { type: 'ISTJ', why: 'The archetype: detail-obsessed, rule-bound, consistent. Audit and tax are home turf.' },
+      { type: 'INTJ', why: 'Strategic tax and high-complexity consulting engagements.' },
+      { type: 'ESTJ', why: 'Controller and audit-partner track \u2014 runs the process, enforces standards.' },
+      { type: 'ISFJ', why: 'Client-facing accounting where trust and thoroughness build long-term relationships.' },
+      { type: 'INTP', why: 'Forensic accounting and technical research \u2014 pattern recognition in the data.' }
+    ], struggle: [
+      { type: 'ENFP', why: 'The repetition and narrow-focus work is the anti-ENFP work diet.' },
+      { type: 'ESTP', why: 'Deadlines without adrenaline, meetings without stakes \u2014 bored in a quarter.' }
+    ] },
+  'investment-banking': { title: 'Investment Banking', best: [
+      { type: 'ENTJ', why: 'Deal team lead, managing director track \u2014 command presence and client-facing strategy.' },
+      { type: 'INTJ', why: 'Coverage and advisory work \u2014 strategic long-term client relationships.' },
+      { type: 'ESTJ', why: 'Process-driven execution; keeps the deal on track through endless iterations.' },
+      { type: 'INTP', why: 'Valuation and technical modeling \u2014 they find the numbers the deal turns on.' },
+      { type: 'ENTP', why: 'Originator / rainmaker role \u2014 reading markets and pitching bold angles.' }
+    ], struggle: [
+      { type: 'INFP', why: 'The 80-hour weeks chasing deals you can\'t emotionally invest in corrode their meaning.' },
+      { type: 'ISFP', why: 'Political environment and deal-grinding culture clash with their authenticity orientation.' }
+    ] },
+  'ux-design': { title: 'UX Design', best: [
+      { type: 'INFJ', why: 'Deep empathy for users + pattern-seeking across research \u2014 the researcher-designer archetype.' },
+      { type: 'INFP', why: 'Values-driven work that centers user experience. Advocates for the person using the product.' },
+      { type: 'INTJ', why: 'Systems-level UX \u2014 information architecture, design systems, strategic UX leadership.' },
+      { type: 'ENFP', why: 'Generative ideation, great at user interviews, brings warmth to usability testing.' },
+      { type: 'ISFJ', why: 'Patient, detail-focused, delivers interfaces that genuinely care about users.' }
+    ], struggle: [
+      { type: 'ESTJ', why: 'UX ambiguity frustrates their need for defined outcomes; better in design ops leadership.' },
+      { type: 'ESTP', why: 'The long research cycles don\'t match their in-the-moment energy.' }
+    ] },
+  'graphic-design': { title: 'Graphic Design', best: [
+      { type: 'ISFP', why: 'Aesthetic sensibility + craft focus + quiet creative autonomy \u2014 the classic designer.' },
+      { type: 'INFP', why: 'Emotive, story-driven visual work. Brand identity, editorial, illustration.' },
+      { type: 'ENFP', why: 'Fast-moving creative studios \u2014 brings energy, ideas, and range.' },
+      { type: 'INTJ', why: 'Design systems and strategic brand work \u2014 structure + aesthetic.' },
+      { type: 'INFJ', why: 'Concept-driven visual identity and mission-led brand design.' }
+    ], struggle: [
+      { type: 'ESTJ', why: 'Creative ambiguity and feedback cycles chafe against their need for defined process.' },
+      { type: 'ISTJ', why: 'Too much aesthetic judgment and not enough clear rules; better in production design.' }
+    ] },
+  'writing': { title: 'Writing', best: [
+      { type: 'INFP', why: 'Meaning-making through language; fiction, essays, poetry \u2014 writing is their native medium.' },
+      { type: 'INFJ', why: 'Long-form nonfiction with psychological depth. Ghostwriting, biography, essay.' },
+      { type: 'INTJ', why: 'Structured nonfiction: business, strategy, systems writing. Publishing-track authors.' },
+      { type: 'INTP', why: 'Technical writing, philosophy, and deep-dive analysis pieces.' },
+      { type: 'ENFP', why: 'Magazine features, creative nonfiction, culture pieces \u2014 range + voice.' }
+    ], struggle: [
+      { type: 'ESTP', why: 'Solo, deadline-driven, no real-time feedback \u2014 kills their flow.' },
+      { type: 'ESFJ', why: 'Writing isolation conflicts with their need for ongoing social feedback.' }
+    ] },
+  'journalism': { title: 'Journalism', best: [
+      { type: 'ENTP', why: 'Investigative work \u2014 contrarian instincts, fast pattern-matching, willing to challenge power.' },
+      { type: 'INFJ', why: 'Long-form feature writing; the human-story journalist.' },
+      { type: 'INTJ', why: 'Data journalism and strategic beat reporting \u2014 connects dots across time.' },
+      { type: 'ENFP', why: 'Culture, profile, and trend coverage; natural at interviews.' },
+      { type: 'ENTJ', why: 'Editor-in-chief and bureau chief roles \u2014 runs the newsroom.' }
+    ], struggle: [
+      { type: 'ISFJ', why: 'The confrontation and deadline pressure of hard news can be wearing.' },
+      { type: 'ISFP', why: 'Public-facing adversarial work rubs against their authenticity orientation.' }
+    ] },
+  'human-resources': { title: 'Human Resources', best: [
+      { type: 'ENFJ', why: 'People development and culture work \u2014 the archetype HR leader.' },
+      { type: 'ESFJ', why: 'Employee relations and benefits admin \u2014 warm, organized, attentive to individuals.' },
+      { type: 'INFJ', why: 'Organizational development and coaching \u2014 diagnoses team dynamics accurately.' },
+      { type: 'ISFJ', why: 'Employee support and compliance-focused HR \u2014 reliable and detail-oriented.' },
+      { type: 'ENTJ', why: 'CHRO and HR-business-partner track \u2014 strategic people operations.' }
+    ], struggle: [
+      { type: 'INTP', why: 'Heavy interpersonal load with ambiguous outcomes drains their cognitive energy.' },
+      { type: 'ESTP', why: 'The process-heavy compliance side bores them; better in talent acquisition.' }
+    ] },
+  'real-estate': { title: 'Real Estate', best: [
+      { type: 'ESFJ', why: 'Residential sales \u2014 relationship-heavy, service-oriented, high-touch clients.' },
+      { type: 'ESTP', why: 'Deal-making energy, fast decisions, comfortable with negotiation stakes.' },
+      { type: 'ENTJ', why: 'Commercial development, fund management, brokerage leadership.' },
+      { type: 'ENFJ', why: 'Client-relationship-led agent and team leader.' },
+      { type: 'ENFP', why: 'Boutique residential and creative commercial agents \u2014 storytelling sells homes.' }
+    ], struggle: [
+      { type: 'INTP', why: 'The relationship maintenance and sales performance drain their cognitive focus.' },
+      { type: 'INFP', why: 'High-pressure sales environments can clash with their values orientation.' }
+    ] },
+  'medicine': { title: 'Medicine', best: [
+      { type: 'ISTJ', why: 'Internal medicine, primary care \u2014 systematic, thorough, reliable with patients over years.' },
+      { type: 'INTJ', why: 'Specialist and research-track medicine \u2014 diagnostic complexity and long-range treatment.' },
+      { type: 'ISFJ', why: 'Pediatrics, family medicine, and palliative care \u2014 warm, patient-centered, detail-driven.' },
+      { type: 'INFJ', why: 'Psychiatry and narrative medicine \u2014 deep understanding of individual patients.' },
+      { type: 'ISTP', why: 'Emergency medicine, surgery, trauma \u2014 calm under pressure, precise hands.' }
+    ], struggle: [
+      { type: 'ENFP', why: 'Rigid protocols drain their energy; often thrives in telehealth or specialty niches.' },
+      { type: 'ESTP', why: 'Can thrive in ER/trauma, but standard clinical medicine can bore them.' }
+    ] },
+  'psychology': { title: 'Psychology and Therapy', best: [
+      { type: 'INFJ', why: 'The archetype therapist. Deep attunement, pattern-seeking, caring without burning out fast.' },
+      { type: 'INFP', why: 'Values-centered therapy and creative modalities (art therapy, trauma-informed work).' },
+      { type: 'ENFJ', why: 'Group therapy and organizational psychology \u2014 coaching, leadership development.' },
+      { type: 'INTJ', why: 'Research psychology and diagnostic-track clinical work.' },
+      { type: 'ENFP', why: 'Youth psychology, coaching, and community-based therapy.' }
+    ], struggle: [
+      { type: 'ESTJ', why: 'Process-oriented mind struggles with unstructured emotional work.' },
+      { type: 'ESTP', why: 'Long client arcs with no external stakes clash with their action orientation.' }
+    ] },
+  'social-work': { title: 'Social Work', best: [
+      { type: 'INFJ', why: 'Mission-driven, deep empathy, pattern-seeing with at-risk populations.' },
+      { type: 'INFP', why: 'Values-centered advocacy work; case management in nonprofits.' },
+      { type: 'ENFJ', why: 'Program leadership and community organizing.' },
+      { type: 'ISFJ', why: 'Patient, consistent, warm caseworkers who build trust with clients over years.' },
+      { type: 'ENFP', why: 'Community outreach and youth-focused social work.' }
+    ], struggle: [
+      { type: 'INTP', why: 'High emotional load with ambiguous outcomes burns them out.' },
+      { type: 'ESTP', why: 'Slow systemic change doesn\'t match their action-first style.' }
+    ] },
+  'architecture': { title: 'Architecture', best: [
+      { type: 'INTJ', why: 'Strategic design, master planning, firm principal track.' },
+      { type: 'ISFP', why: 'Residential and aesthetic-led architecture \u2014 craft + sensibility.' },
+      { type: 'INTP', why: 'Computational design, structural research, theoretical work.' },
+      { type: 'INFJ', why: 'Community and mission-led architecture \u2014 libraries, hospitals, schools.' },
+      { type: 'ISTJ', why: 'Construction documentation and code-compliance-heavy work; detail-perfect.' }
+    ], struggle: [
+      { type: 'ESTP', why: 'Long project cycles without real-time stakes frustrate them.' },
+      { type: 'ESFP', why: 'Too much solo technical work and not enough people energy.' }
+    ] },
+  'research-science': { title: 'Research Science', best: [
+      { type: 'INTP', why: 'The classic researcher: deep, independent, hypothesis-driven, tolerant of ambiguity.' },
+      { type: 'INTJ', why: 'Principal investigator track \u2014 strategic research programs, grant-winning visionaries.' },
+      { type: 'ISTJ', why: 'Experimental rigor, lab management, detailed protocol work.' },
+      { type: 'INFJ', why: 'Social sciences, qualitative research, research with strong ethical dimensions.' },
+      { type: 'ENTP', why: 'Industrial R&D and commercial research \u2014 connects science to application.' }
+    ], struggle: [
+      { type: 'ESFP', why: 'Multi-year experiments with abstract outcomes clash with their in-the-moment style.' },
+      { type: 'ESFJ', why: 'Solo work + uncertain outcomes drain their social energy.' }
+    ] },
+  'operations': { title: 'Operations and Supply Chain', best: [
+      { type: 'ESTJ', why: 'Classic ops leader \u2014 process, accountability, on-time delivery.' },
+      { type: 'ISTJ', why: 'Meticulous process ownership, compliance, supply chain precision.' },
+      { type: 'ENTJ', why: 'VP Ops, COO track \u2014 strategic operations at scale.' },
+      { type: 'INTJ', why: 'Ops strategy and supply chain optimization \u2014 systems thinking.' },
+      { type: 'ISTP', why: 'Field ops, logistics, and hands-on problem-solving.' }
+    ], struggle: [
+      { type: 'ENFP', why: 'The repetition and process discipline drain their creative energy.' },
+      { type: 'INFP', why: 'Operational tradeoffs (speed vs quality vs cost) can grate against their values.' }
+    ] },
+  'customer-success': { title: 'Customer Success', best: [
+      { type: 'ENFJ', why: 'Relationship-led success management \u2014 builds trust, reads clients, renews.' },
+      { type: 'ESFJ', why: 'Service-oriented and detail-attentive \u2014 the CSM who remembers everything.' },
+      { type: 'ENFP', why: 'High-touch consultative CS \u2014 energetic, connector, champion internally for clients.' },
+      { type: 'INFJ', why: 'Strategic CS and customer marketing \u2014 deep understanding of client goals.' },
+      { type: 'ENTJ', why: 'VP Customer Success track \u2014 scaling the function, driving expansion.' }
+    ], struggle: [
+      { type: 'INTP', why: 'Constant customer-facing work without depth drains their cognitive focus.' },
+      { type: 'ISTP', why: 'Relationship-management cadence feels like performance; better in solutions engineering.' }
+    ] },
+  'project-management': { title: 'Project Management', best: [
+      { type: 'ESTJ', why: 'The archetype: deadline enforcement, process discipline, stakeholder wrangling.' },
+      { type: 'ENTJ', why: 'Program management and PMO leadership \u2014 strategic delivery.' },
+      { type: 'ISTJ', why: 'Detail-obsessed PM \u2014 risk registers, status reports, nothing falls through.' },
+      { type: 'ENFJ', why: 'Stakeholder-heavy projects where relationships drive delivery.' },
+      { type: 'ENTP', why: 'Agile product delivery and zero-to-one initiatives \u2014 reframes the plan as needed.' }
+    ], struggle: [
+      { type: 'INFP', why: 'The politics and constant stakeholder negotiation grind against their values.' },
+      { type: 'INTP', why: 'Meeting-heavy PM work leaves no time for depth; better in technical PM roles.' }
+    ] },
+  'cybersecurity': { title: 'Cybersecurity', best: [
+      { type: 'INTP', why: 'Pure researcher profile \u2014 malware analysis, cryptography, exploit research.' },
+      { type: 'INTJ', why: 'Security architecture and CISO track \u2014 strategic long-horizon thinking.' },
+      { type: 'ISTP', why: 'Red-team operations, penetration testing, incident response \u2014 hands-on, calm under pressure.' },
+      { type: 'ISTJ', why: 'GRC (governance, risk, compliance), audit, and policy-driven security roles.' },
+      { type: 'ENTJ', why: 'Executive security leadership \u2014 building programs, managing risk at org level.' }
+    ], struggle: [
+      { type: 'ESFP', why: 'Solo technical deep work with delayed payoff clashes with their energy style.' },
+      { type: 'ENFP', why: 'Rigorous defensive mindset can feel constraining; better in security awareness roles.' }
+    ] },
+  'devops': { title: 'DevOps', best: [
+      { type: 'ISTP', why: 'Pragmatic, hands-on, troubleshoot-first \u2014 the archetype SRE.' },
+      { type: 'INTJ', why: 'Platform engineering and infrastructure architecture \u2014 systems-level thinking.' },
+      { type: 'INTP', why: 'Automation engineering \u2014 finds the right abstraction and builds the tooling.' },
+      { type: 'ISTJ', why: 'Reliability engineering and on-call discipline; processes and runbooks.' },
+      { type: 'ENTJ', why: 'Engineering leadership over platform and infrastructure orgs.' }
+    ], struggle: [
+      { type: 'ESFP', why: 'Quiet alerts-driven work doesn\'t match their high-energy style.' },
+      { type: 'ESFJ', why: 'Too little user-facing relationship work; better in developer experience.' }
+    ] },
+  'executive-leadership': { title: 'Executive Leadership', best: [
+      { type: 'ENTJ', why: 'Born CEO profile \u2014 commander, decisive, comfortable with power and scrutiny.' },
+      { type: 'INTJ', why: 'Vision-led founder/CEO \u2014 long-horizon, strategic, introverted leader archetype.' },
+      { type: 'ESTJ', why: 'COO and operational CEO \u2014 runs the machine, holds people accountable.' },
+      { type: 'ENFJ', why: 'Mission-driven CEO \u2014 builds culture, rallies teams, values alignment.' },
+      { type: 'ENTP', why: 'Founder/CEO of fast-growing companies \u2014 reframes market, out-hustles incumbents.' }
+    ], struggle: [
+      { type: 'ISFP', why: 'Public-facing authority role conflicts with their authenticity orientation.' },
+      { type: 'INFP', why: 'The political maneuvering required at the top can corrode their values over time.' }
+    ] }
 };
 
 function renderCareerPage(slug) {
@@ -1837,7 +2059,27 @@ function careerGeneralTraits(slug) {
     'nursing': 'emotional stamina, physical stamina, attention to detail under fatigue, and the ability to compartmentalize without going numb',
     'teaching': 'patience on a six-hour window, attunement to individual kids, lesson-design creativity, and strong boundaries with administrative overhead',
     'entrepreneurship': 'high risk tolerance, resilience through setbacks, fundraising/selling fluency, and the ability to hire people better than you',
-    'law': 'precision with language, argumentative stamina, deep reading endurance, and emotional control under adversarial pressure'
+    'law': 'precision with language, argumentative stamina, deep reading endurance, and emotional control under adversarial pressure',
+    'finance': 'quantitative fluency, comfort with ambiguity in valuation, intellectual honesty about your own mistakes, and stress tolerance under volatility',
+    'accounting': 'meticulous attention to detail, comfort with repetition, strong ethics, and ability to explain complex rules to non-specialists',
+    'investment-banking': 'stamina for 80-hour weeks, precision under pressure, calm client presence, and tolerance for hierarchy',
+    'ux-design': 'genuine curiosity about people, comfort with ambiguous research, design-taste judgment, and an ability to translate findings into defensible decisions',
+    'graphic-design': 'visual judgment, speed of iteration, ability to take direction without losing your voice, and craft discipline',
+    'writing': 'daily practice, willingness to rewrite, taste shaped by reading widely, and the ability to sit with not-knowing for a long time',
+    'journalism': 'persistence chasing sources, skepticism of official narratives, calm under deadline, and the ability to write clearly under pressure',
+    'human-resources': 'genuine interest in people dynamics, legal literacy, emotional composure during difficult conversations, and strong boundaries',
+    'real-estate': 'resilience after a dozen "no"s, local market knowledge, ethical discipline, and patience to build a referral pipeline over years',
+    'medicine': 'emotional stamina, physical stamina, attention to detail under fatigue, and the ability to compartmentalize without going numb',
+    'psychology': 'presence and genuine attentiveness, the capacity to hold others\' pain without absorbing it, strong boundaries, and ongoing supervision',
+    'social-work': 'emotional resilience, systems-level thinking, calm under client crisis, and the ability to keep showing up for slow-moving cases',
+    'architecture': 'visual-spatial reasoning, comfort with long project cycles, client-management patience, and rigor with building codes',
+    'research-science': 'stubborn curiosity, disciplined experimental design, stamina for multi-year projects, and the ability to be wrong in public',
+    'operations': 'systems thinking, cross-functional coordination, obsessive attention to metrics, and resilience under constant incidents',
+    'customer-success': 'empathy that scales, analytical rigor on usage data, the ability to internally champion clients, and persistence on renewals',
+    'project-management': 'calm under chaos, clear written communication, comfort chasing people for status, and willingness to make unpopular calls',
+    'cybersecurity': 'adversarial mindset, patience for boring vigilance work, deep technical curiosity, and calm under incident response',
+    'devops': 'systems thinking, stoicism through 3AM pages, discipline on documentation, and willingness to automate yourself out of every boring task',
+    'executive-leadership': 'decisiveness under incomplete information, willingness to be disliked, ability to hire better than yourself, and tolerance for constant scrutiny'
   };
   return map[slug] || 'strong focus, craft discipline, and adaptability';
 }
@@ -2079,6 +2321,263 @@ function flipQuestion(axisIndex) {
   return map[axisIndex];
 }
 
+// ── /type/[slug] standalone pages (600-900 words each, SEO-focused) ──
+
+// Maps each type to 3 relevant career pages (use slugs from CAREER_PAGES).
+function relevantCareers(type) {
+  // Find career pages where this type appears in `best`
+  const matches = [];
+  for (const slug of Object.keys(CAREER_PAGES)) {
+    const d = CAREER_PAGES[slug];
+    if (d.best.some(b => b.type === type)) {
+      matches.push({ slug, title: d.title, rank: d.best.findIndex(b => b.type === type) });
+    }
+  }
+  matches.sort((a, b) => a.rank - b.rank);
+  return matches.slice(0, 4);
+}
+
+function renderTypeSlugPage(type) {
+  const name = TYPE_NAMES[type];
+  const d = TYPE_DESCS[type];
+  const url = 'https://personality.fyi/type/' + type.toLowerCase();
+  const sibling = CLOSEST_TYPE[type];
+  const bestMatches = topCompat(type, 3, true);
+  const friction = topCompat(type, 3, false);
+  const famous = FAMOUS[type];
+  const bestCareersText = BEST_CAREERS[type].slice(0, 6).map(c => c[0]).join(', ');
+  const careerPages = relevantCareers(type);
+
+  const desc = `${type} (${name}) personality: traits, best careers, compatibility, and what makes ${type}s tick. Take the free 60-second test to confirm your type.`;
+
+  const faqs = [
+    {
+      q: `What is ${type}?`,
+      a: `${type} (${name}) is one of the 16 Myers\u2013Briggs personality types. ${d.cognitive} At their best, ${type}s are ${d.strengths.toLowerCase()}. ${rarityAnswer(type)}`
+    },
+    {
+      q: `What careers suit ${type}?`,
+      a: `${type}s do best in work that rewards ${d.strengths.toLowerCase()} and avoids ${d.drains.toLowerCase()}. Common strong-fit roles include ${bestCareersText}.`
+    },
+    {
+      q: `What is ${type} compatibility?`,
+      a: `${type}s tend to click best with ${bestMatches.map(m => m.type).join(', ')}. The most common friction pairings are with ${friction.map(m => m.type).join(', ')}. Compatibility in MBTI is about cognitive-function fit, not a prediction of relationship success on its own.`
+    },
+    {
+      q: `Are ${type}s rare?`,
+      a: rarityAnswer(type)
+    },
+    {
+      q: `What does ${type} stand for?`,
+      a: `The four letters describe four preferences: ${type[0]} = ${type[0] === 'I' ? 'Introverted' : 'Extraverted'} (where you get energy), ${type[1]} = ${type[1] === 'N' ? 'Intuitive (pattern-first)' : 'Sensing (detail-first)'}, ${type[2]} = ${type[2] === 'T' ? 'Thinking (logic-first)' : 'Feeling (values-first)'}, ${type[3]} = ${type[3] === 'J' ? 'Judging (closure-seeking)' : 'Perceiving (options-open)'}.`
+    }
+  ];
+
+  const today = new Date().toISOString().slice(0, 10);
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } }))
+  };
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: `${type}: The ${name.replace(/^The\s+/, '')}`,
+    description: desc,
+    url: url,
+    datePublished: today,
+    dateModified: today,
+    author: { '@type': 'Organization', name: 'personality.fyi' },
+    publisher: { '@type': 'Organization', name: 'personality.fyi', url: 'https://personality.fyi' }
+  };
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://personality.fyi/' },
+      { '@type': 'ListItem', position: 2, name: `${type} Personality` }
+    ]
+  };
+
+  const body = `
+  <section>
+    <h2>Overview</h2>
+    <p><strong>${type} (${name})</strong> is one of the 16 Myers\u2013Briggs personality types. ${d.cognitive} At their best, ${type}s are ${d.strengths.toLowerCase()}. At their worst, they default to the ${type} shadow pattern: ${d.shadow.toLowerCase()}</p>
+    <p>Understanding ${type} well means holding both sides at once \u2014 the strengths that make them valuable and the blind spots that show up when they\u2019re stressed, tired, or asked to operate outside their wiring. This guide covers both.</p>
+  </section>
+
+  <section>
+    <h2>Core traits</h2>
+    <ul class="blog-bullets">
+      <li><strong>Cognitive style:</strong> ${d.cognitive}</li>
+      <li><strong>Social energy:</strong> ${type.startsWith('E') ? 'Extraverted \u2014 energized by people and external stimulation.' : 'Introverted \u2014 recharges alone; selective about social exposure.'}</li>
+      <li><strong>Information processing:</strong> ${type[1] === 'N' ? 'iNtuitive \u2014 leads with pattern and abstraction; reads implications.' : 'Sensing \u2014 leads with detail and concrete evidence; reads what\u2019s actually there.'}</li>
+      <li><strong>Decision criteria:</strong> ${type[2] === 'T' ? 'Thinking \u2014 decides by logic first; evidence before empathy.' : 'Feeling \u2014 decides by values first; impact on people before abstract logic.'}</li>
+      <li><strong>Lifestyle structure:</strong> ${type[3] === 'J' ? 'Judging \u2014 seeks closure; plans ahead; moves toward resolution.' : 'Perceiving \u2014 keeps options open; adapts on the fly; resists premature commitment.'}</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Strengths and blind spots</h2>
+    <p><strong>Strengths:</strong> ${d.strengths}. These show up most visibly in environments that reward ${type.startsWith('E') ? 'direct engagement' : 'depth and focus'} and ${type[3] === 'J' ? 'execution and follow-through' : 'flexibility and pattern-recognition'}.</p>
+    <p><strong>Blind spots:</strong> ${d.shadow}. These tend to surface under stress, in environments that demand exactly what the ${type} finds draining. Self-aware ${type}s manage them with structure, external feedback, and recovery time.</p>
+    <p><strong>Drained by:</strong> ${d.drains}. If a role or relationship forces a ${type} to live in these zones daily, the mismatch usually manifests as chronic fatigue rather than an obvious problem.</p>
+  </section>
+
+  <section>
+    <h2>Best careers for ${type}</h2>
+    <p>${type}s thrive in work that plays to their cognitive wiring. Strong-fit roles include <strong>${bestCareersText}</strong>.</p>
+    <p>For deep-dives on specific careers where ${type}s show up as top-ranked fits:</p>
+    <ul class="blog-bullets">
+      ${careerPages.map(c => `<li><a href="/blog/best-personality-types-for-${c.slug}">Best personality types for ${c.title}</a></li>`).join('\n      ')}
+    </ul>
+    <p>See the <a href="/blog/${type.toLowerCase()}-personality">full ${type} career guide</a> for a ranked list of 10+ strong-fit roles with reasoning.</p>
+  </section>
+
+  <section>
+    <h2>${type} compatibility overview</h2>
+    <p><strong>Best matches:</strong> ${bestMatches.map(m => m.type).join(', ')}. These pairings share or complement the ${type}\u2019s cognitive rhythm and tend to deepen over time.</p>
+    <p><strong>Friction pairings:</strong> ${friction.map(m => m.type).join(', ')}. These aren\u2019t dealbreakers, but they require more deliberate communication than naturally compatible pairings.</p>
+    <p>Detailed compatibility breakdowns:</p>
+    <ul class="blog-bullets">
+      ${bestMatches.map(m => `<li><a href="/blog/${pairSlug(type, m.type)}-compatibility">${type} + ${m.type} compatibility</a> (${m.score}/100)</li>`).join('\n      ')}
+      ${friction.slice(0, 1).map(m => `<li><a href="/blog/${pairSlug(type, m.type)}-compatibility">${type} + ${m.type} compatibility</a> (${m.score}/100 \u2014 friction)</li>`).join('\n      ')}
+    </ul>
+    <p>Also: <a href="/blog/${type.toLowerCase()}-vs-${sibling.toLowerCase()}">how ${type} differs from ${sibling}</a> \u2014 the types most commonly confused with ${type}.</p>
+  </section>
+
+  <section>
+    <h2>Famous ${type}s</h2>
+    <p>Public figures commonly typed as ${type} (based on widely-cited community typings, not official assessments): <strong>${famous.slice(0, 6).join(', ')}</strong>.</p>
+  </section>
+
+  <section class="blog-cta">
+    <h2>Think you might be a ${type}?</h2>
+    <p>Take the free 60-second personality test and find out. It analyzes your word choice and phrasing against patterns for each of the 16 types \u2014 no long surveys, no horoscope language.</p>
+    <a href="/" class="blog-cta-btn">Take the test \u2192</a>
+  </section>`;
+
+  return renderBlogShell({
+    title: `${type} Personality Type \u2014 Traits, Careers & Compatibility | personality.fyi`,
+    description: desc,
+    canonicalUrl: url,
+    h1: `${type}: The ${name.replace(/^The\s+/, '')}`,
+    metaLine: `${type} (${name}) \u00B7 Updated ${today}`,
+    schemas: [breadcrumb, faqSchema, articleSchema],
+    body: body
+  });
+}
+
+// ── Hub pages: /blog/compatibility, /blog/careers, /blog/comparisons ──
+// Single-section indexes. Each page lists only its vertical, with
+// tight copy + canonical tag, for better topical authority.
+
+function renderCompatibilityHub(compatPairs) {
+  const url = 'https://personality.fyi/blog/compatibility';
+  const items = compatPairs.map(pair => {
+    const slug = pairSlug(pair[0], pair[1]) + '-compatibility';
+    const score = COMPAT[pair[0]][pair[1]];
+    return `<article class="blog-index-item" data-types="${pair[0]},${pair[1]}">
+      <h3><a href="/blog/${slug}">${pair[0]} and ${pair[1]} Compatibility</a></h3>
+      <p class="blog-index-excerpt">${score}/100 \u2014 ${compatTier(score).label}.</p>
+    </article>`;
+  }).join('\n');
+
+  const breadcrumb = {
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://personality.fyi/' },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://personality.fyi/blog' },
+      { '@type': 'ListItem', position: 3, name: 'Compatibility' }
+    ]
+  };
+
+  const body = `
+  <p class="blog-intro">Every unordered pairing of the 16 MBTI types, with a compatibility score, the strengths and friction points of the pairing, and tips for making it work. ${compatPairs.length} guides total.</p>
+  <div class="blog-index-list">${items}</div>`;
+
+  return renderBlogShell({
+    title: 'MBTI Compatibility: All 136 Type Pairings | personality.fyi',
+    description: 'Every MBTI compatibility pairing analyzed in plain English. Scores, strengths, friction, communication tips. All 136 unique pairings.',
+    canonicalUrl: url,
+    h1: 'MBTI Compatibility',
+    metaLine: compatPairs.length + ' pairings \u00B7 Indexed by Google',
+    schemas: [breadcrumb],
+    body: body
+  });
+}
+
+function renderCareersHub(careerSlugs) {
+  const url = 'https://personality.fyi/blog/careers';
+  const items = careerSlugs.map(slug => {
+    const title = CAREER_PAGES[slug].title;
+    const top = CAREER_PAGES[slug].best.slice(0, 3).map(b => b.type).join(', ');
+    const tags = CAREER_PAGES[slug].best.map(b => b.type).join(',');
+    return `<article class="blog-index-item" data-types="${tags}">
+      <h3><a href="/blog/best-personality-types-for-${slug}">Best Personality Types for ${title}</a></h3>
+      <p class="blog-index-excerpt">Top types for ${title.toLowerCase()}: ${top}.</p>
+    </article>`;
+  }).join('\n');
+
+  const breadcrumb = {
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://personality.fyi/' },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://personality.fyi/blog' },
+      { '@type': 'ListItem', position: 3, name: 'Careers' }
+    ]
+  };
+
+  const body = `
+  <p class="blog-intro">For each career below, we rank the MBTI types that naturally thrive in it and explain why. Then we flag types that typically struggle. ${careerSlugs.length} career guides.</p>
+  <div class="blog-index-list">${items}</div>`;
+
+  return renderBlogShell({
+    title: 'Best MBTI Personality Types for Every Career | personality.fyi',
+    description: 'Which MBTI types thrive in which careers, with specific reasoning. ' + careerSlugs.length + ' career guides from software engineering to medicine.',
+    canonicalUrl: url,
+    h1: 'MBTI Career Guides',
+    metaLine: careerSlugs.length + ' careers covered',
+    schemas: [breadcrumb],
+    body: body
+  });
+}
+
+function renderComparisonsHub(comparisonPairs) {
+  const url = 'https://personality.fyi/blog/comparisons';
+  const items = comparisonPairs.map(pair => {
+    const slug = pair[0].toLowerCase() + '-vs-' + pair[1].toLowerCase();
+    const tags = [pair[0], pair[1]].join(',');
+    return `<article class="blog-index-item" data-types="${tags}">
+      <h3><a href="/blog/${slug}">${pair[0]} vs ${pair[1]}: Key Differences</a></h3>
+      <p class="blog-index-excerpt">How to tell them apart and where they diverge.</p>
+    </article>`;
+  }).join('\n');
+
+  const breadcrumb = {
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://personality.fyi/' },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://personality.fyi/blog' },
+      { '@type': 'ListItem', position: 3, name: 'Comparisons' }
+    ]
+  };
+
+  const body = `
+  <p class="blog-intro">Type pairs most commonly confused with each other, side-by-side on 8 dimensions: leadership, communication, decision-making, conflict, stress response, and more.</p>
+  <div class="blog-index-list">${items}</div>`;
+
+  return renderBlogShell({
+    title: 'MBTI Type Comparisons: Side-by-Side Guides | personality.fyi',
+    description: 'Commonly confused MBTI type pairs compared across leadership, communication, careers, conflict, and stress response. ' + comparisonPairs.length + ' comparison guides.',
+    canonicalUrl: url,
+    h1: 'MBTI Type Comparisons',
+    metaLine: comparisonPairs.length + ' comparisons',
+    schemas: [breadcrumb],
+    body: body
+  });
+}
+
 // ── Execute ──────────────────────────────────────────────────────
 
 const types = Object.keys(TYPE_DESCS);
@@ -2094,20 +2593,20 @@ types.forEach(t => {
   console.log('Wrote ' + slug + '.html');
 });
 
-// Compute unique compatibility pairs (each type's best + worst, deduped by canonical slug).
+// Full 136-pair compatibility coverage: every unordered pair of types, including
+// same-type pairings (INTJ+INTJ, ENFP+ENFP, etc.). C(16,2) + 16 = 136.
 const compatPairsSet = new Set();
 const compatPairs = [];
-types.forEach(t => {
-  const best = topCompat(t, 1, true)[0].type;
-  const worst = topCompat(t, 1, false)[0].type;
-  [[t, best], [t, worst]].forEach(pair => {
+for (let i = 0; i < types.length; i++) {
+  for (let j = i; j < types.length; j++) {
+    const pair = [types[i], types[j]];
     const key = pairSlug(pair[0], pair[1]);
     if (!compatPairsSet.has(key)) {
       compatPairsSet.add(key);
       compatPairs.push(pair);
     }
-  });
-});
+  }
+}
 
 compatPairs.forEach(pair => {
   const slug = pairSlug(pair[0], pair[1]) + '-compatibility';
@@ -2130,6 +2629,20 @@ COMPARISON_PAIRS.forEach(pair => {
 });
 console.log('Wrote ' + COMPARISON_PAIRS.length + ' comparison pages');
 
+// /type/[slug] standalone SEO pages (in /type/, not /blog/)
+const TYPE_DIR = path.join(ROOT, 'type');
+fs.mkdirSync(TYPE_DIR, { recursive: true });
+types.forEach(t => {
+  fs.writeFileSync(path.join(TYPE_DIR, t.toLowerCase() + '.html'), renderTypeSlugPage(t));
+});
+console.log('Wrote ' + types.length + ' /type/[slug] pages');
+
+// Hub pages — vertical-specific indexes for better crawling
+fs.writeFileSync(path.join(OUT_DIR, 'compatibility.html'), renderCompatibilityHub(compatPairs));
+fs.writeFileSync(path.join(OUT_DIR, 'careers.html'), renderCareersHub(careerSlugs));
+fs.writeFileSync(path.join(OUT_DIR, 'comparisons.html'), renderComparisonsHub(COMPARISON_PAIRS));
+console.log('Wrote 3 hub pages');
+
 // Write index (with all page types now available)
 fs.writeFileSync(path.join(OUT_DIR, 'index.html'), renderIndex(types, compatPairs, careerSlugs, COMPARISON_PAIRS));
 console.log('Wrote blog/index.html');
@@ -2138,12 +2651,24 @@ console.log('Wrote blog/index.html');
 const today = new Date().toISOString().slice(0, 10);
 const urls = [
   { loc: 'https://personality.fyi/', priority: '1.0', changefreq: 'weekly' },
-  { loc: 'https://personality.fyi/blog', priority: '0.8', changefreq: 'weekly' }
+  { loc: 'https://personality.fyi/blog', priority: '0.8', changefreq: 'weekly' },
+  { loc: 'https://personality.fyi/blog/compatibility', priority: '0.8', changefreq: 'monthly' },
+  { loc: 'https://personality.fyi/blog/careers', priority: '0.8', changefreq: 'monthly' },
+  { loc: 'https://personality.fyi/blog/comparisons', priority: '0.8', changefreq: 'monthly' },
+  { loc: 'https://personality.fyi/about', priority: '0.6', changefreq: 'yearly' },
+  { loc: 'https://personality.fyi/privacy', priority: '0.3', changefreq: 'yearly' },
+  { loc: 'https://personality.fyi/terms', priority: '0.3', changefreq: 'yearly' },
+  { loc: 'https://personality.fyi/contact', priority: '0.5', changefreq: 'yearly' }
 ];
 types.forEach(t => {
   urls.push({
     loc: 'https://personality.fyi/blog/' + t.toLowerCase() + '-personality',
     priority: '0.9', changefreq: 'monthly'
+  });
+  // /type/[slug] high-priority SEO landing pages
+  urls.push({
+    loc: 'https://personality.fyi/type/' + t.toLowerCase(),
+    priority: '0.95', changefreq: 'monthly'
   });
 });
 compatPairs.forEach(pair => {

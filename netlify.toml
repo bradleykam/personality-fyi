@@ -7,11 +7,8 @@
   to = "/assess.html"
   status = 200
 
-# Canonical aliases: /type/intj -> /blog/intj-personality
-[[redirects]]
-  from = "/type/:type"
-  to = "/blog/:type-personality"
-  status = 301
+# /type/[slug] is now a standalone SEO page set, not a redirect.
+# (The old 301 to /blog/<slug>-personality was removed 2026-04-22.)
 
 # Environment variables to set in Netlify UI:
 # SUPABASE_URL = your Supabase project URL
