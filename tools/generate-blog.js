@@ -2656,6 +2656,7 @@ const urls = [
   { loc: 'https://personality.fyi/blog/careers', priority: '0.8', changefreq: 'monthly' },
   { loc: 'https://personality.fyi/blog/comparisons', priority: '0.8', changefreq: 'monthly' },
   { loc: 'https://personality.fyi/about', priority: '0.6', changefreq: 'yearly' },
+  { loc: 'https://personality.fyi/methodology', priority: '0.7', changefreq: 'monthly' },
   { loc: 'https://personality.fyi/privacy', priority: '0.3', changefreq: 'yearly' },
   { loc: 'https://personality.fyi/terms', priority: '0.3', changefreq: 'yearly' },
   { loc: 'https://personality.fyi/contact', priority: '0.5', changefreq: 'yearly' }

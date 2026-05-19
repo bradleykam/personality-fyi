@@ -1,0 +1,23 @@
+{
+  "code": "INTP",
+  "name": "Logician",
+  "title": "The Thinker",
+  "cognitive": "Analytical, framework-building. Needs to understand the underlying logic of everything.",
+  "strengths": [
+    "Precise",
+    "innovative",
+    "intellectually curious",
+    "objective"
+  ],
+  "shadow": [
+    "Analysis paralysis",
+    "can seem cold or detached",
+    "struggles to ship"
+  ],
+  "drains": [
+    "Administrative work",
+    "rigid deadlines",
+    "being told how to think"
+  ],
+  "url": "https://personality.fyi/type/intp"
+}

@@ -1,0 +1,244 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "statement": "I make lists rather than relying on memory.",
+      "axis": "J_P",
+      "agreePole": "J",
+      "disagreePole": "P"
+    },
+    {
+      "id": 2,
+      "statement": "I am skeptical by default rather than wanting to believe.",
+      "axis": "T_F",
+      "agreePole": "T",
+      "disagreePole": "F"
+    },
+    {
+      "id": 3,
+      "statement": "I get bored by time alone rather than needing it.",
+      "axis": "I_E",
+      "agreePole": "E",
+      "disagreePole": "I"
+    },
+    {
+      "id": 4,
+      "statement": "I accept things as they are rather than feeling unsatisfied with how they are.",
+      "axis": "N_S",
+      "agreePole": "S",
+      "disagreePole": "N"
+    },
+    {
+      "id": 5,
+      "statement": "I keep my room clean rather than putting stuff wherever.",
+      "axis": "J_P",
+      "agreePole": "J",
+      "disagreePole": "P"
+    },
+    {
+      "id": 6,
+      "statement": "I think \"robotic\" is an insult rather than striving for a mechanical mind.",
+      "axis": "T_F",
+      "agreePole": "F",
+      "disagreePole": "T"
+    },
+    {
+      "id": 7,
+      "statement": "I am energetic rather than mellow.",
+      "axis": "I_E",
+      "agreePole": "E",
+      "disagreePole": "I"
+    },
+    {
+      "id": 8,
+      "statement": "I prefer a multiple-choice test over an essay test.",
+      "axis": "N_S",
+      "agreePole": "S",
+      "disagreePole": "N"
+    },
+    {
+      "id": 9,
+      "statement": "I am chaotic rather than organized.",
+      "axis": "J_P",
+      "agreePole": "P",
+      "disagreePole": "J"
+    },
+    {
+      "id": 10,
+      "statement": "I am easily hurt rather than thick-skinned.",
+      "axis": "T_F",
+      "agreePole": "F",
+      "disagreePole": "T"
+    },
+    {
+      "id": 11,
+      "statement": "I work best in groups rather than alone.",
+      "axis": "I_E",
+      "agreePole": "E",
+      "disagreePole": "I"
+    },
+    {
+      "id": 12,
+      "statement": "I am focused on the present more than the future.",
+      "axis": "N_S",
+      "agreePole": "S",
+      "disagreePole": "N"
+    },
+    {
+      "id": 13,
+      "statement": "I plan far ahead rather than at the last minute.",
+      "axis": "J_P",
+      "agreePole": "J",
+      "disagreePole": "P"
+    },
+    {
+      "id": 14,
+      "statement": "I want people's respect more than their love.",
+      "axis": "T_F",
+      "agreePole": "T",
+      "disagreePole": "F"
+    },
+    {
+      "id": 15,
+      "statement": "Parties wear me out rather than fire me up.",
+      "axis": "I_E",
+      "agreePole": "I",
+      "disagreePole": "E"
+    },
+    {
+      "id": 16,
+      "statement": "I prefer to fit in rather than stand out.",
+      "axis": "N_S",
+      "agreePole": "S",
+      "disagreePole": "N"
+    },
+    {
+      "id": 17,
+      "statement": "I keep options open rather than committing.",
+      "axis": "J_P",
+      "agreePole": "P",
+      "disagreePole": "J"
+    },
+    {
+      "id": 18,
+      "statement": "I want to be good at fixing things more than fixing people.",
+      "axis": "T_F",
+      "agreePole": "T",
+      "disagreePole": "F"
+    },
+    {
+      "id": 19,
+      "statement": "I talk more than I listen.",
+      "axis": "I_E",
+      "agreePole": "E",
+      "disagreePole": "I"
+    },
+    {
+      "id": 20,
+      "statement": "I describe events by what happened rather than what they meant.",
+      "axis": "N_S",
+      "agreePole": "S",
+      "disagreePole": "N"
+    },
+    {
+      "id": 21,
+      "statement": "I get work done right away rather than procrastinating.",
+      "axis": "J_P",
+      "agreePole": "J",
+      "disagreePole": "P"
+    },
+    {
+      "id": 22,
+      "statement": "I follow my heart more than my head.",
+      "axis": "T_F",
+      "agreePole": "F",
+      "disagreePole": "T"
+    },
+    {
+      "id": 23,
+      "statement": "I prefer staying home over going out on the town.",
+      "axis": "I_E",
+      "agreePole": "I",
+      "disagreePole": "E"
+    },
+    {
+      "id": 24,
+      "statement": "I want the big picture more than the details.",
+      "axis": "N_S",
+      "agreePole": "N",
+      "disagreePole": "S"
+    },
+    {
+      "id": 25,
+      "statement": "I improvise rather than prepare.",
+      "axis": "J_P",
+      "agreePole": "P",
+      "disagreePole": "J"
+    },
+    {
+      "id": 26,
+      "statement": "I base morality on justice more than compassion.",
+      "axis": "T_F",
+      "agreePole": "T",
+      "disagreePole": "F"
+    },
+    {
+      "id": 27,
+      "statement": "I find it difficult to yell loudly; raising my voice doesn't come naturally.",
+      "axis": "I_E",
+      "agreePole": "I",
+      "disagreePole": "E"
+    },
+    {
+      "id": 28,
+      "statement": "I am theoretical more than empirical.",
+      "axis": "N_S",
+      "agreePole": "N",
+      "disagreePole": "S"
+    },
+    {
+      "id": 29,
+      "statement": "I work hard more than I play hard.",
+      "axis": "J_P",
+      "agreePole": "J",
+      "disagreePole": "P"
+    },
+    {
+      "id": 30,
+      "statement": "I am uncomfortable with emotions more than I value them.",
+      "axis": "T_F",
+      "agreePole": "T",
+      "disagreePole": "F"
+    },
+    {
+      "id": 31,
+      "statement": "I like performing in front of people rather than avoiding it.",
+      "axis": "I_E",
+      "agreePole": "E",
+      "disagreePole": "I"
+    },
+    {
+      "id": 32,
+      "statement": "I want to know who/what/when more than why.",
+      "axis": "N_S",
+      "agreePole": "S",
+      "disagreePole": "N"
+    }
+  ],
+  "count": 32,
+  "likert": {
+    "1": "Strongly disagree (+2 toward disagreePole)",
+    "2": "Slightly disagree (+1 toward disagreePole)",
+    "3": "Neutral / unsure (0)",
+    "4": "Slightly agree (+1 toward agreePole)",
+    "5": "Strongly agree (+2 toward agreePole)"
+  },
+  "axes": [
+    "I_E",
+    "N_S",
+    "T_F",
+    "J_P"
+  ],
+  "maxScorePerAxis": 16,
+  "license": "OEJTS items are public domain (Open Extended Jungian Type Scales by Eric Jorgenson, 2014)."
+}

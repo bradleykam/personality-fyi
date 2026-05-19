@@ -1,11 +1,140 @@
 [build]
   publish = "."
   functions = "netlify/functions"
+  edge_functions = "netlify/edge-functions"
 
 [[redirects]]
   from = "/assess"
   to = "/assess.html"
   status = 200
+
+# Public API — types + test only. Pure data, no LLM calls.
+[[redirects]]
+  from = "/api/v1/types"
+  to = "/api/v1/types/index.json"
+  status = 200
+[[redirects]]
+  from = "/api/v1/types/:code"
+  to = "/api/v1/types/:code.json"
+  status = 200
+[[redirects]]
+  from = "/api/v1/test/items"
+  to = "/api/v1/test/items.json"
+  status = 200
+[[redirects]]
+  from = "/api/v1/test/score"
+  to = "/.netlify/functions/score-test"
+  status = 200
+[[redirects]]
+  from = "/api/v1/badge/:code"
+  to = "/.netlify/functions/badge-json"
+  status = 200
+[[redirects]]
+  from = "/api"
+  to = "/api/index.html"
+  status = 200
+
+# Badge SVGs — case-insensitive path; always serve the lowercase static file.
+[[redirects]]
+  from = "/badge/:code"
+  to = "/badge/:code.svg"
+  status = 200
+
+[[headers]]
+  for = "/badge/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=86400, immutable"
+    Content-Type = "image/svg+xml"
+
+[[headers]]
+  for = "/api/v1/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
+
+# Pretty app routes — each serves the SPA shell; the client router reads the
+# pathname on load and switches to the right tab.
+[[redirects]]
+  from = "/career-planning"
+  to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/compatibility"
+  to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/ask-a-type"
+  to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/take-the-test"
+  to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/fictional-characters"
+  to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/never-have-i-ever"
+  to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/all-types"
+  to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/account"
+  to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/your-type"
+  to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/about/brad-kam"
+  to = "/about/brad-kam.html"
+  status = 200
+
+# Internal-only: block public access to /tools/* and /migrations/* on the deployed site.
+[[redirects]]
+  from = "/tools/*"
+  to = "/index.html"
+  status = 404
+  force = true
+[[redirects]]
+  from = "/migrations/*"
+  to = "/index.html"
+  status = 404
+  force = true
+
+# Creator affiliate links: /from/{slug} -> the consent landing page (slug parsed in JS)
+[[redirects]]
+  from = "/from/*"
+  to = "/assess-creator.html"
+  status = 200
+[[redirects]]
+  from = "/creators"
+  to = "/creators.html"
+  status = 200
+[[redirects]]
+  from = "/creator-tos"
+  to = "/creator-tos.html"
+  status = 200
+
+# Reversed-alphabetical comparison aliases → canonical alphabetical version (prevents 404s)
+[[redirects]]
+  from = "/blog/intp-vs-intj"
+  to = "/blog/intj-vs-intp"
+  status = 301
+[[redirects]]
+  from = "/blog/entp-vs-enfp"
+  to = "/blog/enfp-vs-entp"
+  status = 301
+[[redirects]]
+  from = "/blog/estj-vs-istj"
+  to = "/blog/istj-vs-estj"
+  status = 301
 
 # /type/[slug] is now a standalone SEO page set, not a redirect.
 # (The old 301 to /blog/<slug>-personality was removed 2026-04-22.)

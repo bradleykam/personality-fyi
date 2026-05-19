@@ -1,0 +1,23 @@
+{
+  "code": "ESTP",
+  "name": "Entrepreneur",
+  "title": "The Entrepreneur",
+  "cognitive": "Action-oriented, observant. Reads situations in real time and acts decisively.",
+  "strengths": [
+    "Bold",
+    "energetic",
+    "pragmatic",
+    "thrives under pressure"
+  ],
+  "shadow": [
+    "Can be insensitive",
+    "impulsive",
+    "loses interest after the rush"
+  ],
+  "drains": [
+    "Long planning cycles",
+    "theory",
+    "slow environments"
+  ],
+  "url": "https://personality.fyi/type/estp"
+}

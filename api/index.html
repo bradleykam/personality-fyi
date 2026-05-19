@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personality.fyi API — free MBTI types & test data</title>
+<meta name="description" content="Free, no-auth JSON API for MBTI types, OEJTS test items, and scoring. Pure data, no LLM. Public-domain item bank.">
+<link rel="canonical" href="https://personality.fyi/api">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Personality.fyi API">
+<meta property="og:description" content="Free JSON API for MBTI types and the OEJTS personality test.">
+<meta property="og:url" content="https://personality.fyi/api">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/blog.css">
+<style>
+  pre { background: var(--cream, #ede9e1); border: 1px solid var(--border, #d4cfc7); border-radius: 6px; padding: 12px 16px; overflow-x: auto; font-family: 'DM Mono', monospace; font-size: 13px; line-height: 1.6; }
+  code { font-family: 'DM Mono', monospace; background: var(--cream, #ede9e1); padding: 1px 6px; border-radius: 3px; font-size: 13px; }
+  .endpoint { display: flex; gap: 10px; align-items: center; margin: 8px 0; font-family: 'DM Mono', monospace; font-size: 14px; flex-wrap: wrap; }
+  .method { display: inline-block; padding: 2px 8px; border-radius: 3px; font-weight: 700; font-size: 12px; letter-spacing: .04em; }
+  .method.GET  { background: #1f6feb; color: #fff; }
+  .method.POST { background: #2da44e; color: #fff; }
+</style>
+</head>
+<body>
+<header class="blog-header">
+  <a href="/" class="blog-brand">Personality<span>.fyi</span></a>
+  <nav class="blog-nav">
+    <a href="/blog">Learn</a>
+    <a href="/all-types">All Types</a>
+    <a href="/">App</a>
+  </nav>
+</header>
+
+<main class="blog-article">
+  <h1>Personality.fyi API</h1>
+  <div class="blog-meta">Free · No auth · No LLM</div>
+
+  <section>
+    <p>A free, no-authentication JSON API for the 16 MBTI types and the OEJTS personality test. All data is static and public-domain; no large-language-model calls happen anywhere in this API.</p>
+    <p><strong>Base URL:</strong> <code>https://personality.fyi/api/v1</code></p>
+    <p><strong>License:</strong> Data is CC0 (public domain). Use however you want, attribution appreciated but not required.</p>
+  </section>
+
+  <section>
+    <h2>Endpoints</h2>
+
+    <div class="endpoint">
+      <span class="method GET">GET</span><code>/api/v1/types</code>
+    </div>
+    <p>List of all 16 MBTI types with name and one-line title.</p>
+<pre>curl https://personality.fyi/api/v1/types</pre>
+<pre>{
+  "types": [
+    { "code": "INTJ", "name": "Architect",  "title": "The Architect" },
+    { "code": "INTP", "name": "Logician",   "title": "The Thinker" },
+    ...
+  ],
+  "count": 16
+}</pre>
+
+    <div class="endpoint">
+      <span class="method GET">GET</span><code>/api/v1/types/{CODE}</code>
+    </div>
+    <p>Full profile for one type. <code>{CODE}</code> is the 4-letter MBTI code in uppercase (e.g. <code>INTJ</code>).</p>
+<pre>curl https://personality.fyi/api/v1/types/INTJ</pre>
+<pre>{
+  "code": "INTJ",
+  "name": "Architect",
+  "title": "The Architect",
+  "cognitive": "Strategic, systems-level thinking. Builds mental models and long-range plans.",
+  "strengths": ["Independent", "decisive", "high standards", "visionary"],
+  "shadow":    ["Can be dismissive of others' input", "struggles with emotional expression", ...],
+  "drains":    ["Repetitive meetings", "micromanagement", ...],
+  "url": "https://personality.fyi/type/intj"
+}</pre>
+
+    <div class="endpoint">
+      <span class="method GET">GET</span><code>/api/v1/test/items</code>
+    </div>
+    <p>The 32 OEJTS test items with axis labels and scoring spec.</p>
+<pre>curl https://personality.fyi/api/v1/test/items</pre>
+<pre>{
+  "items": [
+    {
+      "id": 1,
+      "statement": "I make lists rather than relying on memory.",
+      "axis": "J_P",
+      "agreePole": "J",
+      "disagreePole": "P"
+    },
+    ...
+  ],
+  "count": 32,
+  "likert": { "1": "Strongly disagree (+2 toward disagreePole)", ... },
+  "axes": ["I_E", "N_S", "T_F", "J_P"],
+  "license": "OEJTS items are public domain..."
+}</pre>
+
+    <div class="endpoint">
+      <span class="method POST">POST</span><code>/api/v1/test/score</code>
+    </div>
+    <p>Given an array of 32 Likert answers (1-5), returns the computed MBTI type, per-axis confidence percentage, and raw scores.</p>
+<pre>curl -X POST https://personality.fyi/api/v1/test/score \
+  -H "Content-Type: application/json" \
+  -d '{"answers": [5,1,2,4,5,3,1,5,2,4,3,5,1,5,2,4,3,5,1,2,5,4,3,1,5,2,4,3,1,5,2,4]}'</pre>
+<pre>{
+  "type": "INTJ",
+  "confidence": { "I": 74, "N": 88, "T": 61, "J": 92 },
+  "scores":     { "I": 7, "E": 2, "N": 9, "S": 1, "T": 5, "F": 3, "J": 8, "P": 0 }
+}</pre>
+  </section>
+
+    <div class="endpoint">
+      <span class="method GET">GET</span><code>/api/v1/badge/{CODE}</code>
+    </div>
+    <p>Returns <a href="https://shields.io/badges/endpoint-badge" target="_blank" rel="noopener">shields.io endpoint-badge JSON</a> for any of the 16 types. Pair with shields.io to render an MBTI badge anywhere you can embed an image.</p>
+<pre>https://img.shields.io/endpoint?url=https://personality.fyi/api/v1/badge/intj</pre>
+<p>Or use the pre-rendered SVG directly: <code>https://personality.fyi/badge/intj.svg</code> (no shields.io dependency).</p>
+
+  </section>
+
+  <section>
+    <h2>Rate limits &amp; abuse</h2>
+    <p>No hard rate limits today. If your project hammers the endpoint past ~1k req/min sustained we'll add IP-based limiting. Please be reasonable — the data is small and CDN-cached; pulling the JSON once and keeping a local copy works fine for most use cases.</p>
+  </section>
+
+  <section>
+    <h2>What's not exposed</h2>
+    <p>The compatibility engine, career advisor, and AI Q&amp;A surfaces are not part of this API. Those require LLM calls and stay in the consumer product at <a href="/">personality.fyi</a>. If you want personality-aware AI features in your own app, use your own LLM provider.</p>
+  </section>
+
+  <section>
+    <h2>Methodology</h2>
+    <p>The test items come from the <a href="https://openpsychometrics.org/tests/OEJTS/" target="_blank" rel="noopener">Open Extended Jungian Type Scales (OEJTS) 1.2</a>, a public-domain MBTI alternative published by Eric Jorgenson. OEJTS axes correlate r=0.62–0.81 with the official Myers-Briggs Type Indicator. Full methodology at <a href="/methodology">personality.fyi/methodology</a>.</p>
+  </section>
+
+  <section>
+    <h2>Bug reports &amp; feature requests</h2>
+    <p>Email <a href="mailto:hello@personality.fyi">hello@personality.fyi</a> or open an issue on the GitHub repo (coming soon).</p>
+  </section>
+</main>
+
+<footer class="blog-footer">
+  <div><a href="/">Personality.fyi</a> · <a href="/blog">Learn</a> · <a href="/methodology">Methodology</a> · <a href="/about">About</a></div>
+</footer>
+</body>
+</html>

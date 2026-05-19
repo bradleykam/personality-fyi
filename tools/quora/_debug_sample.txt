@@ -1,0 +1,42 @@
+{
+  "total_anchors": 17,
+  "sample_hrefs": [
+    "https://www.quora.com/about/tos",
+    "https://www.quora.com/about/privacy",
+    "https://ar.quora.com/",
+    "https://he.quora.com/",
+    "https://pl.quora.com/",
+    "https://gu.quora.com/",
+    "https://kn.quora.com/",
+    "https://ml.quora.com/",
+    "https://te.quora.com/",
+    "https://www.quora.com/about",
+    "https://www.quora.com/careers",
+    "https://www.quora.com/about/privacy",
+    "https://www.quora.com/about/tos",
+    "https://www.quora.com/contact",
+    "https://www.quora.com/about/languages",
+    "https://www.quora.com/about/your_ad_choices",
+    "https://www.quora.com/press"
+  ],
+  "likely_question_anchors": [
+    {
+      "href": "https://www.quora.com/careers",
+      "text": "Careers",
+      "classes": "q-box qu-color--gray qu-cursor--pointer qu-hover--textDecoration--underline b2c1r2a puppeteer_test_link"
+    },
+    {
+      "href": "https://www.quora.com/contact",
+      "text": "Contact",
+      "classes": "q-box qu-color--gray qu-cursor--pointer qu-hover--textDecoration--underline b2c1r2a puppeteer_test_link"
+    },
+    {
+      "href": "https://www.quora.com/press",
+      "text": "Press",
+      "classes": "q-box qu-color--gray qu-cursor--pointer qu-hover--textDecoration--underline b2c1r2a puppeteer_test_link"
+    }
+  ],
+  "title": "Quora - A place to share knowledge and better understand the world",
+  "url": "https://www.quora.com/",
+  "body_preview": "A place to share knowledge and better understand the world\nBy continuing you indicate that you agree to Quora\u2019s Terms of Service and Privacy Policy.\nContinue with Google\nContinue with Facebook\nSign up with email\nLogin\nEmail\nPassword\nForgot password?\nLogin\nNew: \u0627\u0644\u0639\u0631\u0628\u064a\u0629, \u05e2\u05d1\u05e8\u05d9\u05ea, polski, \u0a97\u0ac1\u0a9c\u0ab0\u0abe\u0aa4\u0ac0, \u0c95\u0ca8\u0ccd\u0ca8\u0ca1, \u0d2e\u0d32\u0d2f\u0d3e\u0d33\u0d02 and \u0c24\u0c46\u0c32\u0c41\u0c17\u0c41\nAboutCareersPrivacyTermsContactLanguagesYour Ad ChoicesPress\u00a9 Quora, Inc. 2026"
+}

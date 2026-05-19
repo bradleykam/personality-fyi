@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://en.wikipedia.org">
+<link rel="dns-prefetch" href="https://upload.wikimedia.org">
+<link rel="dns-prefetch" href="https://api.openpsychometrics.org">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google-site-verification" content="kSGxUo6ERTtnEqasUWyRl-w1hHLS3P4lDoFjQuBmSJc" />
+<title>Methodology — How the Personality.fyi MBTI Test Works</title>
+<meta name="description" content="How the personality.fyi MBTI test works: 60 behavioral questions across 4 axes, adaptive skipping, spectrum scoring, and how it differs from typical MBTI.">
+<link rel="canonical" href="https://personality.fyi/methodology">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Personality.fyi Methodology">
+<meta property="og:description" content="60 behavioral questions, adaptive skipping, spectrum scoring — how our MBTI test works and how it differs from other personality tests.">
+<meta property="og:url" content="https://personality.fyi/methodology">
+<meta property="og:image" content="https://personality.fyi/og-image.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/blog/blog.css">
+<meta property="og:site_name" content="personality.fyi">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Methodology — How the Personality.fyi MBTI Test Works">
+<meta name="twitter:description" content="How the personality.fyi MBTI test works: 60 behavioral questions across 4 axes, adaptive skipping, spectrum scoring, and how it differs from typical MBTI.">
+<meta name="twitter:image" content="https://personality.fyi/og-image.png">
+</head>
+<body>
+<header class="blog-header">
+  <a href="/" class="blog-brand">Personality<span>.fyi</span></a>
+  <nav class="blog-nav">
+    <a href="/blog">Learn</a>
+    <a href="/all-types">All Types</a>
+    <a href="/">App</a>
+  </nav>
+</header>
+
+<main class="blog-article">
+  <h1>Methodology</h1>
+  <div class="blog-meta">How the personality.fyi MBTI test works · Updated 2026-05-11</div>
+
+  <section>
+    <h2>Item bank: OEJTS</h2>
+    <p>The test uses items adapted from the <strong>Open Extended Jungian Type Scales (OEJTS) 1.2</strong>, an open-source MBTI alternative developed by Eric Jorgenson and published as part of the <a href="https://openpsychometrics.org/tests/OEJTS/" target="_blank" rel="noopener">Open-Source Psychometrics Project</a>. The OEJTS items are public domain. Jorgenson&rsquo;s comparison study found OEJTS the most accurate of the major open-access MBTI alternatives.</p>
+    <p>Each item is a paired-pole prompt (e.g. <em>&ldquo;makes lists&rdquo;</em> vs <em>&ldquo;relies on memory&rdquo;</em>) answered on a 5-point scale. Pairing avoids the abstract self-rating trap of Likert agree/disagree items.</p>
+  </section>
+
+  <section>
+    <h2>Question count</h2>
+    <p>The test is <strong>32 items, 8 per axis</strong>. Each of the four MBTI axes (Introvert/Extravert, iNtuitive/Sensing, Thinking/Feeling, Judging/Perceiving) gets 8 paired-pole prompts.</p>
+  </section>
+
+  <section>
+    <h2>Scoring</h2>
+    <p>Each item is scored on a 5-point Likert scale:</p>
+    <ul class="blog-bullets">
+      <li><strong>1 (← Left):</strong> +2 toward the left-pole letter.</li>
+      <li><strong>2 (← leans):</strong> +1 toward the left-pole letter.</li>
+      <li><strong>3 (Neutral):</strong> 0. No movement on this axis.</li>
+      <li><strong>4 (leans →):</strong> +1 toward the right-pole letter.</li>
+      <li><strong>5 (Right →):</strong> +2 toward the right-pole letter.</li>
+    </ul>
+    <p>Maximum raw score per axis: 16 (8 items &times; 2 points).</p>
+  </section>
+
+  <section>
+    <h2>Adaptive skipping</h2>
+    <p>The test doesn&rsquo;t always make you answer all 32 items. An axis is considered <em>resolved</em> and remaining items on it are skipped if any of the following is true:</p>
+    <ul class="blog-bullets">
+      <li>The other side of the axis can no longer mathematically catch up (the lead exceeds the maximum possible swing from remaining items).</li>
+      <li>After 5 answered items on an axis, the lead is 8 points or more (equivalent to a 5-of-5 strong-direction streak).</li>
+      <li>You answer &ldquo;Neutral&rdquo; three times in a row on the same axis and opt to skip the rest of that section when prompted.</li>
+    </ul>
+    <p>In practice: clear-cut types finish in ~20 items. Mixed or near-the-middle types answer closer to 32.</p>
+  </section>
+
+  <section>
+    <h2>Spectrum scoring</h2>
+    <p>Most MBTI tests report a binary type (e.g. INTJ). We also report <strong>how confident each axis call is</strong>, so you know which letters are firm and which are close to the middle.</p>
+    <p>Formula, per axis:</p>
+    <pre style="background:var(--cream);padding:1rem;border-radius:4px;font-size:13px;overflow-x:auto">confidence = round((winner_score - loser_score) / 16 * 100)
+confidence = clamp(confidence, 1, 99)</pre>
+    <p>Your result displays as: <code>INTJ · I(74%) N(88%) T(61%) J(92%)</code>. That&rsquo;s a firm INTJ on three axes and a borderline T/F call. If one axis is low-confidence, treat it as the letter most likely to flip on retake.</p>
+    <p>Confidence is never 0% or 100% &mdash; we clamp to 1&ndash;99 because no test is that certain. A 99% is as confident as we&rsquo;ll ever claim.</p>
+  </section>
+
+  <section>
+    <h2>How we differ from typical pop MBTI tests</h2>
+    <ul class="blog-bullets">
+      <li><strong>OEJTS items.</strong> We use a publicly validated item bank rather than home-grown items. OEJTS axis correlations with the official MBTI are roughly 0.62–0.81.</li>
+      <li><strong>Paired poles instead of agree/disagree.</strong> Most pop tests ask you to agree/disagree with abstract self-statements (&ldquo;You feel at ease in a crowd&rdquo;). We show two opposed traits and ask which leans closer to you. Comparison reduces self-concept inflation.</li>
+      <li><strong>Adaptive, not fixed-length.</strong> Most tests make you answer all items regardless. We stop asking about an axis once it&rsquo;s resolved, saving items for clear types while keeping rigor available for ambiguous types.</li>
+      <li><strong>&ldquo;Neutral&rdquo; is a real option.</strong> Three Neutrals in a row on the same axis triggers a prompt to skip that section entirely.</li>
+      <li><strong>Spectrum scoring, not just type code.</strong> We show axis-by-axis confidence so you can see where your call is firm versus where you&rsquo;re near the midpoint.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Limitations and honest caveats</h2>
+    <p><strong>MBTI is a useful framework, not a scientific classification.</strong> The four-letter code captures real patterns in how people think and behave, but individuals don&rsquo;t fit cleanly into 16 boxes. Any single type description will feel partially wrong. Use MBTI as a lens for self-reflection and communication, not a personality verdict.</p>
+    <p><strong>Your type is a signal for fit, not a cap on ability.</strong> A type can tell you which environments will feel natural and which will drain you &mdash; but plenty of people thrive in careers that don&rsquo;t match their textbook profile, because individual drive, skill, and circumstance matter more than any archetype. Type informs, it doesn&rsquo;t decide.</p>
+    <p>If you want a more scientifically defensible personality measurement, look at the Five-Factor Model (Big Five). But MBTI is a better shared vocabulary for conversations about how you work and relate, and that&rsquo;s what this site is for.</p>
+  </section>
+
+  <section class="blog-cta">
+    <h2>Try the test</h2>
+    <p>Free. 32 items max. Adapts as you go. Your result includes per-axis confidence so you can see where the call is firm.</p>
+    <a href="/" class="blog-cta-btn">Take the test →</a>
+  </section>
+
+  <section>
+    <h2>References</h2>
+    <p>The MBTI framework is based on the work of Isabel Briggs Myers and Katharine Cook Briggs, drawing on Carl Jung’s theory of psychological types. We treat MBTI as a useful behavioral lens, not a clinical instrument; the Five-Factor Model (Big Five) has stronger empirical support for personality measurement.</p>
+    <ul class="blog-bullets">
+      <li>Myers, I. B., &amp; McCaulley, M. H. (1985). <em>Manual: A Guide to the Development and Use of the Myers-Briggs Type Indicator</em>. Consulting Psychologists Press.</li>
+      <li>Jung, C. G. (1921/1971). <em>Psychological Types</em> (H. G. Baynes, Trans.; revised by R. F. C. Hull). Princeton University Press.</li>
+      <li>McCrae, R. R., &amp; Costa, P. T. (1989). Reinterpreting the Myers-Briggs Type Indicator from the perspective of the Five-Factor Model of personality. <em>Journal of Personality</em>, 57(1), 17–40. <a href="https://doi.org/10.1111/j.1467-6494.1989.tb00759.x">doi:10.1111/j.1467-6494.1989.tb00759.x</a></li>
+      <li>Pittenger, D. J. (2005). Cautionary comments regarding the Myers-Briggs Type Indicator. <em>Consulting Psychology Journal: Practice and Research</em>, 57(3), 210–221. <a href="https://doi.org/10.1037/1065-9293.57.3.210">doi:10.1037/1065-9293.57.3.210</a></li>
+      <li>Goldberg, L. R. (1990). An alternative “description of personality”: The Big-Five factor structure. <em>Journal of Personality and Social Psychology</em>, 59(6), 1216–1229. <a href="https://doi.org/10.1037/0022-3514.59.6.1216">doi:10.1037/0022-3514.59.6.1216</a></li>
+    </ul>
+  </section>
+</main>
+
+<footer class="blog-footer">
+  <div><a href="/">Personality.fyi</a> · <a href="/blog">Learn</a> · <a href="/about">About</a> · <a href="/methodology">Methodology</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></div>
+</footer>
+</body>
+</html>

@@ -2,10 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://en.wikipedia.org">
+<link rel="dns-prefetch" href="https://upload.wikimedia.org">
+<link rel="dns-prefetch" href="https://api.openpsychometrics.org">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google-site-verification" content="kSGxUo6ERTtnEqasUWyRl-w1hHLS3P4lDoFjQuBmSJc" />
-<title>Learn — MBTI Type Guides, Careers &amp; Compatibility | personality.fyi</title>
-<meta name="description" content="Deep-dives on each of the 16 MBTI personality types. Careers, compatibility, strengths, shadow patterns, and famous examples.">
+<title>Articles — Free Career Planning, MBTI Comp | personality.fyi</title>
+<meta name="description" content="Free career planning by personality, plus deep-dives on each of the 16 MBTI types. 30+ career-by-personality guides, 136 compatibility pairings, and.">
+<meta name="keywords" content="free career planning, MBTI careers, careers by personality, personality compatibility, friendship compatibility, romantic compatibility, MBTI type guides, MBTI articles">
 <link rel="canonical" href="https://personality.fyi/blog">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Personality.fyi Blog">
@@ -15,6 +21,15 @@
 <link rel="stylesheet" href="/blog/blog.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Blog","name":"Personality.fyi Blog","url":"https://personality.fyi/blog","description":"Deep-dives on the 16 MBTI personality types — careers, compatibility, strengths, and more."}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://personality.fyi/"},{"@type":"ListItem","position":2,"name":"Blog"}]}</script>
+<meta property="og:site_name" content="personality.fyi">
+<meta property="og:image" content="https://personality.fyi/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Articles — Free Career Planning, MBTI Comp">
+<meta name="twitter:description" content="Free career planning by personality, plus deep-dives on each of the 16 MBTI types. 30+ career-by-personality guides, 136 compatibility pairings, and.">
+<meta name="twitter:image" content="https://personality.fyi/og-image.png">
+<link rel="alternate" type="application/rss+xml" title="Personality.fyi Blog" href="/feed.xml">
 </head>
 <body>
 <header class="blog-header">
@@ -28,9 +43,22 @@
 <main class="blog-article">
   <div class="learn-header">
     <h1 id="learn-h1">Learn</h1>
-    <button id="learn-toggle" class="learn-toggle-btn" onclick="learnToggleGrid()">See all types</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button id="general-toggle" class="learn-toggle-btn" onclick="generalToggle()">General articles</button>
+      <button id="learn-toggle" class="learn-toggle-btn" onclick="learnToggleGrid()">See all types</button>
+    </div>
   </div>
-  <p class="blog-intro" id="learn-intro">Honest, specific guides to the 16 MBTI personality types, compatibility, and careers.</p>
+  <div class="blog-search-wrap">
+    <input
+      type="text"
+      id="blog-search"
+      class="blog-search-input"
+      placeholder="Search articles by keyword (e.g. INTJ, finance, compatibility)"
+      autocomplete="off"
+      oninput="searchArticles(this.value)"
+    />
+    <button type="button" id="blog-search-clear" class="blog-search-clear" onclick="clearArticleSearch()" aria-label="Clear search" style="display:none">&times;</button>
+  </div>
 
   <div id="learn-grid-wrap" style="display:none" class="learn-grid-wrap">
     <div class="learn-grid-label">Filter by type</div>
@@ -41,7 +69,21 @@
     <button onclick="learnResetToMine()">← Back to my type</button>
   </div>
 
-  <h2 class="blog-section-h" data-section-h="types">Type Guides</h2>
+  <div id="general-block" style="display:none">
+    <h2 class="blog-section-h" data-section-h="general">General</h2>
+    <div class="blog-index-list" data-section-list="general">
+      <article class="blog-index-item" data-types="INTJ ENTP" data-section="general">
+        <h3><a href="/?tab=blog&amp;post=why-personality-career-planning-sucks">Why personality-based career planning sucks (and what actually works)</a></h3>
+        <p class="blog-index-excerpt">Every MBTI career site tells lawyers to be lawyers. That&rsquo;s not career planning &mdash; that&rsquo;s a search result. What actually works.</p>
+      </article>
+      <article class="blog-index-item" data-types="ENFJ INFJ ENTJ" data-section="general">
+        <h3><a href="/?tab=blog&amp;post=speak-to-others-as-their-type">We all want others to speak to us differently</a></h3>
+        <p class="blog-index-excerpt">&ldquo;Treat others as you would like to be treated&rdquo; sounds like good advice. It isn&rsquo;t. The actual rule, and why it matters beyond you.</p>
+      </article>
+    </div>
+  </div>
+
+  <h2 class="blog-section-h" data-section-h="types" style="margin-top:3rem">Type Guides</h2>
   <div class="blog-index-list" id="blog-list" data-section-list="types">
     
     <article class="blog-index-item" data-types="INTJ" data-section="types">
@@ -920,16 +962,13 @@
   function applyFilter(type) {
     activeFilter = type;
     var h1 = document.getElementById('learn-h1');
-    var intro = document.getElementById('learn-intro');
     var reset = document.getElementById('learn-reset');
     var toggle = document.getElementById('learn-toggle');
 
     if (type) {
       h1.textContent = 'Learn about ' + type;
-      intro.textContent = 'Articles relevant to ' + type + ' (' + (TYPE_NAMES[type] || '') + ').';
     } else {
       h1.textContent = 'Learn';
-      intro.textContent = 'Honest, specific guides to the 16 MBTI personality types, compatibility, and careers.';
     }
 
     // Show "Back to my type" only when viewing a type other than the user's own
@@ -989,6 +1028,111 @@
     applyFilter(myType);
     var wrap = document.getElementById('learn-grid-wrap');
     if (wrap) wrap.style.display = 'none';
+  };
+
+  // Toggle the General-articles-only view.
+  var _generalOn = false;
+  var TYPED_SECTIONS = ['types','compat','career','compare'];
+  window.generalToggle = function() {
+    _generalOn = !_generalOn;
+    var gen = document.getElementById('general-block');
+    var btn = document.getElementById('general-toggle');
+    if (_generalOn) {
+      gen.style.display = 'block';
+      // Force-show every article inside the general block (override any prior type-filter hide).
+      gen.querySelectorAll('.blog-index-item').forEach(function(it) { it.style.display = ''; });
+      TYPED_SECTIONS.forEach(function(s) {
+        var h = document.querySelector('[data-section-h="' + s + '"]');
+        var l = document.querySelector('[data-section-list="' + s + '"]');
+        if (h) h.style.display = 'none';
+        if (l) l.style.display = 'none';
+      });
+      var grid = document.getElementById('learn-grid-wrap');
+      if (grid) grid.style.display = 'none';
+      var reset = document.getElementById('learn-reset');
+      if (reset) reset.style.display = 'none';
+      var lt = document.getElementById('learn-toggle');
+      if (lt) lt.style.visibility = 'hidden';
+      btn.textContent = '\u2190 Back to type articles';
+    } else {
+      gen.style.display = 'none';
+      TYPED_SECTIONS.forEach(function(s) {
+        var h = document.querySelector('[data-section-h="' + s + '"]');
+        var l = document.querySelector('[data-section-list="' + s + '"]');
+        if (h) h.style.display = '';
+        if (l) l.style.display = '';
+      });
+      var lt2 = document.getElementById('learn-toggle');
+      if (lt2) lt2.style.visibility = '';
+      btn.textContent = 'General articles';
+      // Re-apply the user's saved type filter (if any)
+      if (myType) applyFilter(myType);
+    }
+  };
+
+  // ── Keyword search ─────────────────────────────────────────────────
+  // When the user types in the search bar, override the type-filter view and
+  // show every article (across every section) whose title or excerpt matches.
+  var SECTION_KEYS = ['general','types','compat','career','compare'];
+  window.searchArticles = function(qRaw) {
+    var q = (qRaw || '').trim().toLowerCase();
+    var clearBtn = document.getElementById('blog-search-clear');
+    if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
+
+    if (!q) {
+      // Empty query: restore the default view (apply user's saved type filter, or show all).
+      if (myType) applyFilter(myType); else applyFilter(null);
+      return;
+    }
+
+    // Hide grid + reset banner while searching.
+    var grid = document.getElementById('learn-grid-wrap');
+    if (grid) grid.style.display = 'none';
+    var reset = document.getElementById('learn-reset');
+    if (reset) reset.style.display = 'none';
+
+    var counts = {};
+    SECTION_KEYS.forEach(function(s) { counts[s] = 0; });
+
+    document.querySelectorAll('.blog-index-item').forEach(function(item) {
+      var titleEl = item.querySelector('h3, h2');
+      var excEl   = item.querySelector('.blog-index-excerpt');
+      var hay = ((titleEl ? titleEl.textContent : '') + ' ' +
+                 (excEl ? excEl.textContent : '') + ' ' +
+                 (item.dataset.types || '')).toLowerCase();
+      var match = hay.indexOf(q) !== -1;
+      item.style.display = match ? '' : 'none';
+      if (match) {
+        var s = item.dataset.section || 'types';
+        counts[s] = (counts[s] || 0) + 1;
+      }
+    });
+
+    // Show every section that has matches (including general).
+    SECTION_KEYS.forEach(function(s) {
+      var h = document.querySelector('[data-section-h="' + s + '"]');
+      var l = document.querySelector('[data-section-list="' + s + '"]');
+      var visible = counts[s] > 0;
+      // The general section uses #general-block as its wrapper, not data-section-list.
+      if (s === 'general') {
+        var gen = document.getElementById('general-block');
+        if (gen) gen.style.display = visible ? 'block' : 'none';
+      } else {
+        if (h) h.style.display = visible ? '' : 'none';
+        if (l) l.style.display = visible ? '' : 'none';
+      }
+    });
+
+    var total = Object.keys(counts).reduce(function(a,k){ return a + counts[k]; }, 0);
+    var empty = document.getElementById('learn-empty');
+    if (empty) empty.style.display = total === 0 ? 'block' : 'none';
+  };
+
+  window.clearArticleSearch = function() {
+    var inp = document.getElementById('blog-search');
+    if (inp) inp.value = '';
+    window.searchArticles('');
+    if (inp) inp.focus();
   };
 
   // Initialize on page load

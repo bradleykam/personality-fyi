@@ -1,0 +1,4 @@
+requests>=2.32
+ddgs>=1.0
+# playwright is only used by the (now-unused) quora_auth.py — kept for reference
+playwright>=1.48

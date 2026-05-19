@@ -1,0 +1,23 @@
+{
+  "code": "ISTJ",
+  "name": "Logistician",
+  "title": "The Logistician",
+  "cognitive": "Detail-oriented, methodical. Builds reliable systems and follows through.",
+  "strengths": [
+    "Dependable",
+    "thorough",
+    "process-driven",
+    "consistent"
+  ],
+  "shadow": [
+    "Resistant to change",
+    "can be inflexible",
+    "overly cautious"
+  ],
+  "drains": [
+    "Ambiguity",
+    "last-minute changes",
+    "lack of clear expectations"
+  ],
+  "url": "https://personality.fyi/type/istj"
+}

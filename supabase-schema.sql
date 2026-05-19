@@ -360,3 +360,9 @@ CREATE POLICY "claude_inbox_insert_own" ON claude_inbox FOR INSERT WITH CHECK (a
 
 DROP POLICY IF EXISTS "claude_inbox_update_own" ON claude_inbox;
 CREATE POLICY "claude_inbox_update_own" ON claude_inbox FOR UPDATE USING (auth.uid() = user_id);
+
+-- ════════════════════════════════════════════════════════════════════
+-- SPECTRUM SCORING: store per-axis confidence percentages on assessments
+-- Run once in Supabase SQL editor.
+-- ════════════════════════════════════════════════════════════════════
+ALTER TABLE assessments ADD COLUMN IF NOT EXISTS axis_percentages jsonb;

@@ -1,0 +1,281 @@
+# 250 jobs to generate /blog/best-personality-types-for-{slug} pages for.
+# Format: slug | display name
+# Lines starting with # ignored.
+
+# === Tech / Engineering (40) ===
+software-engineering | Software Engineering
+backend-engineering | Backend Engineering
+frontend-engineering | Frontend Engineering
+full-stack-engineering | Full-Stack Engineering
+mobile-engineering | Mobile Engineering
+embedded-systems | Embedded Systems Engineering
+qa-engineering | QA Engineering
+site-reliability | Site Reliability Engineering
+platform-engineering | Platform Engineering
+security-engineering | Security Engineering
+penetration-testing | Penetration Testing
+network-engineering | Network Engineering
+cloud-architecture | Cloud Architecture
+machine-learning-engineering | Machine Learning Engineering
+ai-research | AI Research
+prompt-engineering | Prompt Engineering
+robotics-engineering | Robotics Engineering
+hardware-engineering | Hardware Engineering
+computer-vision | Computer Vision Engineering
+nlp-engineering | NLP Engineering
+data-engineering | Data Engineering
+database-administration | Database Administration
+business-intelligence | Business Intelligence Analysis
+it-support | IT Support
+it-management | IT Management
+engineering-management | Engineering Management
+chief-technology-officer | Chief Technology Officer
+ai-safety | AI Safety Research
+blockchain-development | Blockchain Development
+game-development | Game Development
+ar-vr-development | AR / VR Development
+technical-writing | Technical Writing
+developer-relations | Developer Relations
+solutions-architecture | Solutions Architecture
+product-engineering | Product Engineering
+infrastructure-engineering | Infrastructure Engineering
+ml-research | ML Research
+firmware-engineering | Firmware Engineering
+crypto-engineering | Cryptography Engineering
+hardware-product-design | Hardware Product Design
+
+# === Product / Design (25) ===
+product-management | Product Management
+ux-design | UX Design
+ui-design | UI Design
+product-design | Product Design
+ux-research | UX Research
+graphic-design | Graphic Design
+art-direction | Art Direction
+brand-design | Brand Design
+motion-design | Motion Design
+illustration | Illustration
+content-design | Content Design
+design-systems | Design Systems Engineering
+web-design | Web Design
+industrial-design | Industrial Design
+fashion-design | Fashion Design
+interior-design | Interior Design
+set-design | Set Design
+packaging-design | Packaging Design
+accessibility-design | Accessibility Design
+design-strategy | Design Strategy
+service-design | Service Design
+information-architecture | Information Architecture
+visual-design | Visual Design
+creative-direction | Creative Direction
+animation | Animation
+
+# === Marketing / Growth (25) ===
+marketing | Marketing
+growth-marketing | Growth Marketing
+content-marketing | Content Marketing
+seo | Search Engine Optimization (SEO)
+sem-ppc | Paid Search (SEM / PPC)
+social-media-management | Social Media Management
+email-marketing | Email Marketing
+brand-management | Brand Management
+marketing-leadership | Marketing Leadership (CMO)
+performance-marketing | Performance Marketing
+demand-generation | Demand Generation
+lifecycle-marketing | Lifecycle Marketing
+copywriting | Copywriting
+content-strategy | Content Strategy
+public-relations | Public Relations
+influencer-marketing | Influencer Marketing
+community-management | Community Management
+partnership-marketing | Partnership Marketing
+video-marketing | Video Marketing
+podcast-production | Podcast Production
+event-marketing | Event Marketing
+account-based-marketing | Account-Based Marketing
+product-marketing | Product Marketing
+marketing-analytics | Marketing Analytics
+go-to-market-strategy | Go-to-Market Strategy
+
+# === Sales (15) ===
+sales | Sales
+account-executive | Account Executive
+sales-development | Sales Development (SDR / BDR)
+sales-management | Sales Management
+sales-leadership | Sales Leadership (VP of Sales)
+account-management | Account Management
+key-accounts | Key Account Management
+channel-sales | Channel Sales
+inside-sales | Inside Sales
+outside-sales | Outside Sales
+retail-sales | Retail Sales
+sales-engineering | Sales Engineering
+sales-operations | Sales Operations
+enterprise-sales | Enterprise Sales
+solution-selling | Solution Selling
+
+# === Finance (20) ===
+accounting | Accounting
+auditing | Auditing
+financial-leadership | Financial Leadership (CFO)
+financial-control | Financial Control
+financial-analysis | Financial Analysis
+fp-and-a | Financial Planning & Analysis (FP&A)
+investment-banking | Investment Banking
+equity-research | Equity Research
+portfolio-management | Portfolio Management
+hedge-fund-analysis | Hedge Fund Analysis
+private-equity | Private Equity
+venture-capital | Venture Capital
+treasury | Treasury
+tax-accounting | Tax Accounting
+financial-advising | Financial Advising
+wealth-management | Wealth Management
+actuarial-science | Actuarial Science
+risk-management | Risk Management
+compliance | Compliance
+mergers-and-acquisitions | Mergers & Acquisitions
+
+# === Legal (10) ===
+law | Law
+litigation | Litigation
+intellectual-property-law | Intellectual Property Law
+corporate-law | Corporate Law
+criminal-defense | Criminal Defense Law
+public-defense | Public Defense
+contract-law | Contract Law
+mediation | Mediation
+paralegal | Paralegal Work
+legal-operations | Legal Operations
+
+# === Healthcare (20) ===
+medicine | Medicine
+surgery | Surgery
+nursing | Nursing
+dentistry | Dentistry
+pharmacy | Pharmacy
+psychotherapy | Psychotherapy
+psychology | Psychology
+psychiatry | Psychiatry
+occupational-therapy | Occupational Therapy
+physical-therapy | Physical Therapy
+emergency-medicine | Emergency Medicine
+paramedic | Paramedic Work
+nutrition | Nutrition & Dietetics
+midwifery | Midwifery
+veterinary-medicine | Veterinary Medicine
+optometry | Optometry
+chiropractic | Chiropractic
+radiology | Radiology
+healthcare-administration | Healthcare Administration
+clinical-research | Clinical Research
+
+# === Education (10) ===
+teaching | Teaching
+higher-education-faculty | Higher Education Faculty
+school-administration | School Administration
+school-counseling | School Counseling
+library-science | Library Science
+instructional-design | Instructional Design
+special-education | Special Education
+early-childhood-education | Early Childhood Education
+tutoring | Tutoring
+education-research | Education Research
+
+# === Arts / Creative (15) ===
+writing | Writing
+fiction-writing | Fiction Writing
+journalism | Journalism
+screenwriting | Screenwriting
+editing | Editing
+photography | Photography
+filmmaking | Filmmaking
+music | Music
+acting | Acting
+dance | Dance
+painting | Painting
+sculpting | Sculpting
+voice-acting | Voice Acting
+podcasting | Podcasting
+poetry | Poetry
+
+# === Operations / Support (15) ===
+operations | Operations Management
+chief-operating-officer | Chief Operating Officer
+project-management | Project Management
+program-management | Program Management
+executive-assistance | Executive Assistance
+office-management | Office Management
+customer-success | Customer Success
+customer-support | Customer Support
+customer-experience | Customer Experience Management
+supply-chain-management | Supply Chain Management
+logistics | Logistics Coordination
+procurement | Procurement Management
+facilities-management | Facilities Management
+business-analysis | Business Analysis
+agile-coaching | Agile Coaching
+
+# === Trades / Hands-on (15) ===
+electrical-work | Electrical Work
+plumbing | Plumbing
+carpentry | Carpentry
+welding | Welding
+auto-mechanics | Auto Mechanics
+hvac | HVAC
+construction-management | Construction Management
+civil-engineering | Civil Engineering
+mechanical-engineering | Mechanical Engineering
+culinary-arts | Culinary Arts (Chef)
+bartending | Bartending
+hairstyling | Hairstyling
+makeup-artistry | Makeup Artistry
+tattoo-artistry | Tattoo Artistry
+barista | Barista Work
+
+# === Service / Public (10) ===
+law-enforcement | Law Enforcement
+firefighting | Firefighting
+military-leadership | Military Leadership
+social-work | Social Work
+public-administration | Public Administration
+urban-planning | Urban Planning
+environmental-science | Environmental Science
+archaeology | Archaeology
+park-ranging | Park Ranging
+foreign-service | Foreign Service
+
+# === Specialized (15) ===
+real-estate | Real Estate
+real-estate-development | Real Estate Development
+insurance | Insurance
+financial-planning | Financial Planning
+recruiting | Recruiting
+human-resources | Human Resources
+talent-acquisition | Talent Acquisition
+training-and-development | Training & Development
+organizational-development | Organizational Development
+coaching | Coaching
+management-consulting | Management Consulting
+freelance-work | Freelance Work
+entrepreneurship | Entrepreneurship
+non-profit-leadership | Non-Profit Leadership
+academic-research | Academic Research
+
+# === Tech-adjacent business (15) ===
+data-science | Data Science
+data-analysis | Data Analysis
+business-development | Business Development
+strategy-consulting | Strategy Consulting
+operations-research | Operations Research
+quality-assurance | Quality Assurance
+revenue-operations | Revenue Operations
+marketing-operations | Marketing Operations
+people-operations | People Operations
+chief-of-staff | Chief of Staff
+biz-ops | Business Operations
+trust-and-safety | Trust & Safety
+policy-and-comms | Policy & Communications
+technical-program-management | Technical Program Management
+field-engineering | Field Engineering

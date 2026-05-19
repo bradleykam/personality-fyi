@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://en.wikipedia.org">
+<link rel="dns-prefetch" href="https://upload.wikimedia.org">
+<link rel="dns-prefetch" href="https://api.openpsychometrics.org">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personality test — shared with you</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root { --ink:#0e0e0e; --paper:#f5f2ed; --cream:#ede9e1; --accent:#c8411a; --muted:#7a7670; --border:#d4cfc7; --card:#ffffff; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Mono', monospace; background: var(--paper); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+.cr-page { max-width: 600px; margin: 0 auto; padding: 48px 24px 80px; }
+.cr-brand { font-size: 22px; font-weight: 700; color: var(--ink); text-decoration: none; margin-bottom: 3rem; display: inline-block; }
+.cr-brand span { color: var(--accent); }
+.cr-h1 { font-family: 'DM Mono', monospace; font-size: 28px; font-weight: 700; line-height: 1.25; margin-bottom: 1rem; }
+.cr-creator-name { color: var(--accent); }
+.consent-box { background: var(--cream); border: 0.5px solid var(--border); border-radius: 10px; padding: 1.5rem 1.75rem; margin: 1.5rem 0 2rem; line-height: 1.7; }
+.consent-box .first { margin-bottom: 1rem; }
+.consent-box .first b { font-weight: 700; }
+.consent-list { margin: 1rem 0; }
+.consent-list .heading { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; opacity: .65; margin-top: 1rem; }
+.consent-list .heading.no { color: var(--accent); opacity: .8; }
+.consent-list ul { list-style: none; padding: 0; margin: 6px 0 0; }
+.consent-list li { padding: 4px 0; }
+.cr-btn-primary, .cr-btn-link {
+  font-family: 'DM Mono', monospace; cursor: pointer; transition: all .15s; display: block; width: 100%;
+}
+.cr-btn-primary {
+  padding: 14px 16px; margin-top: 1.5rem; font-size: 14px; font-weight: 700; letter-spacing: .04em;
+  background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 6px;
+}
+.cr-btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+.cr-btn-link {
+  margin-top: .75rem; padding: 10px 16px; background: none; border: none; color: var(--ink); opacity: .7;
+  font-size: 13px; text-decoration: underline;
+}
+.cr-btn-link:hover { opacity: 1; color: var(--accent); }
+.cr-error { color: var(--accent); font-size: 13px; margin-top: 1rem; min-height: 18px; }
+.cr-loading { padding: 2rem 0; text-align: center; opacity: .55; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="cr-page">
+  <a href="/" class="cr-brand">Personality<span>.fyi</span></a>
+
+  <div id="cr-loading" class="cr-loading">Loading…</div>
+
+  <div id="cr-content" style="display:none">
+    <h1 class="cr-h1">Personality test — shared by <span class="cr-creator-name" id="cr-name"></span></h1>
+
+    <div class="consent-box">
+      <p class="first"><b id="cr-name2"></b> shared this link so they can better understand their audience.</p>
+      <p>By completing this test, your personality type result (and nothing else) will be shared with <b id="cr-name3"></b>.</p>
+
+      <div class="consent-list">
+        <div class="heading">What IS shared</div>
+        <ul><li>✓ Your 4-letter personality type (e.g. INTJ)</li></ul>
+
+        <div class="heading no">What is NOT shared</div>
+        <ul>
+          <li>✗ Your email address</li>
+          <li>✗ Your name</li>
+          <li>✗ Any other personal information</li>
+        </ul>
+      </div>
+
+      <p style="margin-top:1rem;font-size:13px;opacity:.75"><span id="cr-name4"></span> sees only aggregate audience breakdowns — not individual results tied to you personally.</p>
+    </div>
+
+    <label style="display:flex;align-items:flex-start;gap:10px;background:var(--cream);border:0.5px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:1rem;cursor:pointer">
+      <input type="checkbox" id="cr-share-consent" checked style="margin-top:2px;flex-shrink:0" onchange="crToggleEmailField()">
+      <span style="font-size:13px;line-height:1.5">I consent to sharing my personality test information and my email with <b id="cr-name5"></b>.</span>
+    </label>
+
+    <div id="cr-email-wrap" style="margin-bottom:1.25rem">
+      <label style="display:block;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">Your email</label>
+      <input id="cr-follower-email" type="email" maxlength="200" placeholder="you@example.com"
+        style="width:100%;padding:12px 14px;font-family:'DM Mono',monospace;font-size:14px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--ink);outline:none">
+      <div id="cr-email-error" style="color:var(--accent);font-size:12px;margin-top:6px;min-height:14px"></div>
+    </div>
+
+    <button class="cr-btn-primary" onclick="crConsentSubmit()">Take the test →</button>
+  </div>
+
+  <div id="cr-not-found" style="display:none">
+    <h1 class="cr-h1">Link not found</h1>
+    <p style="opacity:.7">This creator link isn't active. Take you back to <a href="/" style="color:var(--accent)">personality.fyi</a>.</p>
+  </div>
+</div>
+
+<script>
+function crSlugFromPath() {
+  const m = window.location.pathname.match(/^\/from\/([^/?#]+)/i);
+  return m ? decodeURIComponent(m[1]).toLowerCase() : '';
+}
+function crSessionId() {
+  let s = sessionStorage.getItem('creator_referral_sid');
+  if (!s) { s = (crypto.randomUUID && crypto.randomUUID()) || Math.random().toString(36).slice(2) + Date.now(); sessionStorage.setItem('creator_referral_sid', s); }
+  return s;
+}
+async function crLoad() {
+  const slug = crSlugFromPath();
+  if (!slug) { window.location.href = '/'; return; }
+  try {
+    const r = await fetch('/.netlify/functions/creator-resolve?slug=' + encodeURIComponent(slug));
+    if (r.status === 404) {
+      document.getElementById('cr-loading').style.display = 'none';
+      document.getElementById('cr-not-found').style.display = 'block';
+      return;
+    }
+    const data = await r.json();
+    document.getElementById('cr-loading').style.display = 'none';
+    document.getElementById('cr-content').style.display = 'block';
+    ['cr-name','cr-name2','cr-name3','cr-name4','cr-name5'].forEach(id => { var el = document.getElementById(id); if (el) el.textContent = data.displayName; });
+    sessionStorage.setItem('creator_slug', slug);
+    sessionStorage.setItem('creator_display_name', data.displayName);
+  } catch (e) {
+    document.getElementById('cr-loading').textContent = "Couldn't load creator info.";
+  }
+}
+function crToggleEmailField() {
+  var wrap = document.getElementById('cr-email-wrap');
+  var checked = !!document.getElementById('cr-share-consent').checked;
+  if (wrap) wrap.style.display = checked ? '' : 'none';
+}
+
+function crConsentSubmit() {
+  var errEl = document.getElementById('cr-email-error');
+  if (errEl) errEl.textContent = '';
+  var slug = sessionStorage.getItem('creator_slug') || crSlugFromPath();
+  var consentToShare = !!document.getElementById('cr-share-consent').checked;
+
+  if (consentToShare) {
+    var emailEl = document.getElementById('cr-follower-email');
+    var email = (emailEl.value || '').trim().toLowerCase();
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      if (errEl) errEl.textContent = 'Enter a valid email so we can save your result.';
+      emailEl.focus();
+      return;
+    }
+    sessionStorage.setItem('creator_consent', '1');
+    sessionStorage.setItem('creator_follower_email', email);
+  } else {
+    sessionStorage.setItem('creator_consent', '0');
+    sessionStorage.removeItem('creator_follower_email');
+  }
+  window.location.href = '/?tab=test&creator=' + encodeURIComponent(slug);
+}
+crLoad();
+</script>
+</body>
+</html>

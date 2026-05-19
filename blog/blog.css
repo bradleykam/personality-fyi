@@ -19,37 +19,81 @@ body {
 a { color: var(--accent); text-decoration: underline; }
 a:hover { text-decoration: none; }
 
+/* Left sidebar — matches the main app's fixed-left layout */
 .blog-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 220px;
+  height: 100vh;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 2rem;
-  border-bottom: 0.5px solid var(--border);
-  max-width: 820px;
-  margin: 0 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 1.75rem 1.25rem;
+  gap: 1.25rem;
+  border-right: 0.5px solid var(--border);
+  background: var(--paper);
+  z-index: 100;
+  max-width: none;
+  margin: 0;
 }
 .blog-brand {
   font-family: 'DM Mono', monospace;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--ink);
   text-decoration: none;
+  padding: 8px 0 12px;
 }
 .blog-brand span { color: var(--accent); }
-.blog-nav a {
-  font-size: 13px;
-  color: var(--muted);
-  text-decoration: none;
-  margin-left: 1.25rem;
-  letter-spacing: .04em;
-  text-transform: uppercase;
+.blog-nav {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 2px;
 }
-.blog-nav a:hover, .blog-nav a.active { color: var(--ink); }
+.blog-nav a {
+  display: block;
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  color: var(--ink);
+  text-decoration: none;
+  margin: 0;
+  padding: 10px 0;
+  letter-spacing: 0;
+  text-transform: none;
+  border-left: 2px solid transparent;
+}
+.blog-nav a:hover { color: var(--accent); }
+.blog-nav a.active {
+  font-weight: 700;
+}
 
 .blog-article {
-  max-width: 720px;
-  margin: 2.5rem auto;
-  padding: 0 2rem;
+  max-width: 760px;
+  margin: 0;
+  margin-left: 220px;
+  padding: 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .blog-header {
+    position: static;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    gap: 1rem;
+    border-right: none;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .blog-brand { padding: 0; font-size: 18px; }
+  .blog-nav { flex-direction: row; width: auto; gap: 12px; }
+  .blog-nav a { padding: 4px 0; font-size: 13px; }
+  .blog-article { margin-left: 0; padding: 1.5rem 1.25rem; }
 }
 .blog-breadcrumb {
   font-size: 12px;
@@ -137,6 +181,47 @@ p { margin-bottom: 1rem; }
   margin-bottom: 2rem;
   line-height: 1.7;
 }
+.blog-search-wrap {
+  position: relative;
+  margin: 0 0 2.5rem;
+}
+.blog-search-input {
+  width: 100%;
+  padding: 14px 44px 14px 18px;
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  box-sizing: border-box;
+}
+.blog-search-input:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(14,14,14,.05);
+}
+.blog-search-input::placeholder { color: var(--muted); }
+.blog-search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.blog-search-clear:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .blog-index-list { display: flex; flex-direction: column; gap: 1.5rem; }
 .blog-index-item {
   border-bottom: 0.5px solid var(--border);
@@ -347,10 +432,30 @@ p { margin-bottom: 1rem; }
 }
 .blog-footer a { color: var(--muted); text-decoration: none; }
 .blog-footer a:hover { color: var(--ink); }
+.blog-footer::after {
+  content: '\00A9 2026 Find Porpoise LLC';
+  display: block;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  opacity: .7;
+}
 
 @media (max-width: 640px) {
   .blog-header { padding: 1rem; }
   .blog-article { padding: 0 1.25rem; margin: 1.5rem auto; }
   h1 { font-size: 28px; }
   h2 { font-size: 20px; }
+}
+
+/* Phone polish */
+@media (max-width: 480px) {
+  .blog-article { padding: 0 1rem; }
+  h1 { font-size: 24px; line-height: 1.25; }
+  h2 { font-size: 18px; }
+  table.blog-compare { display: block; overflow-x: auto; }
+  .blog-cta { padding: 1.5rem 1.25rem; }
+  .blog-cta-btn { width: 100%; padding: 12px 16px; }
+  .learn-toggle-btn { font-size: 12px; padding: 6px 10px; }
+  .learn-header { flex-wrap: wrap; gap: 8px; }
 }

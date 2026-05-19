@@ -1,0 +1,23 @@
+{
+  "code": "ISTP",
+  "name": "Virtuoso",
+  "title": "The Virtuoso",
+  "cognitive": "Hands-on, pragmatic. Understands how things work and fixes what is broken.",
+  "strengths": [
+    "Calm under pressure",
+    "resourceful",
+    "observant",
+    "efficient"
+  ],
+  "shadow": [
+    "Emotionally unavailable",
+    "can be blunt",
+    "disengages when bored"
+  ],
+  "drains": [
+    "Theory without application",
+    "over-communication",
+    "rigidity"
+  ],
+  "url": "https://personality.fyi/type/istp"
+}

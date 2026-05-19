@@ -1,0 +1,15 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Personality.fyi",
+  "name_for_model": "personality_fyi",
+  "description_for_human": "MBTI personality platform: 60-second test, all 16 type guides, 136 compatibility pairings, career fit, and AI tools.",
+  "description_for_model": "Use this plugin to retrieve information about the 16 Myers-Briggs personality types, two-type compatibility, type comparisons, and career fit. Canonical short URLs: /type/{code} for type guides, /blog/{a}-{b}-compatibility for pair compat (alphabetical), /blog/{a}-vs-{b} for comparisons, /blog/best-personality-types-for-{career} for career fit. The site supplies a comprehensive llms.txt at /llms.txt with quotable distillations of every type, pair, and tool.",
+  "auth": { "type": "none" },
+  "api": {
+    "type": "openapi",
+    "url": "https://personality.fyi/.well-known/openapi.yaml"
+  },
+  "logo_url": "https://personality.fyi/og-default.png",
+  "contact_email": "hello@personality.fyi",
+  "legal_info_url": "https://personality.fyi/terms"
+}

@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Personality.fyi Blog</title>
+    <link>https://personality.fyi/blog</link>
+    <atom:link href="https://personality.fyi/feed.xml" rel="self" type="application/rss+xml" />
+    <description>Honest MBTI analysis for careers, compatibility, and self-understanding. Written by Brad Kam.</description>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 15 May 2026 00:00:00 GMT</lastBuildDate>
+    <managingEditor>hello@personality.fyi (Brad Kam)</managingEditor>
+    <webMaster>hello@personality.fyi (Brad Kam)</webMaster>
+    <image>
+      <url>https://personality.fyi/og-image.png</url>
+      <title>Personality.fyi Blog</title>
+      <link>https://personality.fyi/blog</link>
+    </image>
+    <item>
+      <title>MBTI Compatibility: All 136 Type Pairings</title>
+      <link>https://personality.fyi/blog/compatibility</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/compatibility</guid>
+      <pubDate>Tue, 12 May 2026 00:00:00 GMT</pubDate>
+      <description>Every MBTI compatibility pairing analyzed in plain English. Scores, strengths, friction, communication tips. All 136 unique pairings.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>Are INFJs really rare?</title>
+      <link>https://personality.fyi/blog/are-infjs-really-rare</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/are-infjs-really-rare</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>INFJs are approximately 1-2% of the population, making them the rarest of the 16 MBTI types. But here is what the rarity claim does and doesn&#x27;t mean.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>What is the best personality type for leadership?</title>
+      <link>https://personality.fyi/blog/best-personality-type-for-leadership</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/best-personality-type-for-leadership</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ENTJs are most often cited as the best MBTI type for leadership, followed by ESTJs, ENFJs, and INTJs. Each leads differently. Here&#x27;s how to tell.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>What is the best personality type for startups?</title>
+      <link>https://personality.fyi/blog/best-personality-type-for-startups</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/best-personality-type-for-startups</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ENTPs and ENTJs are most often cited as the best MBTI types for startup founders. INTJ, ESTP, and ENFP are also strong fits. What the wiring rewards.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>Can your MBTI type change over time?</title>
+      <link>https://personality.fyi/blog/can-mbti-type-change</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/can-mbti-type-change</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>Core preferences are stable across adulthood, but test results can shift based on mood, life stage, and which traits you are emphasizing. Here&#x27;s what changes and what doesn&#x27;t.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>Best MBTI Personality Types for Every Care</title>
+      <link>https://personality.fyi/blog/careers</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/careers</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>Which MBTI types thrive in which careers, with specific reasoning. 30 career guides from software engineering to medicine.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>MBTI Type Comparisons: Side-by-Side Guides</title>
+      <link>https://personality.fyi/blog/comparisons</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/comparisons</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>Commonly confused MBTI type pairs compared across leadership, communication, careers, conflict, and stress response. 16 comparison guides.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ENFJ Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/enfj-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/enfj-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ENFJ (The Protagonist) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ENFJ.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ENFP Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/enfp-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/enfp-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ENFP (The Campaigner) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ENFP.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ENTJ Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/entj-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/entj-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ENTJ (The Commander) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ENTJ cognitive.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ENTP Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/entp-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/entp-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ENTP (The Debater) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ENTP cognitive.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ESFJ Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/esfj-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/esfj-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ESFJ (The Consul) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ESFJ cognitive.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ESFP Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/esfp-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/esfp-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ESFP (The Entertainer) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ESFP.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ESTJ Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/estj-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/estj-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ESTJ (The Executive) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ESTJ cognitive.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ESTP Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/estp-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/estp-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ESTP (The Entrepreneur) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ESTP.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>How do I know if I&#x27;m an introvert or extrovert?</title>
+      <link>https://personality.fyi/blog/how-to-tell-if-youre-introvert-or-extrovert</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/how-to-tell-if-youre-introvert-or-extrovert</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>The test is what recharges you, not how you behave at parties. Introverts recharge alone; extroverts recharge with people. Here&#x27;s how to tell for yourself.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>INFJ Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/infj-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/infj-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>INFJ (The Advocate) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to INFJ cognitive.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>INFP Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/infp-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/infp-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>INFP (The Mediator) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to INFP cognitive.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>INTJ Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/intj-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/intj-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>INTJ (The Architect) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to INTJ cognitive.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>INTP Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/intp-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/intp-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>INTP (The Logician) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to INTP cognitive.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ISFJ Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/isfj-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/isfj-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ISFJ (The Defender) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ISFJ cognitive.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ISFP Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/isfp-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/isfp-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ISFP (The Adventurer) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ISFP.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ISTJ Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/istj-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/istj-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ISTJ (The Logistician) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ISTJ.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>ISTP Free Career Planning, Best Jobs &amp; Com</title>
+      <link>https://personality.fyi/blog/istp-personality</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/istp-personality</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>ISTP (The Virtuoso) free career planning guide: best careers, skills to develop, common career pivots, and live job listings calibrated to ISTP cognitive.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>What is the rarest MBTI type?</title>
+      <link>https://personality.fyi/blog/what-is-the-rarest-mbti-type</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/what-is-the-rarest-mbti-type</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>INFJ is the rarest MBTI type, at approximately 1-2% of the population. INTJ, ENTJ, and ENFJ are also uncommon. Full ranking and the why behind each.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>What jobs do INFPs love?</title>
+      <link>https://personality.fyi/blog/what-jobs-do-infps-love</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/what-jobs-do-infps-love</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>INFPs thrive in roles that align with their values: writing, therapy, art, social work, and education. Here&#x27;s why these fields fit and which jobs to avoid.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>Which MBTI type is the most romantic?</title>
+      <link>https://personality.fyi/blog/which-mbti-type-is-best-in-bed</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/which-mbti-type-is-best-in-bed</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>INFPs and ENFPs are most often cited as the most romantic MBTI types, followed by ISFPs and INFJs. What the F-types bring that T-types don&#x27;t.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+    <item>
+      <title>Why do INFJs disappear from relationships?</title>
+      <link>https://personality.fyi/blog/why-do-infjs-disappear</link>
+      <guid isPermaLink="true">https://personality.fyi/blog/why-do-infjs-disappear</guid>
+      <pubDate>Mon, 11 May 2026 00:00:00 GMT</pubDate>
+      <description>The INFJ door slam is real, but it&#x27;s not arbitrary. Here&#x27;s what triggers it, what it looks like, and whether the relationship can be recovered.</description>
+      <author>hello@personality.fyi (Brad Kam)</author>
+    </item>
+  </channel>
+</rss>

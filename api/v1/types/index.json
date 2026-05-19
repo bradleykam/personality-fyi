@@ -1,0 +1,85 @@
+{
+  "types": [
+    {
+      "code": "INTJ",
+      "name": "Architect",
+      "title": "The Architect"
+    },
+    {
+      "code": "INTP",
+      "name": "Logician",
+      "title": "The Thinker"
+    },
+    {
+      "code": "ENTJ",
+      "name": "Commander",
+      "title": "The Commander"
+    },
+    {
+      "code": "ENTP",
+      "name": "Debater",
+      "title": "The Debater"
+    },
+    {
+      "code": "INFJ",
+      "name": "Advocate",
+      "title": "The Advocate"
+    },
+    {
+      "code": "INFP",
+      "name": "Mediator",
+      "title": "The Mediator"
+    },
+    {
+      "code": "ENFJ",
+      "name": "Protagonist",
+      "title": "The Protagonist"
+    },
+    {
+      "code": "ENFP",
+      "name": "Campaigner",
+      "title": "The Campaigner"
+    },
+    {
+      "code": "ISTJ",
+      "name": "Logistician",
+      "title": "The Logistician"
+    },
+    {
+      "code": "ISFJ",
+      "name": "Defender",
+      "title": "The Defender"
+    },
+    {
+      "code": "ESTJ",
+      "name": "Executive",
+      "title": "The Executive"
+    },
+    {
+      "code": "ESFJ",
+      "name": "Consul",
+      "title": "The Consul"
+    },
+    {
+      "code": "ISTP",
+      "name": "Virtuoso",
+      "title": "The Virtuoso"
+    },
+    {
+      "code": "ISFP",
+      "name": "Adventurer",
+      "title": "The Adventurer"
+    },
+    {
+      "code": "ESTP",
+      "name": "Entrepreneur",
+      "title": "The Entrepreneur"
+    },
+    {
+      "code": "ESFP",
+      "name": "Entertainer",
+      "title": "The Entertainer"
+    }
+  ],
+  "count": 16
+}

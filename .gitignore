@@ -5,3 +5,11 @@ node_modules/
 *.log
 .env
 .env.local
+
+# Quora monitor artifacts — never commit
+tools/quora/quora_session.json
+tools/quora/quora_seen.json
+tools/quora/quora_drafts.html
+tools/quora/monitor.log
+tools/quora/.venv/
+tools/quora/__pycache__/

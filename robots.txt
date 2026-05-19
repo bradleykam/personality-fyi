@@ -18,19 +18,18 @@ Allow: /
 User-agent: OAI-SearchBot
 Allow: /
 
-# Block AI training bots
+# Allow foundation-model training crawlers (brand presence > IP protection)
 User-agent: GPTBot
-Disallow: /
+Allow: /
 
+User-agent: Google-Extended
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# Common Crawl still blocked — poor attribution
 User-agent: CCBot
 Disallow: /
 
-User-agent: Google-Extended
-Disallow: /
-
-User-agent: anthropic-ai
-Disallow: /
-
 Sitemap: https://personality.fyi/sitemap.xml
-
-# claude-run end-to-end test OK

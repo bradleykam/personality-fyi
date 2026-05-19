@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://en.wikipedia.org">
+<link rel="dns-prefetch" href="https://upload.wikimedia.org">
+<link rel="dns-prefetch" href="https://api.openpsychometrics.org">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get your audience link | personality.fyi for creators</title>
+<meta name="description" content="Share a personality test with your audience. With their consent, see what types they are. Free for creators.">
+<link rel="canonical" href="https://personality.fyi/creators">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Get your audience link — personality.fyi for creators">
+<meta property="og:description" content="Share a personality test with your audience. With their consent, see what types they are.">
+<meta property="og:url" content="https://personality.fyi/creators">
+<meta property="og:image" content="https://personality.fyi/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root { --ink:#0e0e0e; --paper:#f5f2ed; --cream:#ede9e1; --accent:#c8411a; --muted:#7a7670; --border:#d4cfc7; --card:#ffffff; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Mono', monospace; background: var(--paper); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; display: flex; }
+
+/* Left sidebar — mirrors consumer app */
+.cr-sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0; width: 220px;
+  background: var(--paper); border-right: 0.5px solid var(--border);
+  display: flex; flex-direction: column; z-index: 10;
+}
+.cr-sidebar-brand {
+  padding: 1.75rem 1.25rem 1.25rem;
+  border-bottom: 0.5px solid var(--border);
+}
+.cr-sidebar-brand .wordmark {
+  font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 700;
+  color: var(--ink); text-decoration: none; cursor: pointer;
+}
+.cr-sidebar-brand .wordmark span { color: var(--accent); }
+.cr-sidebar-section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink); opacity: .55;
+  padding: 1rem 1.25rem 6px;
+}
+.cr-sidebar-nav { display: flex; flex-direction: column; }
+.cr-nav-item {
+  display: flex; align-items: center; width: 100%; text-align: left;
+  padding: 0 1.25rem; min-height: 44px;
+  font-family: 'DM Mono', monospace; font-size: 15px; color: var(--ink);
+  background: transparent; border: none; border-left: 2px solid transparent;
+  cursor: pointer; transition: all .1s; text-decoration: none;
+}
+.cr-nav-item:hover { background: var(--cream); }
+.cr-nav-item.active { background: var(--ink); color: var(--paper); border-left-color: var(--accent); font-weight: 500; }
+.cr-sidebar-bottom { margin-top: auto; padding: 12px 1.25rem; border-top: 0.5px solid var(--border); font-size: 12px; opacity: .6; }
+
+/* Main content */
+.cr-main { margin-left: 220px; flex: 1; min-height: 100vh; }
+.cr-page { max-width: 760px; margin: 0 auto; padding: 48px 32px 80px; }
+
+@media (max-width: 720px) {
+  body { display: block; }
+  .cr-sidebar { position: static; width: 100%; height: auto; border-right: none; border-bottom: 0.5px solid var(--border); }
+  .cr-sidebar-bottom { display: none; }
+  .cr-sidebar-nav { flex-direction: row; overflow-x: auto; }
+  .cr-nav-item { min-height: 40px; border-left: none; border-bottom: 2px solid transparent; padding: 0 14px; font-size: 13px; }
+  .cr-nav-item.active { border-left: none; border-bottom-color: var(--accent); }
+  .cr-sidebar-section-label { display: none; }
+  .cr-main { margin-left: 0; }
+  .cr-page { padding: 24px 16px 60px; }
+}
+
+.cr-brand { font-size: 22px; font-weight: 700; color: var(--ink); text-decoration: none; margin-bottom: 3rem; display: inline-block; }
+.cr-brand span { color: var(--accent); }
+.cr-h1 { font-family: 'DM Mono', monospace; font-size: 32px; font-weight: 700; line-height: 1.2; margin-bottom: 12px; }
+.cr-sub { font-size: 16px; color: var(--ink); opacity: .7; margin-bottom: 2.5rem; line-height: 1.55; }
+.cr-field { display: block; margin-bottom: 1.25rem; }
+.cr-label { display: block; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink); margin-bottom: 6px; }
+.cr-hint { font-size: 12px; color: var(--ink); opacity: .55; margin-top: 4px; }
+.cr-input {
+  width: 100%; padding: 12px 14px; font-family: 'DM Mono', monospace; font-size: 14px;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--ink);
+  transition: border-color .15s; outline: none;
+}
+.cr-input:focus { border-color: var(--ink); }
+.cr-prefix-wrap { display: flex; align-items: stretch; }
+.cr-prefix { padding: 12px 12px 12px 14px; border: 1px solid var(--border); border-right: 0; border-radius: 6px 0 0 6px; background: var(--cream); font-size: 13px; color: var(--ink); opacity: .7; white-space: nowrap; }
+.cr-prefix-wrap .cr-input { border-radius: 0 6px 6px 0; }
+.cr-btn {
+  width: 100%; padding: 14px 16px; margin-top: 1rem;
+  font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; letter-spacing: .04em;
+  background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-radius: 6px;
+  cursor: pointer; transition: all .15s;
+}
+.cr-btn:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+.cr-btn:disabled { opacity: .55; cursor: not-allowed; }
+.cr-error { color: var(--accent); font-size: 13px; margin-top: 8px; min-height: 18px; }
+.cr-tos { font-size: 12px; color: var(--ink); opacity: .55; margin-top: 1rem; }
+.cr-tos a { color: var(--ink); }
+.cr-success { background: var(--cream); border: 0.5px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; }
+.cr-success-h { font-size: 18px; font-weight: 700; margin-bottom: 1rem; }
+.cr-link-block {
+  display: flex; gap: 8px; align-items: stretch;
+  background: var(--paper); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px;
+  font-family: 'DM Mono', monospace; font-size: 13px; word-break: break-all; margin: .75rem 0;
+}
+.cr-link-url { flex: 1; color: var(--ink); }
+.cr-copy-btn { background: var(--ink); color: var(--paper); border: none; border-radius: 4px; padding: 6px 12px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.cr-copy-btn:hover { background: var(--accent); }
+.cr-auth-prompt { background: var(--cream); border: 0.5px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 13px; }
+.cr-auth-prompt button { background: var(--ink); color: var(--paper); border: none; padding: 6px 14px; border-radius: 4px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; margin-left: 6px; }
+.hidden { display: none; }
+
+/* Content by Type */
+.cbt-textarea {
+  width: 100%; min-height: 160px; padding: 14px;
+  font-family: 'DM Mono', monospace; font-size: 14px; line-height: 1.6;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--card);
+  color: var(--ink); outline: none; resize: vertical;
+}
+.cbt-textarea:focus { border-color: var(--ink); }
+.cbt-actions { display: flex; gap: 12px; align-items: center; margin-top: 1rem; flex-wrap: wrap; }
+.cbt-go-btn {
+  padding: 12px 18px; font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700;
+  letter-spacing: .04em; background: var(--ink); color: var(--paper);
+  border: 1px solid var(--ink); border-radius: 6px; cursor: pointer; transition: all .15s;
+}
+.cbt-go-btn:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+.cbt-go-btn:disabled { opacity: .55; cursor: not-allowed; }
+.cbt-status { font-size: 12px; opacity: .65; min-height: 16px; }
+.cbt-results { margin-top: 2rem; }
+.cbt-card {
+  background: var(--card); border: 0.5px solid var(--border); border-radius: 8px;
+  padding: 1rem 1.25rem; margin-bottom: 12px;
+}
+.cbt-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 8px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border);
+}
+.cbt-card-type {
+  font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700;
+  color: var(--paper); background: var(--ink);
+  padding: 4px 10px; border-radius: 4px; letter-spacing: .04em;
+}
+.cbt-card-title { font-size: 13px; opacity: .65; flex: 1; }
+.cbt-card-copy {
+  background: transparent; border: 1px solid var(--border); color: var(--ink);
+  padding: 4px 10px; border-radius: 4px; font-family: inherit; font-size: 11px; font-weight: 700;
+  cursor: pointer; transition: all .15s;
+}
+.cbt-card-copy:hover { border-color: var(--ink); background: var(--cream); }
+.cbt-card-body {
+  font-family: 'DM Mono', monospace; font-size: 14px; line-height: 1.7;
+  color: var(--ink); white-space: pre-wrap;
+}
+.cbt-toggle-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  background: var(--cream); border: 0.5px solid var(--border); border-radius: 8px;
+  padding: 10px; margin-bottom: 1rem;
+}
+.cbt-toggle-row label {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--paper); border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 10px; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.cbt-toggle-row label.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.cbt-toggle-row input { display: none; }
+
+@media (max-width: 720px) {
+  .cr-page { padding: 24px 16px 60px !important; }
+  .cbt-textarea { min-height: 140px; font-size: 13px; }
+  .cbt-toggle-row { padding: 8px; gap: 4px; }
+  .cbt-toggle-row label { font-size: 11px; padding: 5px 8px; }
+  .cbt-actions { flex-direction: column; align-items: stretch; gap: 8px; }
+  .cbt-go-btn { width: 100%; }
+  .cbt-card { padding: 12px 14px; }
+  .cbt-card-head { flex-wrap: wrap; gap: 6px; }
+  .cbt-card-body { font-size: 13px; }
+}
+@media (max-width: 480px) {
+  .cr-h1 { font-size: 24px !important; }
+}
+</style>
+</head>
+<body>
+<aside class="cr-sidebar">
+  <div class="cr-sidebar-brand">
+    <a href="/" class="wordmark">Personality<span>.fyi</span></a>
+  </div>
+  <div class="cr-sidebar-section-label">Creators</div>
+  <nav class="cr-sidebar-nav">
+    <button class="cr-nav-item active" data-cr-nav="dashboard" onclick="crNav('dashboard')">Dashboard</button>
+    <button class="cr-nav-item" data-cr-nav="content" onclick="crNav('content')">Content by Type</button>
+  </nav>
+  <div class="cr-sidebar-bottom">
+    <a href="/" style="color:inherit;text-decoration:underline;display:block;margin-bottom:6px">Main app \u2192</a>
+    <a href="/creator-tos" style="color:inherit;text-decoration:underline;display:block">Creator terms</a>
+  </div>
+</aside>
+
+<main class="cr-main">
+<div class="cr-page">
+  <div id="cr-dashboard" class="hidden"></div>
+
+  <div id="cr-signup-block">
+  <h1 class="cr-h1">Get your audience link</h1>
+  <p class="cr-sub">Share a personality test with your audience. When followers complete it, you get an email showing what types they are — with their consent.</p>
+
+  <div id="cr-auth-prompt" class="cr-auth-prompt hidden">
+    <div style="margin-bottom:.75rem;font-weight:700;font-size:14px">Sign in to claim your link</div>
+    <button onclick="crSignInWithGoogle()" id="cr-google-btn" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px 14px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;background:var(--paper);color:var(--ink);border:1px solid var(--border);border-radius:6px;cursor:pointer;margin-bottom:.75rem">
+      <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
+        <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.13 4.13 0 0 1-1.79 2.71v2.26h2.9c1.7-1.56 2.69-3.87 2.69-6.61z"/>
+        <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.83.86-3.06.86-2.35 0-4.34-1.59-5.06-3.72H.96v2.34A9 9 0 0 0 9 18z"/>
+        <path fill="#FBBC05" d="M3.94 10.7a5.41 5.41 0 0 1 0-3.41V4.96H.96a9 9 0 0 0 0 8.08L3.94 10.7z"/>
+        <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.45 1.34l2.58-2.58A9 9 0 0 0 .96 4.96L3.94 7.3C4.66 5.17 6.65 3.58 9 3.58z"/>
+      </svg>
+      Continue with Google
+    </button>
+    <div style="display:flex;align-items:center;gap:8px;margin:.5rem 0;font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.45">
+      <span style="flex:1;height:1px;background:var(--border)"></span><span>or</span><span style="flex:1;height:1px;background:var(--border)"></span>
+    </div>
+    <div style="margin-bottom:.5rem;opacity:.75;font-size:12px">We\u2019ll email a one-click sign-in link. No password.</div>
+    <div style="display:flex;gap:8px">
+      <input class="cr-input" id="cr-magic-email" type="email" placeholder="you@yourchannel.com" style="flex:1" maxlength="200">
+      <button onclick="crSendMagic()" id="cr-magic-btn">Send link</button>
+    </div>
+    <div id="cr-magic-status" style="font-size:12px;opacity:.7;margin-top:8px;min-height:16px"></div>
+  </div>
+
+  <form id="cr-form" onsubmit="event.preventDefault();crSubmit()">
+    <label class="cr-field">
+      <span class="cr-label">Your name or channel name</span>
+      <input class="cr-input" id="cr-name" type="text" placeholder="e.g. Frank James" required maxlength="80" oninput="crSuggestSlug()">
+      <div class="cr-hint">Followers see this on the consent screen.</div>
+    </label>
+
+    <label class="cr-field">
+      <span class="cr-label">Your email</span>
+      <input class="cr-input" id="cr-email" type="email" placeholder="you@yourchannel.com" required maxlength="200">
+      <div class="cr-hint">For receiving your audience digest emails.</div>
+    </label>
+
+    <label class="cr-field">
+      <span class="cr-label">Your link slug</span>
+      <div class="cr-prefix-wrap">
+        <span class="cr-prefix">personality.fyi/from/</span>
+        <input class="cr-input" id="cr-slug" type="text" placeholder="frankjames" required minlength="3" maxlength="40" pattern="[a-z0-9-]+">
+      </div>
+      <div class="cr-hint">Lowercase letters, numbers, and dashes only.</div>
+    </label>
+
+    <label class="cr-field">
+      <span class="cr-label">Website or channel URL <span style="opacity:.5">(optional)</span></span>
+      <input class="cr-input" id="cr-website" type="url" placeholder="https://youtube.com/@your-channel" maxlength="300">
+    </label>
+
+    <button type="submit" class="cr-btn" id="cr-submit">Get my link →</button>
+    <div id="cr-error" class="cr-error"></div>
+    <div class="cr-tos">By creating an account you agree to our <a href="/creator-tos">Creator Terms</a>.</div>
+  </form>
+
+  <div id="cr-success" class="cr-success hidden">
+    <div class="cr-success-h">Your link is ready</div>
+    <div class="cr-link-block">
+      <span class="cr-link-url" id="cr-link-url"></span>
+      <button class="cr-copy-btn" onclick="crCopyLink()" id="cr-copy-btn">Copy</button>
+    </div>
+    <p style="margin-bottom:.75rem">Share this in your bio, YouTube description, or newsletter. Followers who click it will take the personality test. With their consent, their type result contributes to your audience digest.</p>
+    <p style="opacity:.7;font-size:13px">We'll email you when you have enough results to see your audience breakdown (minimum 25 consenting responses).</p>
+    <p style="margin-top:1rem"><a href="/" style="color:var(--ink);text-decoration:underline">← Back to personality.fyi</a></p>
+  </div>
+  </div>
+
+  <div id="cr-content-panel" class="hidden">
+    <h1 class="cr-h1">Content by Type</h1>
+    <p class="cr-sub">Paste a piece of text. Get 16 versions \u2014 one rewritten for each MBTI type so it lands the way they hear it.</p>
+
+    <div id="cr-content-auth-prompt" class="cr-auth-prompt hidden">
+      Sign in to use Content by Type. Use the dashboard tab to sign in.
+    </div>
+
+    <textarea class="cbt-textarea" id="cbt-input" placeholder="Paste a tweet, email, video script, hook, ad copy \u2014 anything. The original meaning stays; the voice changes per type."></textarea>
+
+    <div class="cbt-toggle-row" id="cbt-types"></div>
+
+    <div class="cbt-actions">
+      <button class="cbt-go-btn" id="cbt-go" onclick="cbtRun()">Rewrite for selected types &rarr;</button>
+      <button onclick="cbtToggleAll()" style="background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:6px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer" id="cbt-toggle-all">Toggle all</button>
+      <span class="cbt-status" id="cbt-status"></span>
+    </div>
+
+    <div class="cbt-results" id="cbt-results"></div>
+  </div>
+</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+let _supabase = null, _currentUser = null;
+let _crCurrentNav = 'dashboard';
+
+const CBT_TYPES = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
+let _cbtSelected = new Set(CBT_TYPES);
+
+function crNav(target) {
+  _crCurrentNav = target;
+  document.querySelectorAll('.cr-nav-item').forEach(b => b.classList.toggle('active', b.dataset.crNav === target));
+  const dash = document.getElementById('cr-dashboard');
+  const signup = document.getElementById('cr-signup-block');
+  const content = document.getElementById('cr-content-panel');
+
+  // Hide everything first
+  if (dash) dash.classList.add('hidden');
+  if (signup) signup.classList.add('hidden');
+  if (content) content.classList.add('hidden');
+
+  if (target === 'content') {
+    content.classList.remove('hidden');
+    cbtEnsureRendered();
+    if (!_currentUser) document.getElementById('cr-content-auth-prompt').classList.remove('hidden');
+    else document.getElementById('cr-content-auth-prompt').classList.add('hidden');
+  } else {
+    // Dashboard: rerender via crApplyAuth which decides dash vs signup.
+    crApplyAuth();
+  }
+}
+
+function cbtEnsureRendered() {
+  const wrap = document.getElementById('cbt-types');
+  if (wrap.children.length) return;
+  CBT_TYPES.forEach(t => {
+    const lab = document.createElement('label');
+    lab.className = _cbtSelected.has(t) ? 'on' : '';
+    lab.innerHTML = '<input type="checkbox" ' + (_cbtSelected.has(t) ? 'checked' : '') + '> ' + t;
+    lab.onclick = function(e) {
+      e.preventDefault();
+      if (_cbtSelected.has(t)) _cbtSelected.delete(t); else _cbtSelected.add(t);
+      lab.classList.toggle('on');
+      lab.querySelector('input').checked = _cbtSelected.has(t);
+    };
+    wrap.appendChild(lab);
+  });
+}
+function cbtToggleAll() {
+  if (_cbtSelected.size === CBT_TYPES.length) _cbtSelected = new Set();
+  else _cbtSelected = new Set(CBT_TYPES);
+  document.querySelectorAll('#cbt-types label').forEach((lab, i) => {
+    const t = CBT_TYPES[i];
+    lab.classList.toggle('on', _cbtSelected.has(t));
+    lab.querySelector('input').checked = _cbtSelected.has(t);
+  });
+}
+
+async function cbtRun() {
+  if (!_currentUser) { document.getElementById('cbt-status').textContent = 'Sign in on the Dashboard tab first.'; return; }
+  const input = document.getElementById('cbt-input').value.trim();
+  if (!input) { document.getElementById('cbt-status').textContent = 'Paste some text first.'; return; }
+  if (input.length > 4000) { document.getElementById('cbt-status').textContent = 'Keep it under 4000 characters.'; return; }
+  if (_cbtSelected.size === 0) { document.getElementById('cbt-status').textContent = 'Select at least one type.'; return; }
+
+  const types = Array.from(_cbtSelected);
+  const btn = document.getElementById('cbt-go');
+  const status = document.getElementById('cbt-status');
+  const results = document.getElementById('cbt-results');
+  btn.disabled = true; btn.textContent = 'Rewriting\u2026';
+  status.textContent = 'Generating\u2026';
+  results.innerHTML = '';
+
+  // Batch types to keep each Netlify function call under the 10-second timeout.
+  // 16 types in one call regularly times out at Sonnet's generation speed.
+  const BATCH_SIZE = 3;
+  const batches = [];
+  for (let i = 0; i < types.length; i += BATCH_SIZE) batches.push(types.slice(i, i + BATCH_SIZE));
+
+  try {
+    const system = [
+      'You rewrite the same piece of content in the voice and emphasis preferences of MBTI types.',
+      '',
+      'BASE HARNESS — apply to every rewrite:',
+      "- No hedging: never write 'may', 'might', 'can sometimes', 'tends to'.",
+      "- No therapy language: 'they may struggle with', 'often find it challenging'.",
+      "- No fabrication: do not invent facts, motivations, philosophies, missions, or framings about the writer or any subject that aren't literally in the source.",
+      "- No characterization: do not insert 'this is essentially X' or 'this falls under Y' labels. If the source uses a domain term, leave it as written; do not substitute related-but-different terms.",
+      '',
+      'TRANSLATE-MODE PRESERVATION RULES — never violate:',
+      '1. PRESERVE every distinct fact, person, name, number, claim, request, compliment, signature, signoff, opinion, contingency, and call-to-action that appears in the source.',
+      "2. DO NOT delete, condense-away, or 'tighten out of existence' any line whose removal would change what the recipient learns.",
+      "3. DO NOT invent new facts, claims, motivations, missions, or framings. Forbidden: feel-good fillers ('empowering', 'authentic', 'meaningful impact', 'whole self', 'positive change') unless those concepts are in the source.",
+      '4. DO NOT change the speech act (request stays request; thank-you stays thank-you).',
+      '5. MAY change: tone, phrasing, sentence order within a paragraph, level of warmth, level of directness, hedging vs assertion, structural rhythm.',
+      '6. MAY NOT shorten by deletion of meaningful content. MAY NOT lengthen by adding new content.',
+      '',
+      'WHAT YOU MAY ADJUST per type: tone, sentence rhythm, openings, level of abstraction vs. concreteness, presence of feelings vs. logic, directness, hedging, and call-to-action style.',
+      "NEVER add caveats like 'as an INTJ I would' — write IN the voice the type would naturally use as an audience receiver.",
+      '',
+      'OUTPUT FORMAT — return a JSON object with type codes as keys and the rewritten string as value. No preamble, no markdown.'
+    ].join('\n');
+    const parsed = {};
+    let completed = 0;
+    let failedBatches = 0;
+
+    async function runOneBatch(batchTypes) {
+      const user = 'Rewrite for these types: ' + batchTypes.join(', ') + '\n\nOriginal text:\n"""\n' + input + '\n"""';
+      const resp = await fetch('/.netlify/functions/claude', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: Math.min(4000, 400 + batchTypes.length * 600),
+          system, messages: [{ role: 'user', content: user }]
+        })
+      });
+      const ctype = resp.headers.get('content-type') || '';
+      if (!ctype.includes('application/json')) throw new Error('non-json: ' + (await resp.text()).slice(0, 80));
+      const data = await resp.json();
+      if (!resp.ok) throw new Error((data.error && data.error.message) || ('HTTP ' + resp.status));
+      const text = (data.content && data.content[0] && data.content[0].text) || '';
+      const start = text.indexOf('{'); const end = text.lastIndexOf('}');
+      if (start === -1 || end === -1) throw new Error('Bad response shape');
+      const out = JSON.parse(text.slice(start, end + 1));
+      Object.keys(out).forEach(k => { parsed[k] = out[k]; });
+    }
+
+    // Run batches with attempt + backoff. Limit to 2 concurrent requests so Netlify isn't slammed.
+    const queue = batches.slice();
+    async function worker() {
+      while (queue.length) {
+        const b = queue.shift();
+        let attempt = 0;
+        while (attempt < 3) {
+          try {
+            await runOneBatch(b);
+            completed += b.length;
+            status.textContent = 'Generating\u2026 ' + completed + ' / ' + types.length;
+            break;
+          } catch (e) {
+            attempt++;
+            if (attempt >= 3) { failedBatches++; console.warn('batch failed', b, e.message); break; }
+            await new Promise(r => setTimeout(r, 1500 * attempt));
+          }
+        }
+      }
+    }
+    await Promise.all([worker(), worker()]);
+
+    const order = types.filter(t => parsed[t]);
+    if (!order.length) throw new Error('No type rewrites returned (' + failedBatches + ' batches failed)');
+    results.innerHTML = order.map(t => {
+      const safe = String(parsed[t]).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return '<div class="cbt-card">' +
+        '<div class="cbt-card-head">' +
+          '<span class="cbt-card-type">' + t + '</span>' +
+          '<span class="cbt-card-title">Rewritten for ' + t + '</span>' +
+          '<button class="cbt-card-copy" onclick="cbtCopy(this)">Copy</button>' +
+        '</div>' +
+        '<div class="cbt-card-body">' + safe + '</div>' +
+      '</div>';
+    }).join('');
+    status.textContent = 'Done. ' + order.length + ' / ' + types.length + ' rewrites.' + (failedBatches ? ' Some batches failed \u2014 try the missing types again.' : '');
+  } catch (e) {
+    status.textContent = 'Failed: ' + e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Rewrite for selected types \u2192';
+  }
+}
+function cbtCopy(btn) {
+  const card = btn.closest('.cbt-card');
+  const body = card.querySelector('.cbt-card-body').innerText;
+  try { navigator.clipboard.writeText(body); btn.textContent = 'Copied \u2713'; setTimeout(() => btn.textContent = 'Copy', 1500); } catch (e) {}
+}
+
+async function crInit() {
+  const cfg = await fetch('/.netlify/functions/config').then(r => r.json());
+  if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
+    document.getElementById('cr-error').textContent = 'Site not yet configured.';
+    return;
+  }
+  _supabase = supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  const { data } = await _supabase.auth.getSession();
+  _currentUser = data && data.session && data.session.user;
+  await crApplyAuth();
+  _supabase.auth.onAuthStateChange(async (_evt, sess) => {
+    _currentUser = sess && sess.user;
+    await crApplyAuth();
+  });
+}
+
+async function crApplyAuth() {
+  // If user is on Content by Type, don't override their tab — just refresh auth gate.
+  if (_crCurrentNav === 'content') {
+    const prompt = document.getElementById('cr-content-auth-prompt');
+    if (prompt) prompt.classList.toggle('hidden', !!_currentUser);
+    return;
+  }
+  const signup = document.getElementById('cr-signup-block');
+  const dash = document.getElementById('cr-dashboard');
+  if (!_currentUser) {
+    document.getElementById('cr-auth-prompt').classList.remove('hidden');
+    document.getElementById('cr-form').style.opacity = '.5';
+    document.getElementById('cr-form').style.pointerEvents = 'none';
+    signup.classList.remove('hidden');
+    dash.classList.add('hidden');
+    return;
+  }
+  // User signed in — check if they already have a creator record.
+  document.getElementById('cr-auth-prompt').classList.add('hidden');
+  const em = document.getElementById('cr-email');
+  if (em && !em.value && _currentUser.email) em.value = _currentUser.email;
+  try {
+    const { data: sess } = await _supabase.auth.getSession();
+    const token = sess && sess.session && sess.session.access_token;
+    const r = await fetch('/.netlify/functions/creator-dashboard', { headers: { 'Authorization': 'Bearer ' + token } });
+    const d = await r.json();
+    if (r.ok && d.creator) {
+      signup.classList.add('hidden');
+      dash.classList.remove('hidden');
+      crRenderDashboard(d);
+      return;
+    }
+  } catch (e) { /* fall through */ }
+  signup.classList.remove('hidden');
+  dash.classList.add('hidden');
+  document.getElementById('cr-form').style.opacity = '1';
+  document.getElementById('cr-form').style.pointerEvents = 'auto';
+}
+
+function crRenderDashboard(d) {
+  const dash = document.getElementById('cr-dashboard');
+  const total = d.stats.total, consented = d.stats.totalConsented, anon = d.stats.totalAnon;
+  const link = d.creator.link;
+  const breakdownRows = d.breakdown.length
+    ? d.breakdown.map(b => `<tr><td><strong>${b.type}</strong></td><td>${b.count}</td><td style="opacity:.6">${b.pct}%</td></tr>`).join('')
+    : '<tr><td colspan="3" style="opacity:.55;padding:1rem 0;text-align:center">No consenting responses yet — share your link to get started.</td></tr>';
+  const recentRows = d.recent.length
+    ? d.recent.map(r => {
+        const t = r.consented ? r.type : '—';
+        const at = r.createdAt ? new Date(r.createdAt).toLocaleString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+        const tag = r.consented
+          ? `<span style="background:var(--ink);color:var(--paper);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">${t}</span>`
+          : `<span style="opacity:.5;font-size:12px">anonymous</span>`;
+        const emailCell = r.followerEmail
+          ? `<a href="mailto:${r.followerEmail}" style="color:var(--ink);text-decoration:underline;font-size:12px;word-break:break-all">${r.followerEmail}</a>`
+          : `<span style="opacity:.4;font-size:12px">—</span>`;
+        return `<tr><td>${at}</td><td>${tag}</td><td>${emailCell}</td></tr>`;
+      }).join('')
+    : '<tr><td colspan="3" style="opacity:.55;padding:1rem 0;text-align:center">No completions yet.</td></tr>';
+
+  dash.innerHTML = `
+    <h1 class="cr-h1">${d.creator.displayName}</h1>
+    <p class="cr-sub">Your creator dashboard \u00B7 personality.fyi</p>
+
+    <div style="background:var(--cream);border:0.5px solid var(--border);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.6;margin-bottom:6px">Your audience link</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <code style="flex:1;font-size:13px;word-break:break-all">${link}</code>
+        <button class="cr-copy-btn" id="cr-dash-copy" onclick="crCopyDashLink()">Copy</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem">
+      <div style="background:var(--card);border:0.5px solid var(--border);border-radius:8px;padding:1rem;text-align:center">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.6;margin-bottom:4px">Total</div>
+        <div style="font-size:28px;font-weight:700">${total}</div>
+      </div>
+      <div style="background:var(--card);border:0.5px solid var(--border);border-radius:8px;padding:1rem;text-align:center">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.6;margin-bottom:4px">Shared</div>
+        <div style="font-size:28px;font-weight:700">${consented}</div>
+      </div>
+      <div style="background:var(--card);border:0.5px solid var(--border);border-radius:8px;padding:1rem;text-align:center">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.6;margin-bottom:4px">Anonymous</div>
+        <div style="font-size:28px;font-weight:700">${anon}</div>
+      </div>
+    </div>
+
+    <h2 style="font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:1.5rem 0 .75rem">Audience breakdown</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:1.5rem">
+      <thead><tr style="border-bottom:0.5px solid var(--border);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.6"><th style="text-align:left;padding:8px 4px">Type</th><th style="text-align:left;padding:8px 4px;width:80px">Count</th><th style="text-align:left;padding:8px 4px;width:80px">Share</th></tr></thead>
+      <tbody>${breakdownRows.replace(/<td>/g, '<td style="padding:8px 4px;border-bottom:0.5px solid var(--border)">')}</tbody>
+    </table>
+
+    <h2 style="font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin:1.5rem 0 .75rem">Recent completions</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="border-bottom:0.5px solid var(--border);font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.6"><th style="text-align:left;padding:8px 4px">When</th><th style="text-align:left;padding:8px 4px;width:90px">Type</th><th style="text-align:left;padding:8px 4px">Email</th></tr></thead>
+      <tbody>${recentRows.replace(/<td>/g, '<td style="padding:8px 4px;border-bottom:0.5px solid var(--border);vertical-align:top">')}</tbody>
+    </table>
+
+    <p style="margin-top:2rem;font-size:13px;opacity:.55">${d.creator.firstDigestSent ? 'Last digest sent ' + (d.creator.lastDigestSentAt ? new Date(d.creator.lastDigestSentAt).toLocaleDateString() : '') : 'No digest sent yet (need 25+ shared responses).'}</p>
+    <p style="margin-top:1rem"><a href="/" style="color:var(--ink);text-decoration:underline">\u2190 Back to personality.fyi</a></p>
+  `;
+}
+function crCopyDashLink() {
+  const link = 'https://personality.fyi/from/' + (document.querySelector('#cr-dashboard code') || {}).textContent;
+  const btn = document.getElementById('cr-dash-copy');
+  try {
+    const text = (document.querySelector('#cr-dashboard code') || {}).textContent;
+    navigator.clipboard.writeText(text);
+    btn.textContent = 'Copied \u2713';
+    setTimeout(() => btn.textContent = 'Copy', 1800);
+  } catch (e) {}
+}
+async function crSignInWithGoogle() {
+  if (!_supabase) return;
+  var btn = document.getElementById('cr-google-btn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
+  try {
+    const { error } = await _supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/creators',
+        queryParams: { access_type: 'offline', prompt: 'select_account' }
+      }
+    });
+    if (error) throw error;
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    var status = document.getElementById('cr-magic-status');
+    if (status) { status.textContent = e.message || 'Google sign-in failed.'; status.style.color = 'var(--accent)'; }
+  }
+}
+
+async function crSendMagic() {
+  var emailEl = document.getElementById('cr-magic-email');
+  var btn = document.getElementById('cr-magic-btn');
+  var status = document.getElementById('cr-magic-status');
+  var email = (emailEl.value || '').trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { status.textContent = 'Enter a valid email.'; status.style.color = 'var(--accent)'; return; }
+  if (!_supabase) { status.textContent = 'Loading\u2026 try again in a moment.'; return; }
+  btn.disabled = true; btn.textContent = 'Sending\u2026';
+  status.style.color = ''; status.textContent = '';
+  try {
+    var { error } = await _supabase.auth.signInWithOtp({
+      email: email,
+      options: { emailRedirectTo: window.location.origin + '/creators', shouldCreateUser: true }
+    });
+    if (error) throw error;
+    status.style.color = ''; status.textContent = 'Check ' + email + ' \u2014 the link signs you in here.';
+    // Pre-fill the form email field too
+    var formEmail = document.getElementById('cr-email');
+    if (formEmail && !formEmail.value) formEmail.value = email;
+    btn.disabled = false; btn.textContent = 'Resend link';
+  } catch (e) {
+    status.style.color = 'var(--accent)'; status.textContent = e.message || 'Could not send link.';
+    btn.disabled = false; btn.textContent = 'Send link';
+  }
+}
+function crSuggestSlug() {
+  const n = document.getElementById('cr-name').value;
+  const slug = document.getElementById('cr-slug');
+  if (!slug.dataset.touched) {
+    slug.value = n.toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 40);
+  }
+}
+document.getElementById('cr-slug').addEventListener('input', function() { this.dataset.touched = '1'; });
+
+async function crSubmit() {
+  const err = document.getElementById('cr-error');
+  err.textContent = '';
+  if (!_currentUser) { err.textContent = 'Sign in first.'; return; }
+  const submitBtn = document.getElementById('cr-submit');
+  submitBtn.disabled = true; submitBtn.textContent = 'Creating…';
+  try {
+    const { data: sess } = await _supabase.auth.getSession();
+    const accessToken = sess && sess.session && sess.session.access_token;
+    const body = {
+      accessToken,
+      displayName: document.getElementById('cr-name').value.trim(),
+      email: document.getElementById('cr-email').value.trim(),
+      slug: document.getElementById('cr-slug').value.trim().toLowerCase(),
+      websiteUrl: document.getElementById('cr-website').value.trim() || null
+    };
+    const r = await fetch('/.netlify/functions/creator-signup', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Signup failed');
+    document.getElementById('cr-form').classList.add('hidden');
+    document.getElementById('cr-success').classList.remove('hidden');
+    document.getElementById('cr-link-url').textContent = data.link;
+  } catch (e) {
+    err.textContent = e.message;
+    submitBtn.disabled = false; submitBtn.textContent = 'Get my link →';
+  }
+}
+function crCopyLink() {
+  const link = document.getElementById('cr-link-url').textContent;
+  try { navigator.clipboard.writeText(link); document.getElementById('cr-copy-btn').textContent = 'Copied ✓'; setTimeout(() => document.getElementById('cr-copy-btn').textContent = 'Copy', 1800); } catch (e) {}
+}
+crInit();
+</script>
+</body>
+</html>
