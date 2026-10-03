@@ -10412,7 +10412,7 @@ function nhieRender() {
   var endEl = document.getElementById('nhie-end');
   feed.innerHTML = '';
 
-  // Find first unanswered statement. Preserve original order.
+  // Find the most-answered question this user has not answered yet.
   var idx = -1;
   for (var i = 0; i < nhieState.statements.length; i++) {
     if (!nhieState.yourVotes[nhieState.statements[i].id]) { idx = i; break; }
@@ -10445,7 +10445,8 @@ function nhieShowQuestion(idx, mode) {
 
   var progress = document.createElement('div');
   progress.className = 'nhie-progress';
-  progress.textContent = (idx + 1) + ' / ' + nhieState.statements.length;
+  var answerCount = (nhieState.results[statement.id] || {}).total || statement.answer_count || 0;
+  progress.textContent = (idx + 1) + ' / ' + nhieState.statements.length + ' · ' + answerCount.toLocaleString() + (answerCount === 1 ? ' answer' : ' answers');
   card.appendChild(progress);
 
   var stmtEl = document.createElement('div');

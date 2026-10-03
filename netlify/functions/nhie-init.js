@@ -1,5 +1,5 @@
 // Returns everything the Never Have I Ever page needs in one call:
-//   - all active statements (ordered)
+//   - active statements with answers, ranked by answer count
 //   - the current user's own votes (if any)
 //   - aggregated results per statement + per type (for statements the user has answered)
 //
@@ -50,20 +50,28 @@ exports.handler = async function(event) {
       });
     }
 
-    // 3. Fetch aggregated results for the user's answered statements (only ones they've voted on).
-    //    Aggregation comes from the SECURITY DEFINER function nhie_aggregate.
-    let results = {};
-    if (answeredIds.length > 0) {
+    // Count both answers across all types. Small batches stay below the
+    // API row cap (20 statements × 16 types × 2 answers = 640 rows).
+    const aggregates = [];
+    const active = statements || [];
+    for (let i = 0; i < active.length; i += 20) {
       const { data: agg, error: aErr } = await supabase
-        .rpc('nhie_aggregate', { p_statement_ids: answeredIds });
+        .rpc('nhie_aggregate', { p_statement_ids: active.slice(i, i + 20).map(s => s.id) });
       if (aErr) throw aErr;
-      results = buildResults(agg || []);
+      aggregates.push(...(agg || []));
     }
+    const allResults = buildResults(aggregates);
+    const ranked = active.map(s => ({ ...s, answer_count: allResults[s.id]?.total || 0 }))
+      .filter(s => s.answer_count > 0)
+      .sort((a, b) => b.answer_count - a.answer_count || a.display_order - b.display_order || a.id.localeCompare(b.id));
+    // Publish counts for everyone; preserve the existing result-reveal rule.
+    const results = {};
+    answeredIds.forEach(id => { if (allResults[id]) results[id] = allResults[id]; });
 
     return {
       statusCode: 200,
       headers: { ...CORS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ statements: statements || [], yourVotes, results })
+      body: JSON.stringify({ statements: ranked, yourVotes, results })
     };
   } catch (err) {
     console.error('nhie-init error:', err);
