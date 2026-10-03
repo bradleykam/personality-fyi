@@ -5685,6 +5685,8 @@ function youBlock(label, text) {
   return '<div class="you-block"><div class="you-label">' + label + '</div><ul class="you-list">' + lis + '</ul></div>';
 }
 
+var YOU_LIFE = {"INTJ": ["Enjoys autonomy and long-term planning. Looks for better ways to work", "Values independence and deep conversation. May need time to put feelings into words"], "INTP": ["Enjoys solving open-ended problems. Works best with room to explore ideas", "Connects through shared interests. Values space and flexible plans"], "ENTJ": ["Likes clear goals and ownership. Enjoys organizing people around a plan", "Often takes the lead on plans. Appreciates direct and honest conversation"], "ENTP": ["Enjoys experimenting with new ideas. Likes variety and lively debate", "Connects through curiosity and humor. Prefers room for spontaneity"], "INFJ": ["Seeks meaningful work. Prefers focused time to develop ideas", "Values a few close connections. Needs quiet time to recharge"], "INFP": ["Seeks work aligned with personal values. Enjoys creative freedom", "Values sincerity and emotional depth. Needs space for personal interests"], "ENFJ": ["Enjoys helping people develop. Builds momentum through collaboration", "Invests in close relationships. Benefits from protecting time for themselves"], "ENFP": ["Enjoys new possibilities and collaboration. Works best with variety", "Connects through enthusiasm and shared experiences. Values freedom to explore"], "ISTJ": ["Likes clear responsibilities and reliable processes. Follows through on commitments", "Shows care through practical support. Appreciates dependable plans"], "ISFJ": ["Notices details and supports the team. Prefers clear expectations", "Shows care through everyday actions. Values familiar routines and close connections"], "ESTJ": ["Enjoys organizing work and making decisions. Values practical results", "Often handles plans and logistics. Appreciates clear expectations"], "ESFJ": ["Enjoys helping a team work well together. Values practical and visible contributions", "Makes time for people and shared traditions. Appreciates open expressions of care"], "ISTP": ["Enjoys hands-on problem solving. Values independence and practical tools", "Connects through shared activities. Needs freedom and personal space"], "ISFP": ["Enjoys practical or creative work. Values a personal connection to the task", "Shows care through actions and shared experiences. Prefers flexibility over rigid plans"], "ESTP": ["Enjoys fast-moving practical challenges. Learns by trying things", "Connects through activity and humor. Enjoys spontaneous experiences"], "ESFP": ["Enjoys active and people-focused work. Responds well to immediate feedback", "Brings energy to shared experiences. Values warmth and time together"]};
+
 function showHomeProfile(type) {
   const d = TYPE_DESCS[type];
   if (!d) return;
@@ -5697,11 +5699,11 @@ function showHomeProfile(type) {
   el.innerHTML = loginBanner +
     '<header class="career-page-header"><h1>You</h1><p>' + type + ' · ' + d.title + '</p><div class="you-destinations"><button class="ts-chip" onclick="youChangeType()">Change type</button><button class="ts-chip" onclick="appNav(\'test\')">Retake test</button></div><div id="you-type-picker" hidden></div></header>' +
     '<div class="you-overview-layout"><section class="you-overview">' +
-      youBlock('How you think', d.cognitive) + youBlock('Strengths', d.strengths) +
-      youBlock('Watch out for', d.shadow) + youBlock('Drained by', d.drains) +
-      '<div id="typicality-host"></div>' +
+      youBlock('How you think', d.cognitive) + youBlock('Work life', YOU_LIFE[type][0]) +
+      youBlock('Personal life', YOU_LIFE[type][1]) +
       '<div class="you-destinations"><button class="ts-chip" onclick="appNav(\'compat\')">Relationships →</button>' +
-      '<button class="ts-chip" onclick="appNav(\'advisor\')">Career →</button></div></section>' +
+      '<button class="ts-chip" onclick="appNav(\'advisor\')">Career →</button></div>' +
+      '<p style="font-size:13px;line-height:1.7">See how others of your type answered lifestyle questions — <a href="/never-have-i-ever" onclick="event.preventDefault();appNav(\'nhie\')">Click here</a></p></section>' +
       '<aside class="you-questions"><div class="you-label">Suggested questions</div>' +
       YOU_SELF_QUESTIONS.slice(0,3).map(function(q) { return '<button class="ts-chip ghost" onclick="youAsk(this.textContent)">' + q + '</button>'; }).join('') +
       '</aside></div><div class="cha-container"><div class="cha-main self-conversation">' +
