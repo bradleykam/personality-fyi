@@ -1,14 +1,10 @@
-functionsDirectory = "/Users/bradk/Library/Mobile Documents/com~apple~CloudDocs/typeread_backup/netlify/functions"
-functionsDirectoryOrigin = "config-v1"
-headersOrigin = "config"
-redirectsOrigin = "config"
 plugins = []
 
 [build]
-edge_functions = "/Users/bradk/Library/Mobile Documents/com~apple~CloudDocs/typeread_backup/netlify/edge-functions"
-publish = "/Users/bradk/Library/Mobile Documents/com~apple~CloudDocs/typeread_backup"
-publishOrigin = "config"
-functions = "/Users/bradk/Library/Mobile Documents/com~apple~CloudDocs/typeread_backup/netlify/functions"
+edge_functions = "netlify/edge-functions"
+publish = ".publish"
+command = "node tools/build-publish.cjs"
+functions = "netlify/functions"
 
   [build.environment]
 

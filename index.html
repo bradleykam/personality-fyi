@@ -3922,7 +3922,7 @@ textarea::placeholder { color: var(--muted); }
         </div>
       </div>
 
-      <div class="auth-fine">No password. No spam. Unsubscribe anytime.</div>
+      <div class="auth-fine">We’ll email you a sign-in code. No password. Unsubscribe anytime.</div>
     </div>
   </div>
 
@@ -6588,59 +6588,7 @@ function copyInviteLink(link) {
 
 // Friend submits their email to reveal results (and, unless they unchecked the
 // box, share the result back to the sender).
-function submitFriendEmailGate() {
-  var emailEl = document.getElementById('friend-gate-email');
-  var boxEl = document.getElementById('friend-gate-consent');
-  var errEl = document.getElementById('friend-gate-error');
-  var email = (emailEl ? emailEl.value : '').trim().toLowerCase();
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    if (errEl) { errEl.textContent = 'Please enter a valid email.'; errEl.style.display = 'block'; }
-    return;
-  }
-  var consented = boxEl ? !!boxEl.checked : true;
-  var pending = null;
-  try { pending = JSON.parse(localStorage.getItem('typeread_pending_result') || 'null'); } catch (e) {}
-  if (!pending) return;
-
-  sessionStorage.setItem('creator_consent', consented ? '1' : '0');
-  sessionStorage.setItem('creator_follower_email', email);
-
-  var slug = sessionStorage.getItem('creator_slug') || '';
-  var sid = sessionStorage.getItem('creator_referral_sid');
-  if (!sid) { sid = (crypto.randomUUID && crypto.randomUUID()) || (Math.random().toString(36).slice(2) + Date.now()); sessionStorage.setItem('creator_referral_sid', sid); }
-  if (slug) {
-    fetch('/.netlify/functions/creator-referral', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ creatorSlug: slug, sessionId: sid, consented: consented, mbtiType: pending.type, followerEmail: email })
-    }).catch(function() {});
-    // Verification loop: if this invitation targeted a specific saved person,
-    // the consented result updates the inviter's record from estimate to fact.
-    var _forP = sessionStorage.getItem('invite_for');
-    if (_forP) {
-      fetch('/.netlify/functions/invite-verify', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug: slug, forPerson: _forP, type: pending.type, consented: consented })
-      }).catch(function() {});
-    }
-    if (consented) trackEvent('invite_result_shared', { has_for: !!_forP });
-  }
-
-  // Reveal the full result.
-  var sender = sessionStorage.getItem('creator_display_name') || 'your friend';
-  var letters = pending.type.split('').map(function(l, i) { return i === 0 ? '<span class="accent-letter">' + l + '</span>' : l; }).join('');
-  testAddBubble(
-    '<div class="result-type">' + letters + '</div>' +
-    '<div style="font-family:\'DM Mono\',monospace;font-size:18px;color:var(--muted);margin-bottom:6px">' + (TYPE_NAMES[pending.type] || '') + '</div>' +
-    '<div class="result-conf">' + pending.conf + '% overall confidence · ' + pending.confLabel + '</div>' +
-    '<div class="result-narrative">' + pending.narrative.replace(/\n\n/g, '<br><br>') + '</div>' +
-    (consented ? '<div style="font-size:12px;color:var(--muted);margin-top:10px">Shared your result with ' + sender + '.</div>' : '<div style="font-size:12px;color:var(--muted);margin-top:10px">Kept private — ' + sender + ' won\'t see your result.</div>'),
-    'result'
-  );
-  testSetButtons([
-    { label: 'Save my type', primary: true, action: function() { testSaveType(pending.type); } },
-    { label: 'Explore jobs →', primary: false, action: function() { testGoJobs(pending.type); } }
-  ]);
-}
+function submitFriendEmailGate() { return startResultSignIn('friend'); }
 
 document.addEventListener('DOMContentLoaded', function() {
   buildAnalyzeTypeGrid();
@@ -8589,25 +8537,31 @@ function pfSession() {
   return _pfSess;
 }
 
-// Record the session on the signed-in user, once per 30-minute session.
-// The reveal gate marks the signup session counted (it seeds session_n: 1),
-// so the silent-signup visit is never double counted.
-function pfBumpUserSession() {
+// Mark a session counted only after the account update succeeds.
+var sessionBumpPending = false;
+async function pfBumpUserSession() {
+  if (sessionBumpPending || !currentUser || !supabaseClient) return;
   try {
-    if (typeof currentUser === 'undefined' || !currentUser || !supabaseClient) return;
     var s = JSON.parse(localStorage.getItem('pf_sess') || 'null');
-    if (!s || s.counted) return;
-    s.counted = true;
-    localStorage.setItem('pf_sess', JSON.stringify(s));
+    if (!s || s.countedFor === currentUser.id || (s.counted && !s.countedFor)) return;
+    sessionBumpPending = true;
+    var userId = currentUser.id;
     var meta = currentUser.user_metadata || {};
     var today = new Date().toISOString().slice(0, 10);
     var days = Array.isArray(meta.session_days) ? meta.session_days.slice() : [];
-    var data = { session_n: (Number(meta.session_n) || 0) + 1, last_seen_at: new Date().toISOString() };
-    if (days.indexOf(today) === -1) { days.push(today); data.session_days = days.slice(-60); }
-    supabaseClient.auth.updateUser({ data: data }).then(function(res) {
-      if (res && res.data && res.data.user) currentUser = res.data.user;
-    }).catch(function() {});
-  } catch (e) {}
+    if (days.indexOf(today) === -1) days.push(today);
+    var res = await supabaseClient.auth.updateUser({ data: {
+      session_n: (Number(meta.session_n) || 0) + 1, session_days: days.slice(-60),
+      last_seen_at: new Date().toISOString()
+    } });
+    if (res.error || !res.data || !res.data.user) return;
+    if (currentUser && currentUser.id === userId) currentUser = res.data.user;
+    var latest = JSON.parse(localStorage.getItem('pf_sess') || 'null');
+    if (latest && latest.id === s.id) {
+      latest.countedFor = userId;
+      localStorage.setItem('pf_sess', JSON.stringify(latest));
+    }
+  } catch (e) {} finally { sessionBumpPending = false; }
 }
 
 // Keep the activity clock fresh; a click after a long idle starts a new session.
@@ -8619,6 +8573,7 @@ function trackEvent(name, props) {
     var s = _pfSess || pfSession();
     var a = pfAttr();
     var base = {
+      instrumentation_version: 2,
       event_id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Math.random().toString(36).slice(2) + Date.now()),
       user_id: (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null,
       auth: !!(typeof currentUser !== 'undefined' && currentUser),
@@ -8949,28 +8904,10 @@ async function testFinish() {
       }
     } catch (e) {}
 
-    // Call Claude API
-    let narrative = '';
-    try {
-      const resp = await fetch('/.netlify/functions/claude', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 600,
-          system: "You are Personality.fyi, an MBTI personality analysis platform. Be direct, specific, and honest. Never use corporate or therapy language. Write like a sharp observer who has seen a lot of people.",
-          messages: [{ role: 'user', content: 'The user just completed a personality test and came out as ' + resultType + '. Write a 3-paragraph result. First paragraph: what this type is fundamentally about — their core drive and how they see the world. Second paragraph: where they thrive and what they\'re known for at their best. Third paragraph: their blind spots — what trips them up and what they should watch. Be specific. Do not sugarcoat. Do not use the word \'unique\'.' }]
-        })
-      });
-      const data = await resp.json();
-      if (resp.ok && data.content && data.content[0]) {
-        narrative = data.content[0].text.trim();
-      } else {
-        narrative = 'Could not generate analysis. Your result is ' + resultType + ' (' + (TYPE_NAMES[resultType] || '') + ').';
-      }
-    } catch(e) {
-      narrative = 'Could not generate analysis. Your result is ' + resultType + ' (' + (TYPE_NAMES[resultType] || '') + ').';
-    }
+    // Scoring and the type profile are local: revealing a result never spends AI quota.
+    const desc = TYPE_DESCS[resultType];
+    const narrative = desc.cognitive + '\n\nStrengths: ' + desc.strengths +
+      '.\n\nWatch out for: ' + desc.shadow + '.';
 
     const letters = resultType.split('').map((l, i) =>
       i === 0 ? '<span class="accent-letter">' + l + '</span>' : l
@@ -8984,29 +8921,12 @@ async function testFinish() {
     // Stash the full result so the friend email-gate / onLogin can render it.
     try {
       localStorage.setItem('typeread_pending_result', JSON.stringify({
-        type: resultType, pct: pct, conf: conf, confLabel: confLabel, narrative: narrative
+        id: crypto.randomUUID(), type: resultType, pct: pct, conf: conf, confLabel: confLabel, narrative: narrative
       }));
     } catch(e) {}
 
     if (currentUser) {
-      // Logged-in: show full reveal immediately.
-      testAddBubble(
-        '<div class="result-type">' + letters + '</div>' +
-        '<div style="font-family:\'DM Mono\',monospace;font-size:18px;color:var(--muted);margin-bottom:4px">' + (TYPE_NAMES[resultType] || '') + '</div>' +
-        '<div class="result-spectrum" style="font-family:\'DM Mono\',monospace;font-size:14px;color:var(--ink);letter-spacing:.05em;margin-bottom:6px">' + spectrumRow + '</div>' +
-        '<div class="result-conf">' + conf + '% overall confidence \u00B7 ' + confLabel + '</div>' +
-        '<div class="result-narrative">' + narrative.replace(/\n\n/g, '<br><br>') + '</div>',
-        'result'
-      );
-      trackEvent('result_viewed', { type: resultType, via: 'logged_in' });
-      testSetButtons([
-        { label: 'Save my type', primary: true, action: function() { testSaveType(resultType); } },
-        { label: 'Add someone', primary: false, action: function() { trackEvent('post_result_add_person_clicked', { via: 'logged_in' }); obpStart(); } },
-        { label: 'Explore jobs \u2192', primary: false, action: function() { testGoJobs(resultType); } },
-        { label: 'Share my result', primary: false, action: function() { shareTypeResult(resultType); } }
-      ]);
-      // Offer the sender their personal invite link.
-      showInviteCta();
+      await claimPendingTestResult();
     } else if (inviteSlug) {
       // Invited friend, not logged in: capture email to reveal. The auto-checked
       // box shares the result back to the sender unless they uncheck it.
@@ -9028,9 +8948,7 @@ async function testFinish() {
       );
       testSetButtons([]);
     } else {
-      // Anonymous, no invite: gate the result behind a single email field
-      // (email-first, no OTP step). submitOrganicEmailGate creates the account,
-      // attaches the type, and reveals immediately.
+      // Anonymous visitors verify their email once, then save and reveal the result.
       trackEvent('reveal_shown', { type: resultType, variant: 'organic_gate' });
       testAddBubble(
         '<div class="result-type" style="filter:blur(14px);user-select:none;pointer-events:none;letter-spacing:.05em">' + resultType + '</div>' +
@@ -9040,7 +8958,7 @@ async function testFinish() {
           '<input id="organic-gate-email" type="email" placeholder="you@email.com" onkeydown="if(event.key===\'Enter\')submitOrganicEmailGate()" style="padding:12px 14px;font-family:\'DM Mono\',monospace;font-size:14px;border:1px solid var(--border);border-radius:6px;background:var(--cream);color:var(--ink)">' +
           '<div id="organic-gate-error" style="display:none;color:#b00;font-size:12px"></div>' +
           '<button class="auth-primary-btn" id="organic-gate-btn" onclick="submitOrganicEmailGate()" style="padding:14px 18px;font-size:14px;font-weight:700;background:var(--ink);color:var(--paper);border:none;border-radius:6px;cursor:pointer;font-family:\'DM Mono\',monospace;letter-spacing:.04em;text-transform:uppercase">Reveal my result \u2192</button>' +
-          '<div style="font-size:11px;color:var(--muted)">No password. No spam. Unsubscribe anytime.</div>' +
+          '<div style="font-size:11px;color:var(--muted)">We’ll email you a sign-in code. No password. Unsubscribe anytime.</div>' +
         '</div>',
         'result'
       );
@@ -9050,61 +8968,122 @@ async function testFinish() {
 }
 
 async function submitOrganicEmailGate() {
-  var emailEl = document.getElementById('organic-gate-email');
-  var errEl = document.getElementById('organic-gate-error');
-  var btn = document.getElementById('organic-gate-btn');
+  return startResultSignIn('organic');
+}
+
+async function startResultSignIn(source) {
+  var emailEl = document.getElementById(source + '-gate-email');
+  var errEl = document.getElementById(source + '-gate-error');
   var email = (emailEl ? emailEl.value : '').trim().toLowerCase();
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+  if (!validateEmail(email)) {
     if (errEl) { errEl.textContent = 'Please enter a valid email.'; errEl.style.display = 'block'; }
     return;
   }
-  var pending = null;
-  try { pending = JSON.parse(localStorage.getItem('typeread_pending_result') || 'null'); } catch (e) {}
+  var pending = readPendingTestResult();
   if (!pending) return;
-  trackEvent('email_submitted', { type: pending.type });
-  if (btn) { btn.disabled = true; btn.textContent = 'Revealing…'; }
-  // Create the account silently (counts as a signup) + attach the type, and
-  // send a magic-link email so they can return. No code-entry step.
-  try {
-    var attr = null;
-    try { attr = JSON.parse(localStorage.getItem('pf_attribution') || 'null'); } catch (e) {}
-    if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-      await supabaseClient.auth.signInWithOtp({
-        email: email,
-        options: {
-          shouldCreateUser: true,
-          emailRedirectTo: location.origin + '/',
-          data: { mbti_type: pending.type, mbti_percentages: pending.pct, signup_source: 'test_reveal_gate', signup_attribution: attr || undefined, anon_id: pfAnonId(), session_n: 1, session_days: [new Date().toISOString().slice(0, 10)], first_result_viewed_at: new Date().toISOString() }
-        }
-      });
-      // The signup visit is already counted via the seeded session metadata
-      // above; mark the current 30-minute session counted so a same-visit
-      // authentication doesn't double count it.
-      try {
-        var _s = JSON.parse(localStorage.getItem('pf_sess') || 'null');
-        if (_s) { _s.counted = true; localStorage.setItem('pf_sess', JSON.stringify(_s)); }
-      } catch (e) {}
-    }
-  } catch (e) {}
-  trackEvent('signup_complete', { type: pending.type });
-  var letters = pending.type.split('').map(function(l, i) { return i === 0 ? '<span class="accent-letter">' + l + '</span>' : l; }).join('');
-  testAddBubble(
-    '<div class="result-type">' + letters + '</div>' +
-    '<div style="font-family:\'DM Mono\',monospace;font-size:18px;color:var(--muted);margin-bottom:6px">' + (TYPE_NAMES[pending.type] || '') + '</div>' +
-    '<div class="result-conf" style="margin-bottom:10px">' + pending.conf + '% overall confidence · ' + pending.confLabel + '</div>' +
-    '<div class="result-narrative">' + pending.narrative.replace(/\n\n/g, '<br><br>') + '</div>' +
-    '<div style="font-size:12px;color:var(--muted);margin-top:10px">We sent a login link to ' + email + ' so you can come back anytime.</div>',
-    'result'
-  );
-  trackEvent('result_viewed', { type: pending.type, via: 'reveal_gate', variant: pfExpVariant('post_result_activation_v1') });
-  if (pfExpVariant('post_result_activation_v1') === 'B') {
-    obpIntro(pending.type);
-  } else {
-    testSetButtons([
-      { label: 'Explore my careers →', primary: true, action: function() { trackEvent('post_result_careers_clicked', { variant: 'A' }); testGoJobs(pending.type); } },
-      { label: 'Share my result', primary: false, action: function() { trackEvent('post_result_share_clicked', { variant: 'A' }); shareTypeResult(pending.type); } }
-    ]);
+  if (errEl) errEl.style.display = 'none';
+  pending.authRequested = true;
+  pending.source = source;
+  if (source === 'friend') {
+    var box = document.getElementById('friend-gate-consent');
+    pending.invite = { slug: sessionStorage.getItem('creator_slug') || '',
+      forPerson: sessionStorage.getItem('invite_for') || '', consented: !!(box && box.checked) };
   }
+  localStorage.setItem('typeread_pending_result', JSON.stringify(pending));
+  trackEvent('email_submitted', { type: pending.type, source: source });
+  openAuthModal('Enter the code from your email to save and reveal your result.');
+  document.getElementById('auth-email').value = email;
+  await authSendCode();
+}
+
+function readPendingTestResult() {
+  try {
+    var p = JSON.parse(localStorage.getItem('typeread_pending_result') || 'null');
+    return p && TYPE_DESCS[p.type] ? p : null;
+  } catch (e) { return null; }
+}
+
+var resultClaimPromise = null;
+var revealedResultId = null;
+function claimPendingTestResult() {
+  if (resultClaimPromise) return resultClaimPromise;
+  var pending = readPendingTestResult();
+  if (!pending || !currentUser || !supabaseClient) return Promise.resolve();
+  resultClaimPromise = saveAndRevealTestResult(pending).finally(function() { resultClaimPromise = null; });
+  return resultClaimPromise;
+}
+
+async function saveAndRevealTestResult(pending) {
+  var userId = currentUser.id;
+  var saved = false;
+  try {
+    var data = { mbti_type: pending.type, mbti_percentages: pending.pct || {},
+      first_result_viewed_at: (currentUser.user_metadata || {}).first_result_viewed_at || new Date().toISOString() };
+    var res = await supabaseClient.auth.updateUser({ data: data });
+    if (res.error || !res.data || !res.data.user) throw res.error || new Error('Result not saved');
+    if (!currentUser || currentUser.id !== userId) return;
+    currentUser = res.data.user;
+    saved = true;
+    localStorage.setItem('typeread_selected_type', pending.type);
+    if (pending.pct) localStorage.setItem('typeread_type_percentages', JSON.stringify(pending.pct));
+    analyzeSelectedType = pending.type;
+    // Do not erase a newer test that finished while this request was in flight.
+    var latest = readPendingTestResult();
+    if (latest && latest.id === pending.id) localStorage.removeItem('typeread_pending_result');
+    trackEvent('result_saved', { type: pending.type, result_id: pending.id });
+    refreshHomePage();
+    updateTopbarAuth(true);
+  } catch (e) {
+    trackEvent('result_save_failed', { type: pending.type });
+  }
+  if (!currentUser || currentUser.id !== userId) return;
+  renderTestResult(pending, saved);
+  if (saved && pending.invite && pending.invite.slug) {
+    var invite = pending.invite;
+    var sid = sessionStorage.getItem('creator_referral_sid') || pending.id || crypto.randomUUID();
+    sessionStorage.setItem('creator_referral_sid', sid);
+    fetch('/.netlify/functions/creator-referral', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ creatorSlug: invite.slug, sessionId: sid, consented: invite.consented,
+        mbtiType: pending.type, followerEmail: currentUser.email })
+    }).catch(function() {});
+    if (invite.forPerson) fetch('/.netlify/functions/invite-verify', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: invite.slug, forPerson: invite.forPerson, type: pending.type, consented: invite.consented })
+    }).catch(function() {});
+  }
+}
+
+function renderTestResult(pending, saved) {
+  testStarted = true;
+  appNav('test');
+  var stage = document.getElementById('test-stage');
+  if (stage) stage.remove();
+  var chat = document.getElementById('test-chat');
+  if (chat) { chat.style.display = ''; chat.innerHTML = ''; }
+  var btns = document.getElementById('test-buttons-area');
+  if (btns) btns.style.display = '';
+  var desc = TYPE_DESCS[pending.type];
+  var narrative = desc.cognitive + '\n\nStrengths: ' + desc.strengths + '.\n\nWatch out for: ' + desc.shadow + '.';
+  testAddBubble('<div class="result-type">' + pending.type + '</div>' +
+    '<div class="result-conf">' + desc.title + '</div>' +
+    '<div class="result-spectrum">' + formatSpectrumPercentages(pending.type, pending.pct) + '</div>' +
+    '<div class="result-narrative">' + narrative.replace(/\n\n/g, '<br><br>') + '</div>' +
+    '<div style="margin-top:14px;font-size:12px">' + (saved ? 'Saved to your profile.' :
+      'Your result is ready, but we couldn’t save it yet. Please retry.') + '</div>', 'result');
+  var resultId = pending.id || pending.type;
+  if (revealedResultId !== resultId) {
+    revealedResultId = resultId;
+    trackEvent('result_viewed', { type: pending.type, via: 'authenticated_result', result_id: resultId });
+  }
+  var buttons = [];
+  if (!saved) buttons.push({ label: 'Retry saving', primary: true, action: claimPendingTestResult });
+  buttons.push({ label: 'Add someone', primary: saved, action: function() {
+    trackEvent('post_result_add_person_clicked', { via: 'authenticated_result' }); obpStart();
+  } });
+  buttons.push({ label: 'Explore my careers →', action: function() { testGoJobs(pending.type); } });
+  buttons.push({ label: 'Share my result', action: function() { shareTypeResult(pending.type); } });
+  testSetButtons(buttons);
 }
 
 function testSaveType(type) {
@@ -10147,7 +10126,7 @@ async function initSupabase() {
       supabaseClient.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_IN' && session) {
           currentUser = session.user;
-          onLogin(session.user);
+          setTimeout(function() { onLogin(session.user); }, 0);
         } else if (event === 'SIGNED_OUT') {
           currentUser = null;
           onLogout();
@@ -10201,22 +10180,9 @@ function onLogin(user) {
     }
   } catch (e) {}
 
-  // If the user just signed up after taking the test, claim the gated result.
-  try {
-    const pendingRaw = localStorage.getItem('typeread_pending_result');
-    if (pendingRaw) {
-      const pending = JSON.parse(pendingRaw);
-      if (pending && pending.type) {
-        // Save type into Supabase + localStorage so showHomeProfile picks it up.
-        if (!mbtiType) mbtiType = pending.type;
-        localStorage.setItem('typeread_selected_type', pending.type);
-        if (typeof syncTypeEverywhere === 'function') {
-          syncTypeEverywhere(pending.type, pending.pct || null);
-        }
-        localStorage.removeItem('typeread_pending_result');
-      }
-    }
-  } catch(e) {}
+  // Keep a pending test authoritative over an older saved type. Save only after auth.
+  var pendingResult = readPendingTestResult();
+  if (pendingResult) mbtiType = pendingResult.type;
 
   // Claim people added during the silent-signup session: merge into the
   // account roster without duplicating (matched by entry id).
@@ -10260,6 +10226,10 @@ function onLogin(user) {
   updateTopbarAuth(true);
   refreshHomePage();
   closeAuthModal();
+  if (pendingResult) {
+    if (pendingResult.authRequested) trackEvent('result_auth_completed', { type: pendingResult.type });
+    setTimeout(claimPendingTestResult, 0);
+  }
 
   // Activation: if they signed up without a type (e.g. via a Sign in button,
   // skipping the test), route them to the home prompt once per session. The
@@ -11148,6 +11118,7 @@ function openAuthModal(contextMsg) {
 function closeAuthModal() {
   document.getElementById('auth-overlay').classList.remove('open');
   if (resendTimer) { clearTimeout(resendTimer); resendTimer = null; }
+  if (!currentUser && readPendingTestResult()) trackEvent('result_auth_cancelled', {});
   // If an AI call was waiting on this login and the modal is closing without a
   // signed-in user, abort that call so its loading state clears.
   if (_pendingAiLogin && !currentUser) resolvePendingAiLogin(false);
@@ -11212,6 +11183,8 @@ function clearCodeBoxes() {
 
 function authStartOver() {
   authEmail = '';
+  document.getElementById('auth-verify-btn').disabled = false;
+  document.getElementById('auth-verify-btn').textContent = 'Verify code';
   document.getElementById('auth-email').value = '';
   document.getElementById('auth-email-error').className = 'auth-error';
   document.getElementById('auth-code-error').className = 'auth-error';
@@ -11282,10 +11255,11 @@ async function authSendCode() {
   try {
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true }
+      options: { shouldCreateUser: true, data: { signup_source: readPendingTestResult() ? 'test_reveal_verified' : 'modal', anon_id: pfAnonId(), signup_attribution: pfAttr() } }
     });
     if (error) throw error;
 
+    trackEvent('auth_code_sent', { for_result: !!readPendingTestResult() });
     btn.textContent = 'Code sent \u2713';
     btn.className = 'auth-primary-btn sent';
 
@@ -11360,10 +11334,11 @@ async function authResendCode() {
   if (!authEmail || !supabaseClient) return;
   document.getElementById('auth-resend').style.display = 'none';
   try {
-    await supabaseClient.auth.signInWithOtp({
+    const { error } = await supabaseClient.auth.signInWithOtp({
       email: authEmail,
       options: { shouldCreateUser: true }
     });
+    if (error) throw error;
     document.getElementById('auth-code-msg').textContent = 'New code sent to ' + authEmail + '. Enter it below.';
     clearCodeBoxes();
     var boxes = document.getElementById('auth-code-boxes').children;
@@ -11831,6 +11806,7 @@ async function empSignupSendCode() {
     });
     if (result.error) throw result.error;
 
+    trackEvent('auth_code_sent', { for_result: !!readPendingTestResult() });
     btn.textContent = 'Code sent \u2713';
     btn.className = 'auth-primary-btn sent';
 

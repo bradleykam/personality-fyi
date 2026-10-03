@@ -67,14 +67,14 @@
         <option value="all">All time</option><option value="90">Last 90 days</option><option value="28">Last 28 days</option><option value="7">Last 7 days</option>
       </select>
     </h2>
-    <div class="sub">Activation and retention. D<i>n</i> = returned on or after day <i>n</i>; only users old enough for a window are counted in it. Every rate shows numerator / denominator.</div>
+    <div class="sub">Activation and retention. D<i>n</i> = active on exactly day <i>n</i> after signup, in UTC; only fully completed target days count. Retention covers all account cohorts. The period filter applies to event activity. Every rate shows numerator / denominator.</div>
     <div class="cards" id="northstar"></div>
     <div class="cards" id="lifecycle-cards"></div>
-    <h3 style="font-size:13px;margin:20px 0 8px">Activation funnel <span class="muted" style="font-weight:400">(distinct visitors, all time)</span></h3>
+    <h3 style="font-size:13px;margin:20px 0 8px">Activation funnel <span class="muted" style="font-weight:400">(same visitors, in order; starts since Sep 14 or selected period)</span></h3>
     <div class="wrap"><table id="funnel-tbl"></table></div>
     <h3 style="font-size:13px;margin:20px 0 8px">Cohort retention — by signup week</h3>
     <div class="wrap"><table id="cohort-signup-tbl"></table></div>
-    <h3 style="font-size:13px;margin:20px 0 8px">Cohort retention — by activation week</h3>
+    <h3 style="font-size:13px;margin:20px 0 8px">Cohort retention — days since activation, grouped by activation week</h3>
     <div class="wrap"><table id="cohort-act-tbl"></table></div>
     <h3 style="font-size:13px;margin:20px 0 8px">Retention: activated vs not</h3>
     <div class="wrap"><table id="seg-tbl"></table></div>
@@ -82,7 +82,7 @@
     <div class="wrap"><table id="paths-tbl"></table></div>
     <h3 style="font-size:13px;margin:20px 0 8px">Relationship types</h3>
     <div class="wrap"><table id="reltype-tbl"></table></div>
-    <div class="cards" id="ai-usage-cards"></div>
+    <div class="cards" id="ai-usage-cards"></div><div class="sub">Historical metered AI calls include automatic test explanations. AI activation requires an explicit interaction event. Older events may be incomplete.</div>
     <h3 style="font-size:13px;margin:20px 0 8px">Feature usage and retention</h3>
     <div class="wrap"><table id="feat-tbl"></table></div>
     <h3 style="font-size:13px;margin:20px 0 8px">Your People metrics</h3>
@@ -93,7 +93,7 @@
     <h3 style="font-size:13px;margin:20px 0 8px">Attribution</h3>
     <div class="wrap"><table id="attr-tbl"></table></div>
   </div>
-  <h2 style="font-size:15px;margin:26px 0 8px">Accounts</h2>
+  <h2 style="font-size:15px;margin:26px 0 8px">Accounts</h2><div class="sub">Email counts are recorded welcome/digest sends, not confirmed deliveries. Clicks are recorded webhook events; zero does not establish no clicks when tracking is unverified. Check Resend for delivery and engagement. Saved types do not prove a result was viewed.</div>
   <div class="wrap"><table id="tbl"></table></div>
 </div>
 
@@ -262,7 +262,7 @@ function renderPaths(a){
     (a.relTypeRows.length?a.relTypeRows.map(r=>'<tr><td style="text-transform:capitalize">'+r.rel+'</td><td class="num">'+r.people+'</td><td class="num">'+r.users+'</td><td class="num">'+fr(r.d1)+'</td><td class="num">'+fr(r.d7)+'</td><td class="num">'+fr(r.d30)+'</td><td class="num">'+r.aiPerUser+'</td></tr>').join(''):'<tr><td colspan="7" class="muted">no relationships yet</td></tr>')+'</tbody>';
   const u=a.aiUsage;
   document.getElementById('ai-usage-cards').innerHTML=
-    [['AI answers this window',u.consumedTotal],['AI failures',u.failed],['Upgrade shown',u.upgradeShown],['Upgrade clicked',u.upgradeClicked],['Paid subscribers',u.paidUsers]]
+    [['Metered AI calls this window',u.consumedTotal],['AI failures',u.failed],['Upgrade shown',u.upgradeShown],['Upgrade clicked',u.upgradeClicked],['Paid subscribers',u.paidUsers]]
     .map(c=>'<div class="stat"><div class="n">'+c[1]+'</div><div class="l">'+c[0]+'</div></div>').join('');
 }
 function renderCards(s){
@@ -286,7 +286,7 @@ function renderDau(series){
     '</div>';
 }
 function renderTable(rows){
-  const head='<thead><tr><th>Email</th><th>Signed up</th><th>Country</th><th>Type</th><th>Via</th><th>Subscription</th><th class="num">Sessions</th><th class="num" title="Career Match AI questions">Career AI</th><th class="num" title="People Match comparisons + AI type guesses">People AI</th><th class="num" title="Profile chat, roast/flatter, ask box, and older untagged AI calls">Chat AI</th><th class="num">AI total</th><th class="num">NHIE</th><th class="num">Emails</th><th class="num">Clicks</th><th class="num">Referrals</th></tr></thead>';
+  const head='<thead><tr><th>Email</th><th>Signed up</th><th>Country</th><th>Type</th><th>Via</th><th>Subscription</th><th class="num">Sessions</th><th class="num" title="Career Match AI questions">Career AI</th><th class="num" title="People Match comparisons + AI type guesses">People AI</th><th class="num" title="Profile chat, roast/flatter, ask box, automatic test explanations, and older untagged AI calls">Chat AI</th><th class="num">AI total</th><th class="num">NHIE</th><th class="num">Email sends</th><th class="num">Recorded clicks</th><th class="num">Referrals</th></tr></thead>';
   const body=rows.map(r=>{
     const sub=r.subscription==='active'?'<span class="yes">active</span>':(r.subscription?r.subscription:'<span class="muted">—</span>');
     const type=r.type?('<b>'+r.type+'</b>'):'<span class="no">—</span>';

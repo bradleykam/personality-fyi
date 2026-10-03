@@ -38,6 +38,17 @@ async function listAllUsers(sb) {
   return all;
 }
 
+async function listRows(sb, table, columns, order) {
+  const rows = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await sb.from(table).select(columns).order(order).range(from, from + 999);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < 1000) return rows;
+  }
+}
+exports.listRows = listRows;
+
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
   if (event.httpMethod !== 'POST') return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method not allowed' }) };
@@ -69,12 +80,19 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: e.message }) };
   }
 
-  // Aggregate sources.
-  const { data: txns } = await sb.from('credit_transactions').select('user_id, type, description');
-  const { data: votes } = await sb.from('nhie_votes').select('user_id');
-  const { data: credits } = await sb.from('user_credits').select('user_id, subscription_status');
-  const { data: creators } = await sb.from('creators').select('id, user_id');
-  const { data: refs } = await sb.from('creator_referrals').select('creator_id');
+  // PostgREST caps a response at 1,000 rows; paginate every aggregate source.
+  let txns, votes, credits, creators, refs;
+  try {
+    [txns, votes, credits, creators, refs] = await Promise.all([
+      listRows(sb, 'credit_transactions', 'user_id, type, description', 'id'),
+      listRows(sb, 'nhie_votes', 'user_id', 'id'),
+      listRows(sb, 'user_credits', 'user_id, subscription_status', 'user_id'),
+      listRows(sb, 'creators', 'id, user_id', 'id'),
+      listRows(sb, 'creator_referrals', 'creator_id', 'id')
+    ]);
+  } catch (e) {
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'Could not load complete account metrics' }) };
+  }
 
   const featureByUser = {}; // user_id -> { career, people, chat, total }
   for (const t of (txns || [])) {

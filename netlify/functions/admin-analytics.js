@@ -39,7 +39,7 @@ const ENGAGE_EVENTS = new Set(['career_planning_started', 'person_flow_started',
 const FEATURE_OF = (ev) => {
   if (/^person_|^roster_person/.test(ev)) return 'People';
   if (/^compatibility/.test(ev)) return 'Compatibility';
-  if (/^ai_/.test(ev) || ev === 'type_ribbing') return 'AI chat';
+  if (['ai_message_sent', 'ai_chat_started', 'self_ai_clicked', 'type_ribbing'].includes(ev)) return 'AI chat';
   if (/^career/.test(ev)) return 'Career planning';
   if (/^nhie/.test(ev)) return 'Never Have I Ever';
   if (ev === 'result_shared') return 'Sharing';
@@ -65,21 +65,30 @@ function computeAll(users, events, nowMs, windowDays, subMap) {
   subMap = subMap || {};
   const now = nowMs || Date.now();
   const winStart = windowDays ? now - windowDays * DAY : 0;
-  const ev = events.filter((e) => new Date(e.created_at).getTime() >= winStart);
+  const hiddenIds = new Set(users.filter(u => hidden(u.email)).map(u => u.id));
+  const hiddenAnon = new Set(users.filter(u => hidden(u.email)).map(u => (u.user_metadata || {}).anon_id).filter(Boolean));
+  events.forEach(e => { if (hiddenIds.has((e.props || {}).user_id) && e.anon_id) hiddenAnon.add(e.anon_id); });
+  users = users.filter(u => !hidden(u.email));
+  const ev = events.filter(e => !hiddenIds.has((e.props || {}).user_id) && !hiddenAnon.has(e.anon_id) && new Date(e.created_at).getTime() <= now);
 
   // Index events by actor (user_id if present, else anon_id) and dedupe by event_id.
   const seenIds = new Set();
   const byActor = {}; // actor -> events[]
   const anonToUser = {};
   users.forEach((u) => { const md = u.user_metadata || {}; if (md.anon_id) anonToUser[md.anon_id] = u.id; });
-  const cleaned = [];
+  // Explicit authenticated events link additional browser identities to an account.
+  const knownUsers = new Set(users.map(u => u.id));
+  ev.forEach(e => { if (e.anon_id && knownUsers.has((e.props || {}).user_id)) anonToUser[e.anon_id] = e.props.user_id; });
+  const allCleaned = [];
   for (const e of ev) {
     const p = e.props || {};
     if (p.event_id) { if (seenIds.has(p.event_id)) continue; seenIds.add(p.event_id); }
     const actor = p.user_id || anonToUser[e.anon_id] || ('anon:' + e.anon_id);
-    cleaned.push(Object.assign({ actor }, e));
+    allCleaned.push(Object.assign({ actor }, e));
     (byActor[actor] = byActor[actor] || []).push(e);
   }
+
+  const cleaned = allCleaned.filter(e => new Date(e.created_at).getTime() >= winStart);
 
   const distinctActors = (name) => {
     const s = new Set();
@@ -92,13 +101,14 @@ function computeAll(users, events, nowMs, windowDays, subMap) {
     const md = u.user_metadata || {};
     const people = Array.isArray(md.people) ? md.people : [];
     const signup = u.created_at;
-    const uEvents = (byActor[u.id] || []).concat(md.anon_id ? (byActor['anon:' + md.anon_id] || []) : []);
+    const allUserEvents = byActor[u.id] || [];
+    const uEvents = allUserEvents.filter(e => new Date(e.created_at).getTime() >= winStart);
     const evNames = new Set(uEvents.map((e) => e.event));
     // activity days: session_days + event days + signup day
     const days = new Set(Array.isArray(md.session_days) ? md.session_days : []);
     days.add(dayOf(signup));
-    uEvents.forEach((e) => days.add(dayOf(e.created_at)));
-    const resultViewed = !!md.mbti_type || evNames.has('result_viewed');
+    allUserEvents.forEach((e) => days.add(dayOf(e.created_at)));
+    const resultViewed = !!md.first_result_viewed_at || allUserEvents.some(e => e.event === 'result_viewed');
     const engaged = [...evNames].some((n) => ENGAGE_EVENTS.has(n)) || people.length > 0 || evNames.has('person_added');
     const activated = people.length >= 1;
     const aiUsed = evNames.has('ai_message_sent');
@@ -113,7 +123,7 @@ function computeAll(users, events, nowMs, windowDays, subMap) {
     const relAct = people.length >= 1 && (evNames.has('compatibility_detail_viewed') || evNames.has('person_profile_viewed') || evNames.has('ai_message_sent'));
     const careerEvts = uEvents.filter((e) => /^career/.test(e.event)).length;
     const careerAct = evNames.has('career_context_saved') || careerEvts >= 2;
-    const aiAct = evNames.has('ai_quota_consumed') || evNames.has('ai_message_sent');
+    const aiAct = evNames.has('ai_message_sent') || evNames.has('self_ai_clicked') || evNames.has('type_ribbing');
     const selfAct = evNames.has('nhie_answered') || evNames.has('type_ribbing') || evNames.has('self_ai_clicked') || evNames.has('you_viewed');
     const aiConsumed = uEvents.filter((e) => e.event === 'ai_quota_consumed').length;
     const paid = (subMap[u.id] || 'none') === 'active';
@@ -129,16 +139,15 @@ function computeAll(users, events, nowMs, windowDays, subMap) {
   });
 
   const retainedAtDay = (r, n) => {
-    const s = new Date(r.signup).getTime();
-    if (now - s < n * DAY) return null; // not eligible
-    const sd = dayOf(r.signup);
-    return r.days.some((d) => daysBetween(sd, d) >= n);
+    const target = new Date(dayOf(r.signup)).getTime() + n * DAY;
+    if (now < target + DAY) return null; // wait until the whole UTC target day closes
+    return r.days.includes(dayOf(target));
   };
   const rate = (num, den) => ({ n: num, d: den, pct: den ? Math.round(1000 * num / den) / 10 : null });
   const retRow = (rs, windows) => {
     const out = {};
     for (const n of windows) {
-      const elig = rs.filter((r) => now - new Date(r.signup).getTime() >= n * DAY);
+      const elig = rs.filter((r) => retainedAtDay(r, n) !== null);
       out['d' + n] = rate(elig.filter((r) => retainedAtDay(r, n)).length, elig.length);
     }
     return out;
@@ -160,17 +169,33 @@ function computeAll(users, events, nowMs, windowDays, subMap) {
   for (const e of cleaned) if (ENGAGE_EVENTS.has(e.event)) secondAction.add(e.actor);
   f.secondAction = secondAction.size;
 
-  const funnel = [];
-  const steps = [
-    ['Test started', f.testStarted], ['Test completed', f.testCompleted],
-    ['Email submitted', Math.max(f.emailSubmitted, distinctActors('signup_complete').size)],
-    ['Result viewed', f.resultViewedEv], ['Second action', f.secondAction],
-    ['Person flow started', f.personFlow], ['Person added', f.personAdded],
-    ['AI question / detailed compatibility', f.aiOrDetail], ['Return session', f.returnSession],
-  ];
-  steps.forEach(([label, n], i) => {
-    funnel.push({ step: label, count: n, pctPrev: i ? (steps[i - 1][1] ? Math.round(1000 * n / steps[i - 1][1]) / 10 : null) : 100, pctOrig: steps[0][1] ? Math.round(1000 * n / steps[0][1]) / 10 : null });
+  // One start cohort, in time order. Authentication is a branch (returning users
+  // need no email step), so report it separately instead of forcing it into the funnel.
+  const funnelStart = Math.max(winStart, Date.parse('2026-09-14T00:00:00Z'));
+  const sequences = new Map();
+  cleaned.filter(e => new Date(e.created_at).getTime() >= funnelStart)
+    .sort((a,b) => new Date(a.created_at) - new Date(b.created_at))
+    .forEach(e => { if (!sequences.has(e.actor)) sequences.set(e.actor, []); sequences.get(e.actor).push(e); });
+  const steps = [['Test started', 0], ['Test completed', 0], ['Result viewed', 0],
+    ['Deliberate feature action', 0], ['Later session', 0]];
+  sequences.forEach(seq => {
+    let stage = 0, firstSession = null, startAt = null;
+    seq.forEach(e => {
+      const p = e.props || {};
+      const matches = stage === 0 ? e.event === 'test_started' :
+        stage === 1 ? e.event === 'test_completed' :
+        stage === 2 ? e.event === 'result_viewed' :
+        stage === 3 ? ENGAGE_EVENTS.has(e.event) :
+        stage === 4 ? (p.session_id && firstSession && p.session_id !== firstSession && new Date(e.created_at) > startAt) : false;
+      if (matches) {
+        if (stage === 0) { firstSession = p.session_id; startAt = new Date(e.created_at); }
+        steps[stage++][1]++;
+      }
+    });
   });
+  const funnel = steps.map(([step, count], i) => ({ step, count,
+    pctPrev: i ? rate(count, steps[i-1][1]).pct : (count ? 100 : null),
+    pctOrig: rate(count, steps[0][1]).pct }));
 
   // Lifecycle counts
   const lifecycle = { lead: 0, result_viewed: 0, engaged: 0, activated: 0, deep_activated: 0, retained: 0 };
@@ -186,10 +211,10 @@ function computeAll(users, events, nowMs, windowDays, subMap) {
     testStarts: f.testStarted,
     testCompletions: f.testCompleted,
     rates: {
-      'Test start → completion': rate(f.testCompleted, f.testStarted),
-      'Completion → email': rate(Math.max(f.emailSubmitted, distinctActors('signup_complete').size), f.testCompleted),
-      'Result viewed → engaged': rate(recs.filter((r) => r.engaged).length, recs.filter((r) => r.resultViewed).length),
-      'Result viewed → activated': rate(recs.filter((r) => r.activated).length, recs.filter((r) => r.resultViewed).length),
+      'Test start → completion': rate(steps[1][1], steps[0][1]),
+      'Completion → result viewed': rate(steps[2][1], steps[1][1]),
+      'Result viewed → engaged': rate(recs.filter((r) => r.resultViewed && r.engaged).length, recs.filter((r) => r.resultViewed).length),
+      'Result viewed → activated': rate(recs.filter((r) => r.resultViewed && r.activated).length, recs.filter((r) => r.resultViewed).length),
       'Signup → activated': rate(recs.filter((r) => r.activated).length, recs.length),
     },
     retention: retRow(recs, [1, 7, 30]),
@@ -206,7 +231,7 @@ function computeAll(users, events, nowMs, windowDays, subMap) {
   };
   const cohorts = {
     bySignup: cohortBy((r) => weekOf(r.signup), recs),
-    byActivation: cohortBy((r) => r.firstPerson ? weekOf(r.firstPerson) : null, recs.filter((r) => r.activated)),
+    byActivation: cohortBy((r) => r.firstPerson ? weekOf(r.firstPerson) : null, recs.filter((r) => r.activated && r.firstPerson).map(r => ({ ...r, signup: r.firstPerson }))),
   };
 
   // Activated vs non-activated retention (S17)
@@ -228,7 +253,7 @@ function computeAll(users, events, nowMs, windowDays, subMap) {
     if (r.people.length) feats.add('People');
     feats.forEach((ft) => (featureRows[ft] = featureRows[ft] || []).push(r));
   });
-  const activeUsers = recs.filter((r) => r.engaged).length || 1;
+  const activeUsers = recs.filter((r) => r.uEvents.length > 0 || r.people.length > 0).length || 1;
   const features = Object.keys(featureRows).map((ft) => {
     const rs = featureRows[ft];
     const ret = retRow(rs, [1, 7, 30]);
@@ -356,7 +381,7 @@ function computeAll(users, events, nowMs, windowDays, subMap) {
     paidUsers: recs.filter((r) => r.paid).length,
   };
 
-  return { scorecards, lifecycle, funnel, cohorts, segments, features, people, whyReturn, attribution, northStar, userRows, activationPaths, relTypeRows, aiUsage, eventCount: cleaned.length };
+  return { definitions: { retention: 'Exact UTC day after signup; completed target days only', funnelSince: new Date(funnelStart).toISOString(), eventWindowDays: windowDays || null, cohorts: 'All account cohorts' }, scorecards, lifecycle, funnel, cohorts, segments, features, people, whyReturn, attribution, northStar, userRows, activationPaths, relTypeRows, aiUsage, eventCount: cleaned.length };
 }
 
 async function listAllUsers(sb) {
@@ -379,7 +404,7 @@ async function listEvents(sb) {
     const { data, error } = await sb.from('funnel_events').select('event, anon_id, props, path, created_at').order('created_at', { ascending: false }).range(from, from + 999);
     if (error) throw new Error(error.message);
     all.push(...data);
-    if (data.length < 1000 || all.length >= 20000) break;
+    if (data.length < 1000) break;
     from += 1000;
   }
   return all;
@@ -399,7 +424,7 @@ exports.handler = async (event) => {
   }
   const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
   try {
-    const users = (await listAllUsers(sb)).filter((x) => !hidden(x.email));
+    const users = await listAllUsers(sb);
     const events = await listEvents(sb);
     const subMap = {};
     try {
@@ -408,7 +433,7 @@ exports.handler = async (event) => {
     } catch (_) {}
     // User timeline mode (S20): event history for one user, AI text never exists in events.
     if (body.user) {
-      const usr = users.find((x) => x.id === body.user);
+      const usr = users.find((x) => x.id === body.user && !hidden(x.email));
       if (!usr) return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: 'user not found' }) };
       const md = usr.user_metadata || {};
       const timeline = events

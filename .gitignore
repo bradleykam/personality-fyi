@@ -13,3 +13,5 @@ tools/quora/quora_drafts.html
 tools/quora/monitor.log
 tools/quora/.venv/
 tools/quora/__pycache__/
+
+.publish/
