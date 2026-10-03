@@ -10,21 +10,12 @@ const { createClient } = require('@supabase/supabase-js');
 
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' };
 
-async function sendViaResend(to, subject, text) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return { sent: false, reason: 'no-resend-key' };
-  const r = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: JSON.stringify({
-      from: process.env.RESEND_FROM || 'personality.fyi <hello@personality.fyi>',
-      to: [to],
-      subject,
-      text
-    })
+async function sendViaResend(to, subject, text, html, campaign = 'creator-digest', userId = null) {
+  return require('../lib/email-reporting').sendTracked({
+    to, subject, text, html, campaign, userId,
+    from: process.env.RESEND_FROM || 'Brad Kam <brad@personality.fyi>',
+    reply_to: 'brad@personality.fyi'
   });
-  if (!r.ok) return { sent: false, reason: 'resend-' + r.status };
-  return { sent: true };
 }
 
 function buildDigest(creator, counts, total) {
@@ -57,7 +48,7 @@ exports.handler = async (event) => {
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   const { data: creators, error: cErr } = await supabase
-    .from('creators').select('id, display_name, slug, email, last_digest_sent_at, first_digest_sent');
+    .from('creators').select('id, user_id, display_name, slug, email, last_digest_sent_at, first_digest_sent');
   if (cErr) return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: cErr.message }) };
 
   const now = Date.now();
@@ -84,7 +75,7 @@ exports.handler = async (event) => {
     if (qErr) continue;
     summary.queued++;
 
-    const send = await sendViaResend(c.email, subject, body);
+    const send = await sendViaResend(c.email, subject, body, undefined, 'creator-digest', c.user_id);
     if (send.sent) {
       await supabase.from('creator_digests_pending').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', queued.id);
       await supabase.from('creators').update({ last_digest_sent_at: new Date().toISOString(), first_digest_sent: true }).eq('id', c.id);

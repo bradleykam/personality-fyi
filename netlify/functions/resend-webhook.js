@@ -1,59 +1,36 @@
-// Receives Resend webhook events (email.clicked, email.opened) and records them
-// on the matching user so the admin dashboard can show engagement.
-// Stored in user_metadata: email_clicks, email_opens, last_click_link, last_click_at.
-//
-// Set this URL in Resend → Webhooks, subscribed to email.clicked (and optionally
-// email.opened). Click data is non-sensitive, so signature verification is
-// optional; if RESEND_WEBHOOK_SECRET is set we could verify, but counts being
-// forged would only inflate a number, not leak anything.
+// Verified Resend events are append-only; reporting deduplicates by message/outcome.
+const { Webhook } = require('standardwebhooks');
 const { createClient } = require('@supabase/supabase-js');
-
-exports.handler = async (event) => {
-  if (event.httpMethod === 'GET') return { statusCode: 200, body: 'ok' }; // Resend test ping
-  if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return { statusCode: 200, body: 'not configured' };
-  }
-
+const { record } = require('../lib/email-reporting');
+const TYPES = new Set(['sent','delivered','delivery_delayed','bounced','complained','opened','clicked','failed','suppressed']);
+exports.handler = async event => {
+  if(event.httpMethod!=='POST')return {statusCode:405,body:'Method Not Allowed'};
+  if(!process.env.RESEND_WEBHOOK_SECRET)return {statusCode:503,body:'Webhook verification not configured'};
   let body;
-  try { body = JSON.parse(event.body || '{}'); }
-  catch { return { statusCode: 200, body: 'bad json' }; }
-
-  const type = body.type || '';
-  const data = body.data || {};
-  const to = Array.isArray(data.to) ? data.to[0] : (data.to || data.email || '');
-  const recipient = String(to || '').trim().toLowerCase();
-  if (!recipient || (type !== 'email.clicked' && type !== 'email.opened')) {
-    return { statusCode: 200, body: 'ignored' };
-  }
-
-  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-  // Find the user by email (small user base; list and match).
-  let user = null;
   try {
-    let page = 1;
-    for (;;) {
-      const { data: d, error } = await sb.auth.admin.listUsers({ page, perPage: 1000 });
-      if (error) break;
-      user = d.users.find((u) => (u.email || '').toLowerCase() === recipient);
-      if (user || d.users.length < 1000) break;
-      page++;
+    const raw=event.isBase64Encoded?Buffer.from(event.body,'base64').toString('utf8'):event.body;
+    body=new Webhook(process.env.RESEND_WEBHOOK_SECRET).verify(raw, {'webhook-id':event.headers?.['svix-id'] || '', 'webhook-timestamp':event.headers?.['svix-timestamp'] || '', 'webhook-signature':event.headers?.['svix-signature'] || ''});
+  } catch {return {statusCode:400,body:'Invalid signature'};}
+  const kind=String(body.type||'').replace(/^email\./,''), d=body.data||{};
+  if(!TYPES.has(kind))return {statusCode:200,body:'ignored'};
+  if(!d.email_id)return {statusCode:400,body:'Missing email ID'};
+  const tags=Array.isArray(d.tags)?Object.fromEntries(d.tags.map(t=>[t.name,t.value])):(d.tags||{});
+  try {
+    const sb=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY);
+    let userId = null;
+    // Older messages have no campaign tags. Match their recipient for failure diagnostics.
+    if (!tags.pf_token) {
+      const recipient=String(Array.isArray(d.to)?d.to[0]:d.to||'').toLowerCase();
+      if (recipient) for(let page=1;;page++) {
+        const {data,error}=await sb.auth.admin.listUsers({page,perPage:1000});
+        if(error) throw error;
+        const user=data.users.find(u=>(u.email||'').toLowerCase()===recipient);
+        if(user){userId=user.id;break;}
+        if(data.users.length<1000)break;
+      }
     }
-  } catch (_) { /* ignore */ }
-  if (!user) return { statusCode: 200, body: 'no user' };
-
-  const md = user.user_metadata || {};
-  const patch = { ...md };
-  if (type === 'email.clicked') {
-    patch.email_clicks = (Number(md.email_clicks) || 0) + 1;
-    patch.last_click_at = new Date().toISOString();
-    if (data.click && data.click.link) patch.last_click_link = String(data.click.link).slice(0, 300);
-  } else if (type === 'email.opened') {
-    patch.email_opens = (Number(md.email_opens) || 0) + 1;
-  }
-  try { await sb.auth.admin.updateUserById(user.id, { user_metadata: patch }); }
-  catch (_) { /* ignore */ }
-
-  return { statusCode: 200, body: 'ok' };
+    await record(sb,'mail_webhook' ,{event_id:event.headers['svix-id'],kind,message_id:d.email_id,
+      email_token:tags.pf_token||null,campaign:tags.pf_campaign||null,user_id:userId,reason:String(d.failed?.reason||d.bounce?.message||d.suppressed?.reason||'').slice(0,300)},body.created_at);
+    return {statusCode:200,body:'ok'};
+  } catch {return {statusCode:500,body:'Event storage failed; retry'};}
 };

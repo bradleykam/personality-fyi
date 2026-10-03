@@ -772,19 +772,12 @@ ${jobsHtml}${compatHtml}<p style="margin:0 0 6px;font-weight:700">Featured read<
   return { subject: `Your weekly ${code} insight`, html, text };
 }
 
-async function sendViaResend(to, subject, text, html) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return { sent: false, reason: 'no-resend-key' };
-  const r = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: JSON.stringify({
-      from: process.env.RESEND_FROM || 'Brad Kam <brad@personality.fyi>',
-      to: [to], reply_to: REPLY_TO, subject, text, html,
-    }),
+async function sendViaResend(to, subject, text, html, campaign = 'weekly-digest', userId = null) {
+  return require('../lib/email-reporting').sendTracked({
+    to, subject, text, html, campaign, userId,
+    from: process.env.RESEND_FROM || 'Brad Kam <brad@personality.fyi>',
+    reply_to: REPLY_TO
   });
-  if (!r.ok) return { sent: false, reason: 'resend-' + r.status, detail: await r.text() };
-  return { sent: true };
 }
 
 async function listAllUsers(supabase) {
@@ -862,7 +855,7 @@ exports.handler = async (event) => {
     const { subject, html, text } = hasType ? buildEmail(type, week) : buildNoTypeEmail(week);
     if (dryRun) { preview.push({ to: u.email, type: hasType ? type : 'none', week, subject }); continue; }
     await new Promise((r) => setTimeout(r, 250)); // stay under Resend's 5 req/sec
-    const res = await sendViaResend(u.email, subject, text, html);
+    const res = await sendViaResend(u.email, subject, text, html, 'weekly-digest', u.id);
     if (res.sent) {
       await supabase.auth.admin.updateUserById(u.id, {
         user_metadata: { ...md, weekly_digest_week: week, weekly_digest_n: (Number(md.weekly_digest_n) || 0) + 1, weekly_digest_last: new Date().toISOString() },

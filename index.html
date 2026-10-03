@@ -3695,7 +3695,12 @@ textarea::placeholder { color: var(--muted); }
 .self-details { margin-bottom: 22px; max-width: 760px; }
 .self-details summary, #career-roles summary { cursor: pointer; padding: 12px 0; }
 .self-details .you-block { margin-top: 20px; }
-#home-profile .cha-container { height: calc(100dvh - 340px); min-height: 300px; }
+#home-profile .cha-container { height: 340px; min-height: 240px; margin-top: 20px; }
+.you-overview-layout { display:grid; grid-template-columns:1fr 1fr; gap:48px; }
+.you-overview { max-width:600px; }
+.you-questions .ts-chip { display:block; text-align:left; margin:12px 0; }
+.you-destinations { display:flex; flex-wrap:wrap; gap:12px; margin:26px 0; }
+@media(max-width:850px) { .you-overview-layout { grid-template-columns:1fr; gap:24px; } }
 .self-conversation { min-height: 0; max-width: 880px; }
 #advisor-side { align-self: start; }
 #career-roles:not([open]) { min-height: 0; }
@@ -3839,7 +3844,13 @@ textarea::placeholder { color: var(--muted); }
             <button type="submit" class="cha-send-btn" id="advisor-send-btn">Send</button>
           </form>
         </div>
-        <aside class="cha-side" id="advisor-side"><details id="career-roles"><summary>Explore career ideas</summary>
+        <aside class="cha-side" id="advisor-side"><details id="career-roles" open><summary>Explore career ideas</summary>
+          <form onsubmit="event.preventDefault();careerCheckFit()" style="display:grid;gap:12px;margin:12px 0 24px">
+            <label>Enter your field<input id="career-fit-field" placeholder="e.g. Technology" style="display:block;width:100%;padding:10px;margin-top:6px" required></label>
+            <label>Enter your job<input id="career-fit-job" placeholder="e.g. Product designer" style="display:block;width:100%;padding:10px;margin-top:6px" required></label>
+            <button class="ts-chip" type="submit">Check compatibility →</button>
+            <div style="font-size:11px;color:var(--muted)">An estimated fit based on your personality, field, and role.</div>
+          </form>
           <button class="cha-side-close" onclick="advisorSideClose()" aria-label="Close panel" style="display:none">&times;</button>
           <div id="advisor-browse-block" class="career-role-picker">
             <label for="advisor-browse-type">Explore roles for</label>
@@ -5652,16 +5663,20 @@ function showHomeProfile(type) {
   var loginBanner = currentUser ? '' : '<p><button class="ts-chip" onclick="openAuthModal()">Save your profile</button></p>';
   el.innerHTML = loginBanner +
     '<header class="career-page-header"><h1>You</h1><p>' + type + ' · ' + d.title + '</p></header>' +
-    '<details class="self-details"><summary>About your personality</summary>' +
+    '<div class="you-overview-layout"><section class="you-overview">' +
       youBlock('How you think', d.cognitive) + youBlock('Strengths', d.strengths) +
       youBlock('Watch out for', d.shadow) + youBlock('Drained by', d.drains) +
-      '<div id="typicality-host"></div></details>' +
-    '<div class="cha-container"><div class="cha-main self-conversation">' +
+      '<div id="typicality-host"></div>' +
+      '<div class="you-destinations"><button class="ts-chip" onclick="appNav(\'compat\')">Relationships →</button>' +
+      '<button class="ts-chip" onclick="appNav(\'advisor\')">Career →</button></div></section>' +
+      '<aside class="you-questions"><div class="you-label">Ask about yourself</div>' +
+      YOU_SELF_QUESTIONS.slice(0,3).map(function(q) { return '<button class="ts-chip ghost" onclick="youAsk(this.textContent)">' + q + '</button>'; }).join('') +
+      '<div class="cha-container"><div class="cha-main self-conversation">' +
       '<div class="cha-thread" id="home-chat-thread"></div>' +
       '<form class="cha-input-bar" onsubmit="event.preventDefault();homeChatSend()">' +
-        '<textarea class="cha-input" id="home-chat-input" placeholder="What would you like to understand about yourself?" rows="1"></textarea>' +
+        '<textarea class="cha-input" id="home-chat-input" placeholder="Ask about yourself…" rows="1"></textarea>' +
         '<button type="submit" class="cha-send-btn" id="home-chat-send">Send</button>' +
-      '</form></div></div>' +
+      '</form></div></div></aside></div>' +
     '<footer class="home-footer"><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/contact">Contact</a></footer>';
   el.style.display = 'flex';
   el.style.flexDirection = 'column';
@@ -8472,6 +8487,12 @@ function trackEvent(name, props) {
       landing: a.landing || null,
       invite: a.invite || null
     };
+    try {
+      var touch = JSON.parse(sessionStorage.getItem('pf_email_touch') || 'null');
+      if (touch && Date.now() - touch.at <= 30 * 60 * 1000) {
+        base.email_token = touch.token; base.email_campaign = touch.campaign; base.email_touch_at = touch.at;
+      }
+    } catch(e) {}
     var merged = Object.assign(base, props || {});
     fetch('/.netlify/functions/track-event', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
@@ -9736,6 +9757,18 @@ function advisorBrowseType(type) {
   if (side) side.style.display = 'block';
 }
 
+function careerCheckFit() {
+  var field = document.getElementById('career-fit-field').value.trim();
+  var job = document.getElementById('career-fit-job').value.trim();
+  if (!field || !job) return;
+  var type = localStorage.getItem('typeread_selected_type');
+  if (!type) { appNav('analyze'); return; }
+  advisorIntake.done = true;
+  var input = document.getElementById('advisor-input');
+  input.value = 'How compatible is working as a ' + job + ' in ' + field + ' with my ' + type + ' personality? Give me an estimated score out of 100, the main strengths and friction, and one practical suggestion.';
+  advisorSend();
+}
+
 async function advisorSend() {
   const input = document.getElementById('advisor-input');
   const sendBtn = document.getElementById('advisor-send-btn');
@@ -9830,7 +9863,7 @@ async function _advisorAskClaude(msg, input, sendBtn) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: advisorRewriteMode ? 1200 : 400,
-        system: advisorSystem,
+        system: advisorSystem + '\nFor career compatibility scores: label any numerical score as an AI estimate, not a measured probability or validated predictor. State role assumptions and ask for clarification instead of scoring an unclear role.',
         messages: [{ role: 'user', content: userContent }]
       })
     });
@@ -10201,7 +10234,7 @@ function renderSidebar() {
   var authed = (typeof currentUser !== 'undefined' && !!currentUser);
   var items;
   if (authed) {
-    items = _navBtn('analyze', 'Home') +
+    items = _navBtn('analyze', 'You') +
       _navBtn('compat', 'Relationships') +
       _navBtn('advisor', 'Career');
   } else {
@@ -10954,7 +10987,7 @@ function resolvePendingAiLogin(ok) {
       // 4. Consume one AI question only after a successful response (S53).
       var _feature = (typeof _lastAiFeature !== 'undefined' && _lastAiFeature) || 'ai';
       return originalFetch(url, options).then(function(resp) {
-        if (resp.ok && currentUser && !paywallInEmployerMode()) pfConsumeAi(_feature);
+        if (resp.ok && currentUser && !paywallInEmployerMode()) { pfConsumeAi(_feature); trackEvent('ai_response_received', {surface:_feature}); }
         else if (!resp.ok) trackEvent('ai_request_failed', { surface: _feature, status: resp.status });
         return resp;
       });
