@@ -4817,15 +4817,6 @@ async function homeChatSend() {
   if (!input || !thread) return;
   var msg = input.value.trim();
   if (!msg) return;
-  // Type Someone flow intercept: while active, this chat input feeds the
-  // scripted flow instead of the AI.
-  if (_tsFlow && _tsFlow.active) {
-    input.value = '';
-    if (input.style) input.style.height = 'auto';
-    tsEchoUser(msg);
-    tsHandle(msg);
-    return;
-  }
   input.value = '';
   if (input.style) input.style.height = 'auto';
   sendBtn.disabled = true;
