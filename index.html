@@ -180,6 +180,9 @@ body {
 }
 
 /* ── App Main Content ── */
+#app-sidebar-credits { position:fixed;left:244px;bottom:16px;z-index:90;padding:8px 12px;font-size:12px;color:var(--ink);line-height:1.5;background:var(--paper); }
+.app-main-inner { padding-bottom:120px !important; }
+@media(max-width:768px) { #app-sidebar-credits { left:16px;bottom:8px; } }
 .app-main {
   flex: 1;
   margin-left: 220px;
@@ -3750,10 +3753,12 @@ textarea::placeholder { color: var(--muted); }
 
     <div class="app-sidebar-bottom" id="app-sidebar-auth">
       <button id="app-sidebar-user-btn" onclick="switchTab('account')" style="display:none;width:calc(100% - 2.5rem);margin:8px 1.25rem;padding:10px 12px;font-family:'DM Mono',monospace;font-size:13px;background:var(--cream);border:1px solid var(--border);border-radius:8px;cursor:pointer;text-align:left;color:var(--ink);align-items:center;gap:8px"></button>
-      <div id="app-sidebar-credits" style="display:none;padding:8px 1.25rem;font-size:12px;color:var(--ink);line-height:1.5"></div>
+
       <button id="app-sidebar-signin" onclick="openAuthModal()" style="margin:12px 1.25rem 16px;padding:10px 16px;width:calc(100% - 2.5rem);font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:.04em;background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:6px;cursor:pointer;text-align:center">Sign in &rarr;</button>
     </div>
   </aside>
+
+  <div id="app-sidebar-credits" style="display:none" aria-label="AI questions remaining"></div>
 
   <!-- Main Content -->
   <main class="app-main">
@@ -10948,7 +10953,7 @@ function refreshCreditDisplay() {
   el.innerHTML =
     '<div style="color:var(--ink);font-size:13px;font-weight:500">' + q.remaining + ' of ' + q.limit + (sub ? '' : ' free') + ' AI questions left</div>' +
     '<div style="color:var(--muted)">Resets ' + resetNice + '</div>' +
-    (!sub ? '<button onclick="trackEvent(\'upgrade_clicked\',{via:\'sidebar\'});openPaywall(\'manual\')" style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;padding:4px 0 0;text-decoration:underline">Get more</button>' : '');
+    (!sub ? '<button onclick="trackEvent(\'upgrade_clicked\',{via:\'usage_notice\'});openPaywall(\'manual\')" style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;padding:4px 0 0;text-decoration:underline">Get more</button>' : '');
 }
 
 // Load Stripe price IDs from /config on init (piggyback on existing config fetch).
