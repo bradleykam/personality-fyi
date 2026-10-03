@@ -4793,37 +4793,65 @@ function sourceToWiki(src) {
 
 // Home-profile freeform chat — context = user’s saved type.
 var _homeChat = { type: null, history: [] };
-function homeChatInit(type) {
-  _homeChat.type = type;
-  _homeChat.history = [];
+function youThreadKey() { return 'pf_you_threads_' + (currentUser ? currentUser.id : 'guest'); }
+function youThreads() {
+  try {
+    var rows = JSON.parse(localStorage.getItem(youThreadKey()) || 'null');
+    if (rows) return rows;
+    var legacy = JSON.parse(localStorage.getItem('pf_chat_self') || '[]');
+    rows = legacy.length ? [{ id: 'legacy', title: (legacy.find(function(m) { return m.role === 'user'; }) || {}).content || 'Earlier conversation', history: legacy, at: Date.now() }] : [];
+    localStorage.setItem(youThreadKey(), JSON.stringify(rows));
+    return rows;
+  } catch(e) { return []; }
+}
+function youSaveThread(chat) {
+  if (!chat.history.length) return;
+  if (!chat.id) chat.id = crypto.randomUUID();
+  var rows = youThreads().filter(function(t) { return t.id !== chat.id; });
+  rows.unshift({ id: chat.id, title: chat.history.find(function(m) { return m.role === 'user'; }).content.slice(0, 70), history: chat.history, at: Date.now() });
+  try { localStorage.setItem(youThreadKey(), JSON.stringify(rows)); } catch(e) {}
+  youRenderThreads();
+}
+function youRenderThreads() {
+  var host = document.getElementById('you-thread-list');
+  if (!host) return;
+  host.innerHTML = '';
+  var rows = youThreads();
+  if (!rows.length) return;
+  var label = document.createElement('div'); label.textContent = 'Your conversations';
+  label.style.cssText = 'padding:16px 20px 6px;font-size:11px;color:var(--muted)'; host.appendChild(label);
+  rows.forEach(function(t) {
+    var button = document.createElement('button'); button.className = 'app-nav-item';
+    button.style.cssText = 'display:block;width:100%;max-width:100%;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    button.textContent = t.title; button.title = t.title;
+    button.onclick = function() { appNav('analyze'); homeChatInit(localStorage.getItem('typeread_selected_type'), t); };
+    host.appendChild(button);
+  });
+}
+function youChangeType() {
+  var host = document.getElementById('you-type-picker');
+  host.hidden = !host.hidden;
+  if (!host.hidden) host.innerHTML = typeDropdownHTML(localStorage.getItem('typeread_selected_type'), 'selectAnalyzeType');
+}
+function homeChatInit(type, saved) {
+  _homeChat = { type: type, history: saved ? saved.history.slice() : [], id: saved ? saved.id : null };
   var thread = document.getElementById('home-chat-thread');
   if (!thread) return;
   thread.innerHTML = '';
-  // Continuity: yesterday's self conversation is still here.
-  try {
-    var savedS = JSON.parse(localStorage.getItem('pf_chat_self') || 'null');
-    if (savedS && savedS.length) {
-      _homeChat.history = savedS.slice(-12);
-      _homeChat.history.forEach(function(m) {
-        var b = document.createElement('div');
-        if (m.role === 'user') { b.className = 'cha-msg user'; b.textContent = m.content; }
-        else {
-          b.className = 'cha-msg ai';
-          var r0 = (typeof advisorMarkdown === 'function') ? advisorMarkdown(m.content) : ('<p>' + m.content + '</p>');
-          b.innerHTML = '<div class="cha-msg-avatar">AI</div><div class="cha-msg-body">' + r0 + '</div>';
-        }
-        thread.appendChild(b);
-      });
-      thread.scrollTop = thread.scrollHeight;
-    }
-  } catch (e) {}
-  document.getElementById('home-chat-input').placeholder = _homeChat.history.length ? '' : 'Ask about yourself…';
+  _homeChat.history.forEach(function(m) {
+    var b = document.createElement('div'); b.className = 'cha-msg ' + (m.role === 'user' ? 'user' : 'ai');
+    if (m.role === 'user') b.textContent = m.content;
+    else b.innerHTML = '<div class="cha-msg-avatar">AI</div><div class="cha-msg-body">' + advisorMarkdown(m.content) + '</div>';
+    thread.appendChild(b);
+  });
   var input = document.getElementById('home-chat-input');
-  if (input && typeof chaBindInput === 'function') {
-    chaBindInput(input, document.getElementById('home-chat-send'), homeChatSend);
-  }
+  input.placeholder = saved ? '' : 'Ask about yourself…';
+  chaBindInput(input, document.getElementById('home-chat-send'), homeChatSend);
+  youRenderThreads();
+  if (saved) { thread.scrollIntoView({block:'start'}); thread.scrollTop = thread.scrollHeight; }
 }
 async function homeChatSend() {
+  var chat = _homeChat;
   var input = document.getElementById('home-chat-input');
   var sendBtn = document.getElementById('home-chat-send');
   var thread = document.getElementById('home-chat-thread');
@@ -4847,12 +4875,13 @@ async function homeChatSend() {
   thread.appendChild(typing);
   thread.scrollTop = thread.scrollHeight;
 
-  _homeChat.history.push({ role: 'user', content: msg });
+  chat.history.push({ role: 'user', content: msg });
+  youSaveThread(chat);
   window._aiFeatureNext = 'profile-chat';
   trackAiMessage('profile');
-  var rewriteMode = _isRewriteIntent(msg, _homeChat.history);
-  var surfaceRules = "SURFACE: home chat. The user is an " + _homeChat.type + ". Answer their questions about themselves, the people in their life, or their career — always calibrated to how an " + _homeChat.type + " thinks and works. Be direct, specific, honest. 2–4 short paragraphs. Reference cognitive functions only when it adds clarity.";
-  var system = _composeChatSystem(surfaceRules, "an " + _homeChat.type + " reader", msg, _homeChat.history.slice(0, -1));
+  var rewriteMode = _isRewriteIntent(msg, chat.history);
+  var surfaceRules = "SURFACE: home chat. The user is an " + chat.type + ". Answer their questions about themselves, the people in their life, or their career — always calibrated to how an " + chat.type + " thinks and works. Be direct, specific, honest. 2–4 short paragraphs. Reference cognitive functions only when it adds clarity.";
+  var system = _composeChatSystem(surfaceRules, "an " + chat.type + " reader", msg, chat.history.slice(0, -1));
   try {
     var resp = await fetch('/.netlify/functions/claude', {
       method: 'POST',
@@ -4861,7 +4890,7 @@ async function homeChatSend() {
         model: 'claude-sonnet-4-6',
         max_tokens: rewriteMode ? 1200 : 500,
         system: system,
-        messages: _homeChat.history
+        messages: chat.history
       })
     });
     var data = await resp.json();
@@ -4871,7 +4900,7 @@ async function homeChatSend() {
     if (!rewriteMode) text = _stripDashes(text);
     if (rewriteMode) {
       var sp = _splitRewriteResponse(text);
-      _homeChat.history.push({ role: 'assistant', content: sp.body, _mode: 'rewrite' });
+      chat.history.push({ role: 'assistant', content: sp.body, _mode: 'rewrite' });
       var ai1 = document.createElement('div');
       ai1.className = 'cha-msg ai';
       var rb = (typeof advisorMarkdown === 'function') ? advisorMarkdown(sp.body) : '<p>' + sp.body + '</p>';
@@ -4886,8 +4915,8 @@ async function homeChatSend() {
       }
       thread.scrollTop = thread.scrollHeight;
     } else {
-      _homeChat.history.push({ role: 'assistant', content: text });
-      try { localStorage.setItem('pf_chat_self', JSON.stringify(_homeChat.history.slice(-12))); pfConvoTouch('self', 'You'); } catch (e) {}
+      chat.history.push({ role: 'assistant', content: text });
+
       var ai = document.createElement('div');
       ai.className = 'cha-msg ai';
       var rendered = (typeof advisorMarkdown === 'function') ? advisorMarkdown(text) : '<p>' + text + '</p>';
@@ -4902,6 +4931,7 @@ async function homeChatSend() {
     er.innerHTML = '<div class="cha-msg-avatar">AI</div><div class="cha-msg-body"><p style="color:var(--accent)">Couldn’t get a response. Try again.</p></div>';
     thread.appendChild(er);
   } finally {
+    youSaveThread(chat);
     sendBtn.disabled = false;
     input.focus();
   }
@@ -5665,7 +5695,7 @@ function showHomeProfile(type) {
   const el = document.getElementById('home-profile');
   var loginBanner = currentUser ? '' : '<p><button class="ts-chip" onclick="openAuthModal()">Save your profile</button></p>';
   el.innerHTML = loginBanner +
-    '<header class="career-page-header"><h1>You</h1><p>' + type + ' · ' + d.title + '</p></header>' +
+    '<header class="career-page-header"><h1>You</h1><p>' + type + ' · ' + d.title + '</p><div class="you-destinations"><button class="ts-chip" onclick="youChangeType()">Change type</button><button class="ts-chip" onclick="appNav(\'test\')">Retake test</button></div><div id="you-type-picker" hidden></div></header>' +
     '<div class="you-overview-layout"><section class="you-overview">' +
       youBlock('How you think', d.cognitive) + youBlock('Strengths', d.strengths) +
       youBlock('Watch out for', d.shadow) + youBlock('Drained by', d.drains) +
@@ -10264,7 +10294,8 @@ function renderSidebar() {
       _navBtn('compat', 'Compatibility') +
       _navBtn('advisor', 'Career');
   }
-  host.innerHTML = items + _navMoreGroup();
+  host.innerHTML = items + _navMoreGroup() + (authed ? '<div id="you-thread-list"></div>' : '');
+  if (authed) youRenderThreads();
 }
 
 function askAiGo() {
@@ -11377,8 +11408,7 @@ function renderAccountType() {
           : '';
       })() +
       '<div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap">' +
-        '<button class="acct-btn" onclick="acctChangeType()">Change type</button>' +
-        '<button class="acct-btn" onclick="switchTab(\'test\')">Retake the test</button>' +
+        '<button class="acct-btn" onclick="appNav(\'analyze\')">View your profile</button>' +
       '</div>' +
       '</div>' +
       '</div>' +
@@ -12979,6 +13009,7 @@ function sidebarExpandMoreIfNeeded(key) {
 }
 
 function appNav(key, opts) {
+  if (key === 'analyze' && localStorage.getItem('typeread_selected_type')) showHomeProfile(localStorage.getItem('typeread_selected_type'));
   document.body.classList.toggle('career-page-active', key === 'advisor' || key === 'compat');
   if (typeof sidebarExpandMoreIfNeeded === 'function') sidebarExpandMoreIfNeeded(key);
   opts = opts || {};
