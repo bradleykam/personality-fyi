@@ -1,5 +1,5 @@
 // Verified Resend events are append-only; reporting deduplicates by message/outcome.
-const { Webhook } = require('svix');
+const { Webhook } = require('standardwebhooks');
 const { createClient } = require('@supabase/supabase-js');
 const { record } = require('../lib/email-reporting');
 const TYPES = new Set(['sent','delivered','delivery_delayed','bounced','complained','opened','clicked','failed','suppressed']);
@@ -9,7 +9,7 @@ exports.handler = async event => {
   let body;
   try {
     const raw=event.isBase64Encoded?Buffer.from(event.body,'base64').toString('utf8'):event.body;
-    body=new Webhook(process.env.RESEND_WEBHOOK_SECRET).verify(raw,event.headers||{});
+    body=new Webhook(process.env.RESEND_WEBHOOK_SECRET).verify(raw, {'webhook-id':event.headers?.['svix-id'] || '', 'webhook-timestamp':event.headers?.['svix-timestamp'] || '', 'webhook-signature':event.headers?.['svix-signature'] || ''});
   } catch {return {statusCode:400,body:'Invalid signature'};}
   const kind=String(body.type||'').replace(/^email\./,''), d=body.data||{};
   if(!TYPES.has(kind))return {statusCode:200,body:'ignored'};

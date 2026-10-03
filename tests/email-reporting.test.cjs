@@ -16,7 +16,7 @@ test('tagging preserves destinations, fragments, and unsubscribe/referral links'
 test('webhook rejects invalid signatures and retries storage failures',async()=>{
  let stored=0,fail=false;
  const c={exports:{},process:{env:{RESEND_WEBHOOK_SECRET:'configured',SUPABASE_URL:'mock',SUPABASE_SERVICE_ROLE_KEY:'mock'}},Buffer,
- require(name){if(name==='svix')return {Webhook:class{verify(raw){if(raw==='bad')throw Error('signature');return JSON.parse(raw);}}};if(name==='@supabase/supabase-js')return {createClient:()=>({})};return {record:async()=>{if(fail)throw Error('offline');stored++;}};}};
+ require(name){if(name==='standardwebhooks')return {Webhook:class{verify(raw){if(raw==='bad')throw Error('signature');return JSON.parse(raw);}}};if(name==='@supabase/supabase-js')return {createClient:()=>({})};return {record:async()=>{if(fail)throw Error('offline');stored++;}};}};
  vm.runInNewContext(fs.readFileSync('netlify/functions/resend-webhook.js','utf8'),c);
  assert.equal((await c.exports.handler({httpMethod:'POST',headers:{},body:'bad'})).statusCode,400);assert.equal(stored,0);
  const request={httpMethod:'POST',headers:{'svix-id':'id'},body:JSON.stringify({type:'email.delivered',data:{email_id:'m'},created_at:at})};assert.equal((await c.exports.handler(request)).statusCode,200);assert.equal(stored,1);fail=true;assert.equal((await c.exports.handler(request)).statusCode,500);
@@ -25,4 +25,12 @@ test('mail events cannot create apparent product retention',()=>{
  const {computeAll}=require('../netlify/functions/admin-analytics');const user={id:'real',email:'real@example.com',created_at:at,user_metadata:{}};
  const result=computeAll([user],[row('mail_webhook',{user_id:'real'},86400000)],time+3*86400000);
  assert.equal(result.eventCount,0);
+});
+
+test('real verification library accepts signed payloads and rejects tampering',()=>{
+ const {Webhook}=require('standardwebhooks'); const wh=new Webhook('whsec_'+Buffer.from('test-signing-key').toString('base64'));
+ const now=new Date(), payload=JSON.stringify({type:'email.delivered'}), id='msg-test';
+ const headers={'webhook-id':id,'webhook-timestamp':String(Math.floor(now.getTime()/1000)),'webhook-signature':wh.sign(id,now,payload)};
+ assert.equal(wh.verify(payload,headers).type,'email.delivered');
+ assert.throws(()=>wh.verify(payload+' ',headers));
 });
