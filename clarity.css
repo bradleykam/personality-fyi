@@ -1,0 +1,101 @@
+/* Presentation only: no visibility, content, routing, or interaction changes. */
+:root {
+  --ink: #181b1a;
+  --paper: #f7f6f2;
+  --cream: #eeece6;
+  --muted: #515955;
+  --border: #cccfc9;
+  --card: #fff;
+  --accent: #b33a19;
+  --ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+body { font-family: var(--ui-font) !important; font-size: 16px; line-height: 1.55; }
+body :where(button,input,textarea,select,h1,h2,h3,h4,h5,h6,p,a,span,div,section,aside,header,footer,nav,label,li,td,th,summary,small,strong,em,blockquote) {
+  font-family: var(--ui-font) !important;
+  text-shadow: none !important;
+}
+em, i, blockquote, .blog-app-subhead, .why-action-line { font-style: normal !important; }
+em { font-weight: 600; }
+h1,h2,h3,h4 { font-weight: 700; line-height: 1.2; letter-spacing: -.025em; text-wrap: balance; }
+button,input,textarea,select { font-size: 16px; line-height: 1.45; }
+button,a,input,textarea,select,summary { -webkit-tap-highlight-color: transparent; }
+:where(button,a,input,textarea,select,summary):focus-visible { outline: 3px solid #2366a4; outline-offset: 3px; }
+button { touch-action: manipulation; }
+input::placeholder,textarea::placeholder { color: #616963; opacity: 1; }
+input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea,select { border-radius: 9px; }
+small { font-size: 14px; }
+.app-sidebar,.blog-header { background: #fff; border-right: 1px solid var(--border); }
+.app-sidebar-brand { border-bottom: 0; padding-bottom: 24px; }
+.wordmark,.blog-brand { letter-spacing: -.035em; font-weight: 750; }
+.app-nav-item { min-height: 48px; font-size: 16px; font-weight: 550; border-left: 3px solid transparent; }
+.app-nav-item.active { font-weight: 700; border-left-color: var(--accent); }
+.app-sidebar-type-item,.app-sidebar-bottom .app-nav-item { font-size: 15px; }
+.app-sidebar-email,.app-sidebar-group-label { font-size: 14px; }
+.career-page-header h1 { font-size: clamp(28px,3vw,36px); letter-spacing: -.035em; }
+.career-page-header p { font-size: 18px; line-height: 1.55; color: var(--muted); margin-top: 10px; }
+.you-overview-layout { gap: clamp(28px,4vw,64px); }
+.you-label,.type-desc-label { font-size: 15px; letter-spacing: 0; text-transform: none; font-weight: 700; }
+.you-list li,.type-desc-text { font-size: 17px; line-height: 1.65; }
+.you-block { margin-bottom: 26px; }
+.you-list li { padding-top: 4px; padding-bottom: 4px; }
+.you-questions .ts-chip { width: 100%; margin: 10px 0; line-height: 1.5; }
+.ts-chip,.home-cta-btn,.home-change-btn,.home-action-card { border-radius: 9px; }
+.ts-chip { min-height: 44px; font-size: 16px; padding: 10px 16px; background: #fff; border: 1px solid var(--border); }
+.ts-chip:hover { border-color: var(--ink); background: var(--cream); }
+.ts-chip:disabled { cursor: default; }
+.you-destinations { gap: 10px; }
+.you-overview .you-destinations .ts-chip { font-weight: 650; }
+.cha-input { font-size: 17px !important; line-height: 1.5; }
+.cha-input-wrap { background: #fff; border-radius: 14px; box-shadow: none; }
+.cha-bubble,.chat-embed-thread,.type-desc-text,.blog-app-body,.blog-article p,.blog-article li { font-size: 17px; line-height: 1.7; }
+.cha-msg { line-height: 1.65; }
+.blog-app-meta,.blog-app-personalized,.blog-app-back,.blog-app-subhead,.home-action-sub { opacity: 1; color: var(--muted); }
+.blog-app-meta,.blog-app-personalized,.blog-app-back,.home-action-sub,.blog-breadcrumb,.tagline { font-size: 14px; }
+.blog-app-subhead { font-size: 19px; line-height: 1.6; }
+.blog-article { max-width: 980px; }
+.blog-article h1,.blog-app-h1 { letter-spacing: -.035em; }
+.blog-nav { flex-wrap: wrap; }
+.blog-nav a { font-size: 16px; }
+.analyze-type-cell.selected .atc-desc { color: var(--paper); }
+#career-fit-field,#career-fit-job { min-height: 46px; font-weight: 400; background: #fff; }
+#person-edit-panel button { min-height: 40px; }
+@media (max-width: 600px) {
+  .you-overview-layout { gap: 28px; }
+  .you-list li,.cha-input,.cha-bubble { font-size: 16px !important; }
+  .blog-header { flex-wrap: wrap; gap: 12px; }
+  .blog-nav { gap: 12px; }
+  .blog-nav a { font-size: 15px; }
+  .career-page-header h1 { font-size: 28px; }
+  .home-action-card { max-height: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+/* Readable secondary text on the core product surfaces. */
+.ppl-add { font-size: 16px; font-weight: 550; border: 1px solid var(--border); background: #fff; color: var(--ink); min-height: 46px; }
+.ppl-name { font-size: 17px; }
+.ppl-type,.ppl-rel { font-size: 14px; }
+.ppl-card { background: #fff; padding-top: 16px; padding-bottom: 16px; }
+.ppl-score { font-size: 18px; }
+#person-profile-host > div > button,#person-profile-host summary { font-size: 14px !important; }
+.cha-msg,.cha-msg.ai .cha-msg-body { font-size: 17px; }
+.cha-msg.ai .cha-msg-avatar { width: 32px; height: 32px; font-size: 14px; }
+#career-roles > summary { font-size: 18px; font-weight: 650; }
+#career-roles > form > label { font-size: 16px; font-weight: 550; }
+#career-roles > form > div { font-size: 14px !important; line-height: 1.5; }
+#career-roles > form > .ts-chip { background: var(--ink); border-color: var(--ink); color: #fff; }
+#career-fit-field,#career-fit-job { border: 1px solid #929b94; }
+.career-role-picker label,.type-dropdown,#advisor-jobs-count,.adj-li-desc,.blog-meta { font-size: 14px; }
+#advisor-jobs-list { max-height: 380px; overflow-y: auto; overscroll-behavior: contain; }
+.advisor-jobs-list-item .adj-li-title { font-size: 16px; font-weight: 500; line-height: 1.5; }
+#career-context-host summary { font-size: 15px; }
+.home-footer,.home-footer a,.home-footer::after { font-size: 14px; letter-spacing: 0; }
+#app-sidebar-credits,#app-sidebar-credits > div,#app-sidebar-credits > button { font-size: 14px !important; line-height: 1.55; }
+#app-sidebar-user-btn > span { font-size: 14px !important; }
+#dashboard .card p,#dashboard small,#dashboard th,#dashboard summary,#dashboard .status { font-size: 14px; }
+#dashboard table { font-size: 15px; }
+#app-topbar-creators { font-size: 14px !important; min-height: 40px; line-height: 1.4; }
+@media (max-width: 760px) {
+  #advisor-side { max-height: none !important; overflow: visible; }
+  #advisor-jobs-list { max-height: 240px; }
+}
