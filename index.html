@@ -5839,8 +5839,14 @@ function renderPersonProfile(i) {
   var score = mine && p.t && COMPAT[mine] ? COMPAT[mine][p.t] : null;
   var guide = REL_GUIDE[p.r] || REL_GUIDE.friend;
   trackEvent('person_profile_viewed', { rel: p.r, type_status: p.st || (p.g ? 'estimated' : 'known') });
-  host.innerHTML = '<h2 class="relationship-name">' + pplEsc(p.n) +
+  host.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:16px"><h2 class="relationship-name">' + pplEsc(p.n) +
     ' <span>' + pplEsc(relLabelOf(p.r)) + '</span></h2>' +
+    '<button type="button" aria-expanded="false" aria-controls="person-edit-panel" onclick="var panel=document.getElementById(\'person-edit-panel\');panel.hidden=!panel.hidden;this.setAttribute(\'aria-expanded\',String(!panel.hidden))" style="font:inherit;font-size:11px;color:var(--muted);background:none;border:0;padding:8px;cursor:pointer">Edit</button></div>' +
+    '<div id="person-edit-panel" hidden><div class="relationship-edit-actions">' +
+      '<button class="ts-chip ghost" onclick="personRename(' + i + ')">Edit name</button>' +
+      '<button class="ts-chip ghost" onclick="personRelChips(' + i + ', this)">Edit relationship</button>' +
+      '<button class="ts-chip ghost" onclick="rosterAddOpen(' + i + ')">' + (p.t ? 'Update type' : 'Find their type') + '</button>' +
+    '</div></div>' +
     '<details class="relationship-about"><summary>About this relationship</summary>' +
       '<div class="relationship-details">' +
         '<p>' + guide.frame.replace(/NAME/g, pplEsc(p.n)) + '</p>' +
@@ -5848,13 +5854,10 @@ function renderPersonProfile(i) {
           (p.g || p.st === 'estimated' ? ' (estimated)' : '') + '</p>' +
         (score !== null ? '<p>Compatibility score: ' + score + '/100</p>' : '') +
         (p.t && COMM_TIPS[p.t] ? '<p>' + COMM_TIPS[p.t] + '</p>' : '') +
-        '<div class="relationship-edit-actions">' +
-          '<button class="ts-chip ghost" onclick="personRename(' + i + ')">Edit name</button>' +
-          '<button class="ts-chip ghost" onclick="personRelChips(' + i + ', this)">Edit relationship</button>' +
-          '<button class="ts-chip ghost" onclick="rosterAddOpen(' + i + ')">' + (p.t ? 'Update type' : 'Find their type') + '</button>' +
-        '</div>' +
       '</div>' +
-    '</details>';
+      '</div>' +
+    '</details>' +
+    '<label for="compat-chat-input" style="display:block;margin-top:24px;font-size:18px;font-weight:700;cursor:text">Ask a question</label>';
   if (_compatChat.person) { _compatChat.person.n = p.n; _compatChat.person.r = p.r; }
 }
 
