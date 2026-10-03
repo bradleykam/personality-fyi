@@ -161,23 +161,12 @@ async function getInviteLink(supabase, user) {
   } catch (_) { return null; }
 }
 
-async function sendViaResend(to, subject, text, html) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return { sent: false, reason: 'no-resend-key' };
-  const r = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: JSON.stringify({
-      from: process.env.RESEND_FROM || 'Brad Kam <brad@personality.fyi>',
-      to: [to],
-      reply_to: REPLY_TO,
-      subject,
-      text,
-      html,
-    }),
+async function sendViaResend(to, subject, text, html, campaign = 'welcome', userId = null) {
+  return require('../lib/email-reporting').sendTracked({
+    to, subject, text, html, campaign, userId,
+    from: process.env.RESEND_FROM || 'Brad Kam <brad@personality.fyi>',
+    reply_to: REPLY_TO
   });
-  if (!r.ok) return { sent: false, reason: 'resend-' + r.status, detail: await r.text() };
-  return { sent: true };
 }
 
 async function listAllUsers(supabase) {
@@ -260,7 +249,7 @@ exports.handler = async (event) => {
     }
 
     await new Promise((r) => setTimeout(r, 250)); // stay under Resend's 5 req/sec
-    const res = await sendViaResend(u.email, subject, text, html);
+    const res = await sendViaResend(u.email, subject, text, html, 'welcome', u.id);
     if (res.sent) {
       await supabase.auth.admin.updateUserById(u.id, {
         user_metadata: { ...md, welcomed: true, welcomed_at: new Date().toISOString() },
@@ -300,7 +289,7 @@ exports.handler = async (event) => {
 </div>`;
     const text = `Your ${type} result is saved. Now compare yourself with someone you actually know.\n\nAdd one person and see how the two of you think, communicate, and get along:\nhttps://personality.fyi/add-someone\n\nBrad\n\nReply "unsubscribe" and these stop.`;
     await new Promise((r) => setTimeout(r, 250));
-    const res = await sendViaResend(u.email, 'Your ' + type + ' result is saved — now use it', text, html);
+    const res = await sendViaResend(u.email, 'Your ' + type + ' result is saved — now use it', text, html, 'activation-nudge', u.id);
     if (res.sent) {
       await supabase.auth.admin.updateUserById(u.id, { user_metadata: { ...md, activation_nudge_at: new Date().toISOString() } });
       summary.activationNudged++;
@@ -329,7 +318,7 @@ exports.handler = async (event) => {
 </div>`;
       const text = `${v.n} finished the test.\n\nTheir verified type is ${v.to}${v.from && v.from !== 'unknown' ? ' (your read was ' + v.from + ')' : ''}. Your compatibility analysis is updated:\n${link}\n\nBrad\n\nReply "unsubscribe" and these stop.`;
       await new Promise((r) => setTimeout(r, 250));
-      const res = await sendViaResend(u.email, v.n + ' finished the test', text, html);
+      const res = await sendViaResend(u.email, v.n + ' finished the test', text, html, 'person-verified', u.id);
       if (res.sent) summary.verifiedNotices++;
     }
     const marked = notices.map((v) => Object.assign({}, v, { emailed: true }));
@@ -359,7 +348,7 @@ exports.handler = async (event) => {
 </div>`;
     const text = `Want to see how accurate your read on ${p0.n} was?\n\nYou estimated ~${p0.t}. Send them the 60 second test and find out for real:\n${link}\n\nBrad\n\nReply "unsubscribe" and these stop.`;
     await new Promise((r) => setTimeout(r, 250));
-    const res = await sendViaResend(u.email, 'How accurate was your read on ' + p0.n + '?', text, html);
+    const res = await sendViaResend(u.email, 'How accurate was your read on ' + p0.n + '?', text, html, 'estimate-reminder', u.id);
     if (res.sent) {
       const people2 = people.map((p, i) => i === idx ? Object.assign({}, p, { d_nudge: 1 }) : p);
       await supabase.auth.admin.updateUserById(u.id, { user_metadata: { ...md, people: people2, est_reminder_at: new Date().toISOString() } });

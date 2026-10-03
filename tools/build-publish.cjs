@@ -6,6 +6,9 @@ fs.rmSync(publish, { recursive: true, force: true });
 for (const relative of require('./publish-files.json')) {
   const destination = path.join(publish, relative);
   fs.mkdirSync(path.dirname(destination), { recursive: true });
-  fs.copyFileSync(path.join(root, relative), destination);
+  if (relative.endsWith('.html')) {
+    const html = fs.readFileSync(path.join(root, relative), 'utf8');
+    fs.writeFileSync(destination, html.replace('</head>', '<script defer src="/email-attribution.js"></script></head>'));
+  } else fs.copyFileSync(path.join(root, relative), destination);
 }
 console.log('Prepared the production file set.');

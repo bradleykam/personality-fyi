@@ -93,6 +93,8 @@
     <h3 style="font-size:13px;margin:20px 0 8px">Attribution</h3>
     <div class="wrap"><table id="attr-tbl"></table></div>
   </div>
+  <h2 style="font-size:15px;margin:26px 0 8px">Email campaigns</h2>
+  <div class="sub" id="email-health"></div><div class="wrap"><table id="email-campaigns"></table></div><div id="email-failures" class="sub"></div>
   <h2 style="font-size:15px;margin:26px 0 8px">Accounts</h2><div class="sub">Email counts are recorded welcome/digest sends, not confirmed deliveries. Clicks are recorded webhook events; zero does not establish no clicks when tracking is unverified. Check Resend for delivery and engagement. Saved types do not prove a result was viewed.</div>
   <div class="wrap"><table id="tbl"></table></div>
 </div>
@@ -168,10 +170,22 @@ async function loadAnalytics(token,days){
     renderNorthstar(a);renderLifecycle(a);renderFunnel(a.funnel);
     renderCohorts('cohort-signup-tbl',a.cohorts.bySignup);renderCohorts('cohort-act-tbl',a.cohorts.byActivation);
     renderSegs('seg-tbl',a.segments);renderFeatures(a.features);renderPeople(a.people);
+    renderEmail(a.email);
     renderReturn(a.whyReturn);renderAttr(a.attribution);renderPaths(a);
     window._analyticsUserRows=a.userRows;
     annotateUserTable(token);
   }catch(e){console.warn('analytics load failed',e);}
+}
+function renderEmail(data) {
+  if (!data) return;
+  document.getElementById('email-health').textContent =
+    (data.webhookConfigured ? 'Webhook signature configured. ' : 'Webhook signature not configured. ') +
+    (data.lastWebhook ? 'Last verified provider event: ' + data.lastWebhook + '. ' : 'No verified provider events received yet; delivery, opens and clicks are unknown. ') + data.definitions;
+  var columns = [['campaign','Campaign'],['week','Send week'],['accepted','Accepted'],['delivered','Delivered'],['bounced','Bounced'],['opened','Opened'],['clicked','Clicked'],['failed','Failed'],['suppressed','Suppressed'],['returned','Site visits'],['acted','Meaningful returns']];
+  var escape = function(v) { return String(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); };
+  document.getElementById('email-failures').textContent = (data.failures || []).map(function(f){return f.at.slice(0,10) + ' · ' + f.campaign + ' · ' + f.kind + ': ' + f.reason;}).join(' | ');
+  document.getElementById('email-campaigns').innerHTML = '<thead><tr>' + columns.map(function(c){return '<th>'+c[1]+'</th>';}).join('') + '</tr></thead><tbody>' +
+    (data.rows.length ? data.rows.map(function(r){return '<tr>'+columns.map(function(c){var v=r[c[0]]; if(!data.lastWebhook && ['delivered','bounced','opened','clicked','failed','suppressed'].includes(c[0]))v='—';return '<td>'+escape(v)+'</td>';}).join('')+'</tr>';}).join('') : '<tr><td colspan="11">No tracked campaign sends in this period. Historical email counters are not delivery evidence.</td></tr>') + '</tbody>';
 }
 function renderNorthstar(a){
   const ns=a.northStar;
@@ -286,7 +300,7 @@ function renderDau(series){
     '</div>';
 }
 function renderTable(rows){
-  const head='<thead><tr><th>Email</th><th>Signed up</th><th>Country</th><th>Type</th><th>Via</th><th>Subscription</th><th class="num">Sessions</th><th class="num" title="Career Match AI questions">Career AI</th><th class="num" title="People Match comparisons + AI type guesses">People AI</th><th class="num" title="Profile chat, roast/flatter, ask box, automatic test explanations, and older untagged AI calls">Chat AI</th><th class="num">AI total</th><th class="num">NHIE</th><th class="num">Email sends</th><th class="num">Recorded clicks</th><th class="num">Referrals</th></tr></thead>';
+  const head='<thead><tr><th>Email</th><th>Signed up</th><th>Country</th><th>Type</th><th>Via</th><th>Subscription</th><th class="num">Sessions</th><th class="num" title="Career Match AI questions">Career AI</th><th class="num" title="People Match comparisons + AI type guesses">People AI</th><th class="num" title="Profile chat, roast/flatter, ask box, automatic test explanations, and older untagged AI calls">Chat AI</th><th class="num">AI total</th><th class="num">NHIE</th><th class="num">Email sends</th><th class="num">Legacy clicks</th><th class="num">Referrals</th></tr></thead>';
   const body=rows.map(r=>{
     const sub=r.subscription==='active'?'<span class="yes">active</span>':(r.subscription?r.subscription:'<span class="muted">—</span>');
     const type=r.type?('<b>'+r.type+'</b>'):'<span class="no">—</span>';

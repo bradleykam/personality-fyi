@@ -65,11 +65,11 @@ function computeAll(users, events, nowMs, windowDays, subMap) {
   subMap = subMap || {};
   const now = nowMs || Date.now();
   const winStart = windowDays ? now - windowDays * DAY : 0;
-  const hiddenIds = new Set(users.filter(u => hidden(u.email)).map(u => u.id));
-  const hiddenAnon = new Set(users.filter(u => hidden(u.email)).map(u => (u.user_metadata || {}).anon_id).filter(Boolean));
+  const hiddenIds = new Set(users.filter(u => (hidden(u.email) || u.user_metadata?.seed === true)).map(u => u.id));
+  const hiddenAnon = new Set(users.filter(u => (hidden(u.email) || u.user_metadata?.seed === true)).map(u => (u.user_metadata || {}).anon_id).filter(Boolean));
   events.forEach(e => { if (hiddenIds.has((e.props || {}).user_id) && e.anon_id) hiddenAnon.add(e.anon_id); });
-  users = users.filter(u => !hidden(u.email));
-  const ev = events.filter(e => !hiddenIds.has((e.props || {}).user_id) && !hiddenAnon.has(e.anon_id) && new Date(e.created_at).getTime() <= now);
+  users = users.filter(u => !(hidden(u.email) || u.user_metadata?.seed === true));
+  const ev = events.filter(e => !/^mail_/.test(e.event) && !hiddenIds.has((e.props || {}).user_id) && !hiddenAnon.has(e.anon_id) && new Date(e.created_at).getTime() <= now);
 
   // Index events by actor (user_id if present, else anon_id) and dedupe by event_id.
   const seenIds = new Set();
@@ -433,7 +433,7 @@ exports.handler = async (event) => {
     } catch (_) {}
     // User timeline mode (S20): event history for one user, AI text never exists in events.
     if (body.user) {
-      const usr = users.find((x) => x.id === body.user && !hidden(x.email));
+      const usr = users.find((x) => x.id === body.user && !(hidden(x.email) || x.user_metadata?.seed === true));
       if (!usr) return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: 'user not found' }) };
       const md = usr.user_metadata || {};
       const timeline = events
@@ -444,6 +444,7 @@ exports.handler = async (event) => {
     }
     const days = body.days ? Number(body.days) : null;
     const out = computeAll(users, events, Date.now(), days, subMap);
+    out.email = require('../lib/email-reporting').emailReport(users, events, Date.now(), days);
     return { statusCode: 200, headers: CORS, body: JSON.stringify(out) };
   } catch (e) {
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: e.message }) };

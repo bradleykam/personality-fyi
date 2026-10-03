@@ -17,6 +17,7 @@ exports.handler = async (event) => {
   let b;
   try { b = JSON.parse(event.body || '{}'); } catch { return { statusCode: 400, headers: cors(), body: '' }; }
 
+  if (/^mail_/.test(String(b.event || ''))) return {statusCode:400, headers:cors(), body:'Reserved event'};
   const row = {
     event: String(b.event || '').slice(0, 64),
     anon_id: String(b.anonId || '').slice(0, 64),

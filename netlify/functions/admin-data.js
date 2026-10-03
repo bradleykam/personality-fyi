@@ -121,7 +121,7 @@ exports.handler = async (event) => {
   const cutoff7 = new Date(Date.now() - 7 * DAY).toISOString().slice(0, 10);
   let active7 = 0;
   for (const usr of users) {
-    if (hidden(usr.email)) continue;
+    if (hidden(usr.email) || usr.user_metadata?.seed === true) continue;
     const md = usr.user_metadata || {};
     const days = Array.isArray(md.session_days) ? md.session_days : [];
     for (const d of days) dau[d] = (dau[d] || 0) + 1;

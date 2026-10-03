@@ -557,7 +557,7 @@
   "blog/blog.css",
   "blog/billie-eilish-mbti.html",
   "blog/bill-gates-mbti.html",
-  "blog/beyoncé-mbti.html",
+  "blog/beyonc\u00e9-mbti.html",
   "blog/best-personality-types-for-writing.html",
   "blog/best-personality-types-for-ux-design.html",
   "blog/best-personality-types-for-teaching.html",
@@ -644,5 +644,6 @@
   "admin.html",
   "about.html",
   "about/brad-kam.html",
-  ".well-known/ai-plugin.json"
+  ".well-known/ai-plugin.json",
+  "email-attribution.js"
 ]
