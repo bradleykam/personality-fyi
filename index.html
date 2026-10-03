@@ -1057,7 +1057,8 @@ textarea::placeholder { color: var(--muted); }
 .ppl-add { padding: 12px 16px; background: none; border: 1.5px dashed var(--border, #cfccc4); border-radius: 8px; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer; }
 .ppl-add-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .cha-side .ppl-add-actions .ppl-add { width: auto; flex: 1 1 auto; }
-.ppl-add:hover { border-color: var(--ink); color: var(--ink); }
+.ppl-add[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); border-style: solid; }
+.ppl-add:not([aria-pressed="true"]):hover { border-color: var(--ink); color: var(--ink); }
 .ppl-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; padding: 14px; background: var(--cream, #f6f4ef); border: 1px solid var(--border, #e4e2dc); border-radius: 8px; }
 .ppl-input { padding: 9px 11px; border: 1px solid var(--border, #cfccc4); border-radius: 6px; font-size: 14px; font-family: inherit; background: var(--paper); color: var(--ink); }
 .ppl-btn { padding: 9px 14px; background: var(--ink); color: var(--paper); border: none; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
@@ -5771,7 +5772,7 @@ function rosterRender() {
     '</div>';
   }).join('');
   var addButtons = OBP_RELS.map(function(rel) {
-    return '<button type="button" class="ppl-add" onclick="pplWidgetOpen({ presetRel: \'' + rel.key + '\' })">+ ' + rel.label + '</button>';
+    return '<button type="button" class="ppl-add" data-relationship="' + rel.key + '" aria-pressed="false" onclick="pplWidgetOpen({ presetRel: \'' + rel.key + '\' })">+ ' + rel.label + '</button>';
   }).join('');
   // The "Your people" heading shows only in the profile side panel; on the
   // People Match page the row speaks for itself.
@@ -5966,6 +5967,7 @@ function tsStart(opts) {
     if (p) {
       _tsFlow.n = p.n;
       _tsFlow.r = p.r;
+      tsHighlightRelationship(p.r);
       _tsFlow.step = 'know';
       tsBubble('Do you know ' + pplEsc(p.n) + '’s type?' +
         tsChips('know', [['enter', 'Enter ' + p.n + '’s type'], ['estimate', 'Estimate it for me'], ['send test', 'Send ' + p.n + ' the test'], TS_CANCEL_CHIP]));
@@ -6001,18 +6003,27 @@ function tsParseRel(m) {
   return 'friend';
 }
 
+function tsHighlightRelationship(rel) {
+  document.querySelectorAll('.ppl-add[data-relationship]').forEach(function(button) {
+    button.setAttribute('aria-pressed', String(button.dataset.relationship === rel));
+  });
+}
+
 function tsHandle(msg) {
   if (!_tsFlow) return;
   var m = msg.trim();
   if (/^(cancel|stop|nevermind|never mind|quit|exit)$/i.test(m)) {
     _tsFlow = null;
+  tsHighlightRelationship(null);
     tsBubble('Okay, cancelled.');
     return;
   }
   if (_tsFlow.step === 'rel') {
     _tsFlow.r = tsParseRel(m);
     trackEvent('person_relationship_selected', { rel: _tsFlow.r });
-    tsBubble('What’s their first name?');
+    tsHighlightRelationship(_tsFlow.r);
+    var relationshipName = { partner: 'romantic partner', friend: 'friend', parent: 'parent', sibling: 'sibling', coworker: 'coworker', boss: 'boss', family: 'family member' }[_tsFlow.r] || 'person';
+    tsBubble('What’s your ' + relationshipName + '’s first name?');
     _tsFlow.step = 'name';
     return;
   }
@@ -6130,6 +6141,7 @@ function tsSendTest() {
     tsBubble('Here’s your test link for ' + name + ':<br><span class="ppl-w-link-box" style="display:block;margin:8px 0">' + link + '</span>' +
       'Send it to them. ' + name + ' is saved to your people with their type pending; tap their card to fill it in when they tell you.');
     _tsFlow = null;
+  tsHighlightRelationship(null);
   });
 }
 
@@ -6167,6 +6179,7 @@ function tsPersist(t, guessed, quiet) {
   }
   tsBubble(line);
   _tsFlow = null;
+  tsHighlightRelationship(null);
 }
 
 // ── Returning-user workspace ────────────────────────────────────────
@@ -6343,6 +6356,7 @@ function rosterOpen(i) {
   if (!p) return;
   appNav('compat');
   _tsFlow = null;
+  tsHighlightRelationship(null);
   myType = localStorage.getItem('typeread_selected_type');
   theirType = p.t || null;
   _compatChat = { myType: myType, theirType: theirType, history: [],
