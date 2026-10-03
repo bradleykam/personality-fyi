@@ -3695,7 +3695,8 @@ textarea::placeholder { color: var(--muted); }
 .self-details { margin-bottom: 22px; max-width: 760px; }
 .self-details summary, #career-roles summary { cursor: pointer; padding: 12px 0; }
 .self-details .you-block { margin-top: 20px; }
-#home-profile .cha-container { height: 340px; min-height: 240px; margin-top: 20px; }
+#home-profile .cha-container { height: auto; flex: 1; min-height: 180px; margin-top: 20px; }
+#home-profile .self-conversation { max-width: none; }
 .you-overview-layout { display:grid; grid-template-columns:1fr 1fr; gap:48px; }
 .you-overview { max-width:600px; }
 .you-questions .ts-chip { display:block; text-align:left; margin:12px 0; }
@@ -4815,7 +4816,7 @@ function homeChatInit(type) {
       thread.scrollTop = thread.scrollHeight;
     }
   } catch (e) {}
-  if (!thread.children.length) thread.innerHTML = '<div class="cha-msg ai"><div class="cha-msg-body"><p>What would you like to understand about yourself today?</p></div></div>';
+  document.getElementById('home-chat-input').placeholder = _homeChat.history.length ? '' : 'Ask about yourself…';
   var input = document.getElementById('home-chat-input');
   if (input && typeof chaBindInput === 'function') {
     chaBindInput(input, document.getElementById('home-chat-send'), homeChatSend);
@@ -4829,6 +4830,7 @@ async function homeChatSend() {
   var msg = input.value.trim();
   if (!msg) return;
   input.value = '';
+  input.placeholder = '';
   if (input.style) input.style.height = 'auto';
   sendBtn.disabled = true;
 
@@ -5669,14 +5671,14 @@ function showHomeProfile(type) {
       '<div id="typicality-host"></div>' +
       '<div class="you-destinations"><button class="ts-chip" onclick="appNav(\'compat\')">Relationships →</button>' +
       '<button class="ts-chip" onclick="appNav(\'advisor\')">Career →</button></div></section>' +
-      '<aside class="you-questions"><div class="you-label">Ask about yourself</div>' +
+      '<aside class="you-questions"><div class="you-label">Suggested questions</div>' +
       YOU_SELF_QUESTIONS.slice(0,3).map(function(q) { return '<button class="ts-chip ghost" onclick="youAsk(this.textContent)">' + q + '</button>'; }).join('') +
-      '<div class="cha-container"><div class="cha-main self-conversation">' +
+      '</aside></div><div class="cha-container"><div class="cha-main self-conversation">' +
       '<div class="cha-thread" id="home-chat-thread"></div>' +
       '<form class="cha-input-bar" onsubmit="event.preventDefault();homeChatSend()">' +
         '<textarea class="cha-input" id="home-chat-input" placeholder="Ask about yourself…" rows="1"></textarea>' +
         '<button type="submit" class="cha-send-btn" id="home-chat-send">Send</button>' +
-      '</form></div></div></aside></div>' +
+      '</form></div></div>' +
     '<footer class="home-footer"><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/contact">Contact</a></footer>';
   el.style.display = 'flex';
   el.style.flexDirection = 'column';
@@ -5893,6 +5895,8 @@ function tsCtx() {
 }
 
 function tsBubble(html) {
+  var input = document.getElementById(tsCtx().input);
+  if (input) input.placeholder = '';
   var thread = document.getElementById(tsCtx().thread);
   if (!thread) return;
   var div = document.createElement('div');
@@ -6347,7 +6351,7 @@ function rosterOpen(i) {
   document.getElementById('compat-chat-thread').innerHTML = '';
   var input = document.getElementById('compat-chat-input');
   input.value = '';
-  input.placeholder = 'Ask about ' + p.n + '…';
+  input.placeholder = ''; 
   renderPersonProfile(i);
   compatRestoreChat(p.id, p.n);
   chaBindInput(input, document.getElementById('compat-chat-send'), compatChatSend);
@@ -7017,6 +7021,7 @@ async function compatChatSend() {
   var thread = document.getElementById('compat-chat-thread');
   var msg = input.value.trim();
   if (!msg) return;
+  input.placeholder = '';
   // Type Someone flow intercept: while active, this chat input feeds the
   // scripted flow instead of the AI.
   if (_tsFlow && _tsFlow.active) {
@@ -9662,6 +9667,8 @@ function advisorUpdateBadge() {
 }
 
 function advisorAddBubble(content, who) {
+  var input = document.getElementById('advisor-input');
+  if (input) input.placeholder = '';
   const chat = document.getElementById('advisor-chat');
   const role = (who === 'user') ? 'user' : 'ai';
   const div = document.createElement('div');
