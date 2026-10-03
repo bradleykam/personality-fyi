@@ -5601,8 +5601,8 @@ let analyzeSelectedType = localStorage.getItem('typeread_selected_type') || null
 // Use: typeDropdownHTML('intj', onChangeFnName) returns a <select>.
 function typeDropdownHTML(currentType, onchangeFn) {
   var ALL = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
-  var selected = currentType || ALL[0];
-  var options = ALL.map(function(t) {
+  var selected = currentType || '';
+  var options = (selected ? '' : '<option value="" selected disabled>Choose your type</option>') + ALL.map(function(t) {
     return '<option value="' + t + '"' + (t === selected ? ' selected' : '') + '>' + t + '</option>';
   }).join('');
   return '<select class="type-dropdown" onchange="' + onchangeFn + '(this.value)">' + options + '</select>';
@@ -11426,7 +11426,7 @@ function buildAcctTypeGrid() {
   if (!host || host.dataset.dropdown === '1') return;
   host.dataset.dropdown = '1';
   host.className = 'type-dropdown-wrap';
-  host.innerHTML = typeDropdownHTML(null, 'selectAcctType');
+  host.innerHTML = typeDropdownHTML(localStorage.getItem('typeread_selected_type'), 'selectAcctType');
 }
 
 function renderAccountSubscription() {
