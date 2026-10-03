@@ -3691,6 +3691,14 @@ textarea::placeholder { color: var(--muted); }
 @media (max-width: 360px) {
   .app-sidebar { width: 86% !important; }
 }
+
+.self-details { margin-bottom: 22px; max-width: 760px; }
+.self-details summary, #career-roles summary { cursor: pointer; padding: 12px 0; }
+.self-details .you-block { margin-top: 20px; }
+#home-profile .cha-container { height: calc(100dvh - 340px); min-height: 300px; }
+.self-conversation { min-height: 0; max-width: 880px; }
+#advisor-side { align-self: start; }
+#career-roles:not([open]) { min-height: 0; }
 </style>
 <link rel="alternate" type="application/rss+xml" title="Personality.fyi Blog" href="/feed.xml">
 </head>
@@ -3831,7 +3839,7 @@ textarea::placeholder { color: var(--muted); }
             <button type="submit" class="cha-send-btn" id="advisor-send-btn">Send</button>
           </form>
         </div>
-        <aside class="cha-side" id="advisor-side">
+        <aside class="cha-side" id="advisor-side"><details id="career-roles"><summary>Explore career ideas</summary>
           <button class="cha-side-close" onclick="advisorSideClose()" aria-label="Close panel" style="display:none">&times;</button>
           <div id="advisor-browse-block" class="career-role-picker">
             <label for="advisor-browse-type">Explore roles for</label>
@@ -3840,7 +3848,7 @@ textarea::placeholder { color: var(--muted); }
           <div class="advisor-jobs-header" id="advisor-jobs-header" style="display:none">Roles for <span id="advisor-jobs-type">your type</span></div>
           <div class="advisor-jobs-count" id="advisor-jobs-count"></div>
           <div class="advisor-jobs-list" id="advisor-jobs-list"></div>
-        </aside>
+        </details></aside>
       </div>
     </div>
   </div>
@@ -4796,6 +4804,7 @@ function homeChatInit(type) {
       thread.scrollTop = thread.scrollHeight;
     }
   } catch (e) {}
+  if (!thread.children.length) thread.innerHTML = '<div class="cha-msg ai"><div class="cha-msg-body"><p>What would you like to understand about yourself today?</p></div></div>';
   var input = document.getElementById('home-chat-input');
   if (input && typeof chaBindInput === 'function') {
     chaBindInput(input, document.getElementById('home-chat-send'), homeChatSend);
@@ -5649,69 +5658,24 @@ function showHomeProfile(type) {
     i === 0 ? '<span class="accent-letter">' + l + '</span>' : l
   ).join('');
   const el = document.getElementById('home-profile');
-  var loginBanner = '';
-  if (!currentUser) {
-    loginBanner =
-      '<div style="margin-bottom:20px;padding:20px 22px;background:var(--paper);border:1.5px solid var(--ink);border-radius:8px">' +
-        '<div style="font-family:\'DM Mono\',monospace;font-size:18px;font-weight:700;color:var(--ink);margin-bottom:6px">You\'re ' + type + '. Save your type to unlock:</div>' +
-        '<ul style="margin:10px 0 16px;padding:0;list-style:none;font-size:14px;line-height:1.7;color:var(--ink)">' +
-          '<li style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--accent);font-weight:700">\u2713</span> Career planning calibrated to ' + type + '</li>' +
-          '<li style="display:flex;gap:8px;margin-bottom:4px"><span style="color:var(--accent);font-weight:700">\u2713</span> Compatibility with anyone you ask about</li>' +
-          '<li style="display:flex;gap:8px"><span style="color:var(--accent);font-weight:700">\u2713</span> Your conversation history</li>' +
-        '</ul>' +
-        '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
-          '<button onclick="openAuthModal()" style="padding:11px 18px;background:var(--ink);color:var(--paper);border:none;border-radius:6px;font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer">Sign up free \u2192</button>' +
-        '</div>' +
-      '</div>';
-  }
+  var loginBanner = currentUser ? '' : '<p><button class="ts-chip" onclick="openAuthModal()">Save your profile</button></p>';
   el.innerHTML = loginBanner +
-    '<div id="home-workspace"></div>' +
-    '<div class="cha-container">' +
-      '<div class="cha-header" style="justify-content:space-between;gap:12px;flex-wrap:wrap">' +
-        '<div>You are <strong>' + type + '</strong> <span style="color:var(--muted)">' + d.title + '</span></div>' +
-        '<div class="rib-btns">' +
-          '<button class="rib-btn" onclick="typeRibbing(\'flatter\')">Flatter my type</button>' +
-          '<button class="rib-btn" onclick="typeRibbing(\'roast\')">Roast my type</button>' +
-        '</div>' +
-      '</div>' +
-      '<div class="cha-layout">' +
-        '<div class="cha-main">' +
-          '<div class="cha-thread" id="home-chat-thread"></div>' +
-          '<form class="cha-input-bar" onsubmit="event.preventDefault();homeChatSend()">' +
-            '<textarea class="cha-input" id="home-chat-input" placeholder="Ask anything" rows="1"></textarea>' +
-            '<button type="submit" class="cha-send-btn" id="home-chat-send">Send</button>' +
-          '</form>' +
-        '</div>' +
-        '<aside class="cha-side">' +
-          '<div class="you-head">YOU</div>' +
-          '<div class="you-sub"><strong>' + type + '</strong> <span style="color:var(--muted)">· ' + d.title + '</span></div>' +
-          '<div class="you-divider"></div>' +
-          youBlock('How you think', d.cognitive) +
-          youBlock('Strengths', d.strengths) +
-          youBlock('Watch out for', d.shadow) +
-          youBlock('Drained by', d.drains) +
-          '<div id="typicality-host"></div>' +
-          '<div class="you-block"><div class="you-label">Ask about yourself</div><div class="ts-chips">' +
-            YOU_SELF_QUESTIONS.slice(0, 3).map(function(q) { return '<button class="ts-chip ghost" style="text-align:left" onclick="youAsk(this.textContent)">' + q + '</button>'; }).join('') +
-          '</div></div>' +
-          '<div id="home-people" style="display:none"></div>' +
-        '</aside>' +
-      '</div>' +
-    '</div>' +
-    '<footer class="home-footer" style="margin-top:2rem;padding-top:1.5rem">' +
-      '<a href="/about">About</a>' +
-      '<a href="/methodology">Methodology</a>' +
-      '<a href="/all-types" onclick="event.preventDefault();appNav(\'alltypes\');">All Types</a>' +
-      '<a href="/privacy">Privacy</a>' +
-      '<a href="/terms">Terms</a>' +
-      '<a href="/contact">Contact</a>' +
-    '</footer>';
+    '<header class="career-page-header"><h1>You</h1><p>' + type + ' · ' + d.title + '</p></header>' +
+    '<details class="self-details"><summary>About your personality</summary>' +
+      youBlock('How you think', d.cognitive) + youBlock('Strengths', d.strengths) +
+      youBlock('Watch out for', d.shadow) + youBlock('Drained by', d.drains) +
+      '<div id="typicality-host"></div></details>' +
+    '<div class="cha-container"><div class="cha-main self-conversation">' +
+      '<div class="cha-thread" id="home-chat-thread"></div>' +
+      '<form class="cha-input-bar" onsubmit="event.preventDefault();homeChatSend()">' +
+        '<textarea class="cha-input" id="home-chat-input" placeholder="What would you like to understand about yourself?" rows="1"></textarea>' +
+        '<button type="submit" class="cha-send-btn" id="home-chat-send">Send</button>' +
+      '</form></div></div>' +
+    '<footer class="home-footer"><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/contact">Contact</a></footer>';
   el.style.display = 'flex';
   el.style.flexDirection = 'column';
   el.style.minHeight = 'calc(100vh - 120px)';
   if (typeof homeChatInit === 'function') homeChatInit(type);
-  if (typeof homeWorkspaceRender === 'function') homeWorkspaceRender();
-  if (typeof rosterRender === 'function') rosterRender();
   if (typeof typicalityRender === 'function') typicalityRender();
 }
 
@@ -5776,7 +5740,7 @@ function rosterPersist(list, cb) {
 function rosterRender() {
   // Renders into both hosts: the profile side panel and the top of the
   // Compatibility page (the meta home for Type Someone).
-  var hosts = [document.getElementById('home-people'), document.getElementById('compat-people-host'), document.getElementById('home-workspace-people')].filter(Boolean);
+  var hosts = [document.getElementById('compat-people-host')].filter(Boolean);
   if (!hosts.length) return;
   if (!currentUser) {
     var conversation = document.getElementById('relationship-conversation');
@@ -5807,6 +5771,7 @@ function rosterRender() {
     h.innerHTML =
       '<div class="ppl-wrap">' +
         (h.id === 'home-people' ? '<div class="ppl-title">Your people</div>' : '') +
+        ((currentUser && currentUser.user_metadata && currentUser.user_metadata.verified_updates) || []).filter(function(v) { return !v.seen; }).map(function(v) { return '<p>' + pplEsc(v.n) + ' completed the test. Their type is now ' + pplEsc(v.to) + '.</p>'; }).join('') +
         (cards ? '<div class="ppl-row">' + cards + '</div>' : '') +
         '<div class="ppl-add-actions" role="group" aria-label="Add someone to your people">' + addButtons + '</div>' +
       '</div>';
@@ -5911,7 +5876,7 @@ function personAsk(i, q) {
 // describe-and-guess or send the test. Only the guess itself calls the AI.
 var _tsFlow = null;
 
-function pplWidgetOpen(opts) { tsStart(opts || {}); }
+function pplWidgetOpen(opts) { appNav('compat'); tsStart(opts || {}); }
 
 function tsCtx() {
   var compatEl = document.getElementById('compat-section');
@@ -6199,81 +6164,9 @@ function tsPersist(t, guessed, quiet) {
 // Zero people: one dominant "Add someone you know" module.
 // One or more: Your People cards + an "Ask about someone" entry that
 // preloads the chat with the person's context so nothing is restated.
-function homeWorkspaceRender() {
-  var host = document.getElementById('home-workspace');
-  if (!host) return;
-  if (typeof currentUser === 'undefined' || !currentUser) { host.innerHTML = ''; return; }
-  var list = rosterList();
-  var html = '';
-  // Invitation results: "Sarah completed the test. We updated her type."
-  try {
-    var notices = (currentUser.user_metadata || {}).verified_updates || [];
-    var unseen = notices.filter(function(v) { return !v.seen; });
-    if (unseen.length) {
-      html += unseen.map(function(v) {
-        return '<div style="border:1.5px solid var(--ink);border-radius:10px;padding:14px 18px;margin-bottom:12px;background:var(--cream,#f6f4ef);font-size:14px"><strong>' + pplEsc(v.n) + ' completed the test.</strong> We updated their type from ' + pplEsc(v.from) + ' to <strong>' + pplEsc(v.to) + '</strong>.</div>';
-      }).join('');
-      setTimeout(function() {
-        var md = currentUser.user_metadata || {};
-        var upd = (md.verified_updates || []).map(function(v) { return Object.assign({}, v, { seen: true }); });
-        supabaseClient.auth.updateUser({ data: { verified_updates: upd } }).then(function(res) {
-          if (res && res.data && res.data.user) currentUser = res.data.user;
-        }).catch(function() {});
-      }, 4000);
-    }
-  } catch (e) {}
-  if (!list.length) {
-    html +=
-      '<div style="border:1px solid var(--border,#e4e2dc);border-radius:10px;padding:22px 24px;margin-bottom:18px;background:var(--paper)">' +
-        '<div style="font-family:\'DM Mono\',monospace;font-size:17px;font-weight:700;margin-bottom:6px">Add someone you know</div>' +
-        '<div style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:14px;max-width:56ch">Personality gets more useful when you compare how you think with the people around you.</div>' +
-        '<div style="display:flex;gap:10px;flex-wrap:wrap"><button onclick="trackEvent(\'person_flow_started\',{via:\'home_hero\'});pplWidgetOpen()" style="padding:12px 22px;font-family:\'DM Mono\',monospace;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--ink);color:var(--paper);border:none;border-radius:6px;cursor:pointer">Add a relationship</button>' +
-        '<button class="ts-chip ghost" onclick="appNav(\'advisor\')">Explore your career</button>' +
-        '<button class="ts-chip ghost" onclick="askAiGo()">Ask about yourself</button></div>' +
-      '</div>';
-  } else {
-    var askTargets = list.filter(function(p) { return p.t; });
-    var askRow = '';
-    if (askTargets.length) {
-      var chips = askTargets.slice(0, 6).map(function(p) {
-        var i = list.indexOf(p);
-        return '<button class="ts-chip" onclick="homeAskAbout(' + i + ')">Ask about ' + pplEsc(p.n) + '</button>';
-      }).join('');
-      askRow = '<div class="ts-chips" style="margin-top:12px">' + chips + '</div>';
-    }
-    html +=
-      '<div style="border:1px solid var(--border,#e4e2dc);border-radius:10px;padding:18px 20px;margin-bottom:18px;background:var(--paper)">' +
-        '<div class="ppl-title">Your people</div>' +
-        '<div id="home-workspace-people"></div>' +
-        askRow +
-      '</div>';
-  }
-  // Continue where you left off + pillar shortcuts. One thin row, not a grid.
-  var convos = pfConvoList(3);
-  var contChips = convos.map(function(c) {
-    var lbl = c.ctx === 'self' ? 'Continue: You' : 'Continue: ' + pplEsc(c.label);
-    return '<button class="ts-chip" onclick="pfConvoOpen(\'' + c.ctx + '\')">' + lbl + '</button>';
-  }).join('');
-  var careerLbl = (function() { try { return localStorage.getItem('pf_chat_career') ? 'Continue career planning' : 'Explore your career'; } catch (e) { return 'Explore your career'; } })();
-  if (convos.every(function(c) { return c.ctx !== 'career'; })) {
-    contChips += '<button class="ts-chip ghost" onclick="appNav(\'advisor\')">' + careerLbl + ' \u2192</button>';
-  }
-  html += '<div class="ts-chips" style="margin-bottom:18px">' + contChips + '</div>';
-  host.innerHTML = html;
-}
-
-// Preload the profile chat with the person's full context (their type,
-// relationship, estimated status) so the user never restates the basics.
-function homeAskAbout(i) {
-  var p = rosterList()[i];
-  if (!p) return;
-  trackEvent('compatibility_ai_prompt_clicked', { via: 'home_workspace', rel: p.r });
-  var input = document.getElementById('home-chat-input');
-  if (!input) return;
-  var relLabel = ({ partner: 'my romantic partner', friend: 'my close friend', parent: 'my parent', sibling: 'my sibling', coworker: 'my coworker', family: 'my family member' })[p.r] || ('my ' + p.r);
-  input.value = 'About ' + p.n + ' (' + (p.g ? 'probably ' : '') + p.t + ', ' + relLabel + '): ';
-  input.focus();
-}
+// Legacy callers can refresh without adding cross-page shortcuts to Home.
+function homeWorkspaceRender() {}
+function homeAskAbout(i) { rosterOpen(i); }
 
 // ── Typicality score ────────────────────────────────────────────────
 // Compares the user's Never Have I Ever answers against how their own type
@@ -9078,11 +8971,7 @@ function renderTestResult(pending, saved) {
   }
   var buttons = [];
   if (!saved) buttons.push({ label: 'Retry saving', primary: true, action: claimPendingTestResult });
-  buttons.push({ label: 'Add someone', primary: saved, action: function() {
-    trackEvent('post_result_add_person_clicked', { via: 'authenticated_result' }); obpStart();
-  } });
-  buttons.push({ label: 'Explore my careers →', action: function() { testGoJobs(pending.type); } });
-  buttons.push({ label: 'Share my result', action: function() { shareTypeResult(pending.type); } });
+  buttons.push({ label: 'Go to your profile', primary: saved, action: function() { appNav('analyze'); } });
   testSetButtons(buttons);
 }
 
@@ -9784,6 +9673,7 @@ function advisorAddJobCards(jobs) {
   var titleEl = document.getElementById('advisor-jobs-type');
   var countEl = document.getElementById('advisor-jobs-count');
   if (titleEl) titleEl.textContent = 'your query';
+  document.getElementById('career-roles').open = true;
   if (countEl) countEl.textContent = jobs.length + ' match' + (jobs.length === 1 ? '' : 'es');
   jobs.forEach(function(j) {
     var a = document.createElement('a');
@@ -10311,7 +10201,8 @@ function _navMoreGroup() {
     _navBtn('alltypes', 'All Types', true) +
     _navBtn('characters', 'Fictional Characters', true) +
     '<a class="app-nav-item" href="/blog/data" style="text-decoration:none;padding-left:1.75rem">Data</a>' +
-    '<a class="app-nav-item" href="/blog/" style="text-decoration:none;padding-left:1.75rem">Articles</a></div>';
+    '<a class="app-nav-item" href="/blog/" style="text-decoration:none;padding-left:1.75rem">Articles</a>' +
+    '<a class="app-nav-item" href="/creators" style="text-decoration:none;padding-left:1.75rem">For Creators</a></div>';
 }
 function renderSidebar() {
   var host = document.getElementById('sidebar-primary-nav');
@@ -10321,14 +10212,12 @@ function renderSidebar() {
   if (authed) {
     items = _navBtn('analyze', 'Home') +
       _navBtn('compat', 'Relationships') +
-      _navBtn('advisor', 'Career') +
-      '<button class="app-nav-item" onclick="askAiGo()">Ask AI</button>';
+      _navBtn('advisor', 'Career');
   } else {
     items = '<button class="app-nav-item" data-nav="test" onclick="appNav(\'test\')" style="font-weight:700">Take the test</button>' +
       _navBtn('analyze', 'What is Personality.fyi') +
       _navBtn('compat', 'Compatibility') +
-      _navBtn('advisor', 'Career') +
-      _navBtn('alltypes', 'All 16 types');
+      _navBtn('advisor', 'Career');
   }
   host.innerHTML = items + _navMoreGroup();
 }
@@ -10373,7 +10262,7 @@ function updateTopbarAuth(signedIn) {
         (type ? '<span style="background:var(--ink);color:var(--paper);padding:3px 8px;border-radius:6px;font-weight:700;font-size:11px;letter-spacing:.04em">' + type + '</span>' : '') +
         '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + email + '</span>';
     }
-    if (creatorsLink) creatorsLink.style.display = 'inline-block';
+    if (creatorsLink) creatorsLink.style.display = 'none';
   } else {
     if (si) si.style.display = 'block';
     if (sb) sb.style.display = 'none';
@@ -11444,15 +11333,9 @@ function renderAccountType() {
       })() +
       '<div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap">' +
         '<button class="acct-btn" onclick="acctChangeType()">Change type</button>' +
-        '<button class="acct-btn" onclick="switchTab(\'test\')">Refine your type \u2192</button>' +
+        '<button class="acct-btn" onclick="switchTab(\'test\')">Retake the test</button>' +
       '</div>' +
       '</div>' +
-      '</div>' +
-      '<div class="acct-card" style="margin-top:12px">' +
-      '<div class="type-desc-row"><div class="type-desc-label">How they think</div><div class="type-desc-text">' + d.cognitive + '</div></div>' +
-      '<div class="type-desc-row"><div class="type-desc-label">Strengths</div><div class="type-desc-text">' + d.strengths + '</div></div>' +
-      '<div class="type-desc-row"><div class="type-desc-label">Watch out for</div><div class="type-desc-text">' + d.shadow + '</div></div>' +
-      '<div class="type-desc-row"><div class="type-desc-label">Drained by</div><div class="type-desc-text">' + d.drains + '</div></div>' +
       '</div>' +
       '<div id="acct-type-selector" style="display:none;margin-top:12px">' +
       '<div class="analyze-type-grid" id="acct-type-grid"></div>' +

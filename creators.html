@@ -283,11 +283,12 @@ body { font-family: 'DM Mono', monospace; background: var(--paper); color: var(-
 
     <textarea class="cbt-textarea" id="cbt-input" placeholder="Paste a tweet, email, video script, hook, ad copy \u2014 anything. The original meaning stays; the voice changes per type."></textarea>
 
-    <div class="cbt-toggle-row" id="cbt-types"></div>
-
+    <details style="margin:16px 0"><summary style="cursor:pointer">Choose types (all 16 selected by default)</summary>
+      <div class="cbt-toggle-row" id="cbt-types"></div>
+      <button onclick="cbtToggleAll()" id="cbt-toggle-all">Toggle all</button>
+    </details>
     <div class="cbt-actions">
-      <button class="cbt-go-btn" id="cbt-go" onclick="cbtRun()">Rewrite for selected types &rarr;</button>
-      <button onclick="cbtToggleAll()" style="background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:6px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer" id="cbt-toggle-all">Toggle all</button>
+      <button class="cbt-go-btn" id="cbt-go" onclick="cbtRun()">Rewrite &rarr;</button>
       <span class="cbt-status" id="cbt-status"></span>
     </div>
 
