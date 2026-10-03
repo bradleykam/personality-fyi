@@ -4822,7 +4822,7 @@ function youRenderThreads() {
   label.style.cssText = 'padding:16px 20px 6px;font-size:11px;color:var(--muted)'; host.appendChild(label);
   rows.forEach(function(t) {
     var button = document.createElement('button'); button.className = 'app-nav-item';
-    button.style.cssText = 'font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    button.style.cssText = 'display:block;width:100%;max-width:100%;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
     button.textContent = t.title; button.title = t.title;
     button.onclick = function() { appNav('analyze'); homeChatInit(localStorage.getItem('typeread_selected_type'), t); };
     host.appendChild(button);
