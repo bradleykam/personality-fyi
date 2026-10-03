@@ -1,146 +1,2329 @@
+plugins = []
+
 [build]
-  publish = "."
-  functions = "netlify/functions"
-  edge_functions = "netlify/edge-functions"
+edge_functions = "netlify/edge-functions"
+publish = ".publish"
+command = "node tools/build-publish.cjs"
+functions = "netlify/functions"
 
-[[redirects]]
-  from = "/assess"
-  to = "/assess.html"
-  status = 200
+  [build.environment]
 
-# Public API — types + test only. Pure data, no LLM calls.
-[[redirects]]
-  from = "/api/v1/types"
-  to = "/api/v1/types/index.json"
-  status = 200
-[[redirects]]
-  from = "/api/v1/types/:code"
-  to = "/api/v1/types/:code.json"
-  status = 200
-[[redirects]]
-  from = "/api/v1/test/items"
-  to = "/api/v1/test/items.json"
-  status = 200
-[[redirects]]
-  from = "/api/v1/test/score"
-  to = "/.netlify/functions/score-test"
-  status = 200
-[[redirects]]
-  from = "/api/v1/badge/:code"
-  to = "/.netlify/functions/badge-json"
-  status = 200
-[[redirects]]
-  from = "/api"
-  to = "/api/index.html"
-  status = 200
+  [build.processing]
 
-# Badge SVGs — case-insensitive path; always serve the lowercase static file.
-[[redirects]]
-  from = "/badge/:code"
-  to = "/badge/:code.svg"
-  status = 200
+    [build.processing.css]
+
+    [build.processing.html]
+
+    [build.processing.images]
+
+    [build.processing.js]
+
+  [build.services]
+
+[functions]
+
+  [functions.welcome-emails]
+  schedule = "*/15 * * * *"
+
+  [functions.weekly-digest]
+  schedule = "0 15 * * 2"
+
+  [functions.creator-digest]
+  schedule = "@daily"
+
+  [functions."*"]
 
 [[headers]]
-  for = "/badge/*"
+for = "/badge/*"
+
   [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Cache-Control = "public, max-age=86400, immutable"
-    Content-Type = "image/svg+xml"
+  Access-Control-Allow-Origin = "*"
+  Cache-Control = "public, max-age=86400, immutable"
+  Content-Type = "image/svg+xml"
 
 [[headers]]
-  for = "/api/v1/*"
+for = "/api/v1/*"
+
   [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Cache-Control = "public, max-age=3600"
+  Access-Control-Allow-Origin = "*"
+  Cache-Control = "public, max-age=3600"
 
-# Pretty app routes — each serves the SPA shell; the client router reads the
-# pathname on load and switches to the right tab.
 [[redirects]]
-  from = "/career-planning"
-  to = "/index.html"
-  status = 200
-[[redirects]]
-  from = "/compatibility"
-  to = "/index.html"
-  status = 200
-[[redirects]]
-  from = "/ask-a-type"
-  to = "/index.html"
-  status = 200
-[[redirects]]
-  from = "/take-the-test"
-  to = "/index.html"
-  status = 200
-[[redirects]]
-  from = "/fictional-characters"
-  to = "/index.html"
-  status = 200
-[[redirects]]
-  from = "/never-have-i-ever"
-  to = "/index.html"
-  status = 200
-[[redirects]]
-  from = "/all-types"
-  to = "/index.html"
-  status = 200
-[[redirects]]
-  from = "/account"
-  to = "/index.html"
-  status = 200
-[[redirects]]
-  from = "/your-type"
-  to = "/index.html"
-  status = 200
-[[redirects]]
-  from = "/about/brad-kam"
-  to = "/about/brad-kam.html"
-  status = 200
+from = "/assess"
+to = "/assess.html"
+status = 200
+force = false
 
-# Internal-only: block public access to /tools/* and /migrations/* on the deployed site.
-[[redirects]]
-  from = "/tools/*"
-  to = "/index.html"
-  status = 404
-  force = true
-[[redirects]]
-  from = "/migrations/*"
-  to = "/index.html"
-  status = 404
-  force = true
+  [redirects.query]
 
-# Creator affiliate links: /from/{slug} -> the consent landing page (slug parsed in JS)
-[[redirects]]
-  from = "/from/*"
-  to = "/assess-creator.html"
-  status = 200
-[[redirects]]
-  from = "/creators"
-  to = "/creators.html"
-  status = 200
-[[redirects]]
-  from = "/creator-tos"
-  to = "/creator-tos.html"
-  status = 200
+  [redirects.conditions]
 
-# Reversed-alphabetical comparison aliases → canonical alphabetical version (prevents 404s)
-[[redirects]]
-  from = "/blog/intp-vs-intj"
-  to = "/blog/intj-vs-intp"
-  status = 301
-[[redirects]]
-  from = "/blog/entp-vs-enfp"
-  to = "/blog/enfp-vs-entp"
-  status = 301
-[[redirects]]
-  from = "/blog/estj-vs-istj"
-  to = "/blog/istj-vs-estj"
-  status = 301
+  [redirects.headers]
 
-# /type/[slug] is now a standalone SEO page set, not a redirect.
-# (The old 301 to /blog/<slug>-personality was removed 2026-04-22.)
+[[redirects]]
+from = "/start"
+to = "/start.html"
+status = 200
+force = false
 
-# Environment variables to set in Netlify UI:
-# SUPABASE_URL = your Supabase project URL
-# SUPABASE_ANON_KEY = your Supabase anon/public key
-# SUPABASE_SERVICE_ROLE_KEY = your Supabase service role secret key
-# ANTHROPIC_API_KEY = your Anthropic API key (already set)
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/which-mbti-types-have-autism-adhd-ocd-bipolar-bpd"
+to = "/blog/which-mbti-types-have-autism-adhd"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/api/v1/types"
+to = "/api/v1/types/index.json"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/api/v1/types/:code"
+to = "/api/v1/types/:code.json"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/api/v1/test/items"
+to = "/api/v1/test/items.json"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/api/v1/test/score"
+to = "/.netlify/functions/score-test"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/api/v1/badge/:code"
+to = "/.netlify/functions/badge-json"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/api"
+to = "/api/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/badge/:code"
+to = "/badge/:code.svg"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/career-planning"
+to = "/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/compatibility"
+to = "/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/ask-a-type"
+to = "/"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/take-the-test"
+to = "/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/fictional-characters"
+to = "/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/never-have-i-ever"
+to = "/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/all-types"
+to = "/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/account"
+to = "/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/your-type"
+to = "/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/add-someone"
+to = "/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/you"
+to = "/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/person"
+to = "/index.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/admin"
+to = "/admin.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/about/brad-kam"
+to = "/about/brad-kam.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/tools/*"
+to = "/index.html"
+status = 404
+force = true
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/migrations/*"
+to = "/index.html"
+status = 404
+force = true
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/from/*"
+to = "/assess-creator.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/creators"
+to = "/creators.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/creator-tos"
+to = "/creator-tos.html"
+status = 200
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intp-vs-intj"
+to = "/blog/intj-vs-intp"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entp-vs-enfp"
+to = "/blog/enfp-vs-entp"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estj-vs-istj"
+to = "/blog/istj-vs-estj"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intj-as-a-boss"
+to = "/blog/intj-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intj-as-a-partner"
+to = "/blog/intj-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intj-as-a-parent"
+to = "/blog/intj-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intp-as-a-boss"
+to = "/blog/intp-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intp-as-a-partner"
+to = "/blog/intp-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intp-as-a-parent"
+to = "/blog/intp-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entj-as-a-boss"
+to = "/blog/entj-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entj-as-a-partner"
+to = "/blog/entj-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entj-as-a-parent"
+to = "/blog/entj-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entp-as-a-boss"
+to = "/blog/entp-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entp-as-a-partner"
+to = "/blog/entp-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entp-as-a-parent"
+to = "/blog/entp-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infj-as-a-boss"
+to = "/blog/infj-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infj-as-a-partner"
+to = "/blog/infj-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infj-as-a-parent"
+to = "/blog/infj-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infp-as-a-boss"
+to = "/blog/infp-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infp-as-a-partner"
+to = "/blog/infp-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infp-as-a-parent"
+to = "/blog/infp-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfj-as-a-boss"
+to = "/blog/enfj-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfj-as-a-partner"
+to = "/blog/enfj-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfj-as-a-parent"
+to = "/blog/enfj-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfp-as-a-boss"
+to = "/blog/enfp-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfp-as-a-partner"
+to = "/blog/enfp-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfp-as-a-parent"
+to = "/blog/enfp-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istj-as-a-boss"
+to = "/blog/istj-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istj-as-a-partner"
+to = "/blog/istj-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istj-as-a-parent"
+to = "/blog/istj-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfj-as-a-boss"
+to = "/blog/isfj-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfj-as-a-partner"
+to = "/blog/isfj-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfj-as-a-parent"
+to = "/blog/isfj-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estj-as-a-boss"
+to = "/blog/estj-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estj-as-a-partner"
+to = "/blog/estj-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estj-as-a-parent"
+to = "/blog/estj-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfj-as-a-boss"
+to = "/blog/esfj-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfj-as-a-partner"
+to = "/blog/esfj-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfj-as-a-parent"
+to = "/blog/esfj-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istp-as-a-boss"
+to = "/blog/istp-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istp-as-a-partner"
+to = "/blog/istp-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istp-as-a-parent"
+to = "/blog/istp-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfp-as-a-boss"
+to = "/blog/isfp-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfp-as-a-partner"
+to = "/blog/isfp-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfp-as-a-parent"
+to = "/blog/isfp-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estp-as-a-boss"
+to = "/blog/estp-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estp-as-a-partner"
+to = "/blog/estp-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estp-as-a-parent"
+to = "/blog/estp-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfp-as-a-boss"
+to = "/blog/esfp-personality#as-a-boss"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfp-as-a-partner"
+to = "/blog/esfp-personality#as-a-partner"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfp-as-a-parent"
+to = "/blog/esfp-personality#as-a-parent"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfj-1w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entj-1w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entj-1w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estj-1w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estj-1w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infj-1w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infj-1w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infp-1w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intj-1w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intj-1w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intp-1w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfj-1w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istj-1w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istj-1w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfj-2w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfj-2w3"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfp-2w3"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfj-2w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfj-2w3"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfp-2w3"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infj-2w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infp-2w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfj-2w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfp-2w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfj-3w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfp-3w4"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entj-3w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entj-3w4"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entp-3w4"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfj-3w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfp-3w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estj-3w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estp-3w2"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intj-3w4"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfp-4w3"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infj-4w3"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infj-4w5"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infp-4w3"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infp-4w5"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intp-4w5"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfj-4w3"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfp-4w3"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfp-4w5"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entp-5w6"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infj-5w4"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infp-5w4"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intj-5w4"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intj-5w6"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intp-5w4"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intp-5w6"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istj-5w6"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istp-5w4"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istp-5w6"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfp-6w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfj-6w5"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfj-6w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfp-6w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estj-6w5"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infj-6w5"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infp-6w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intp-6w5"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfj-6w5"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfj-6w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfp-6w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istj-6w5"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istj-6w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istp-6w5"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfj-7w6"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfp-7w6"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfp-7w8"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entp-7w6"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entp-7w8"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfp-7w6"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfp-7w8"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estp-7w6"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estp-7w8"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istp-7w8"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entj-8w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entj-8w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entp-8w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/entp-8w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estj-8w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estj-8w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estp-8w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/estp-8w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intj-8w7"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intj-8w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istp-8w9"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enfj-9w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/esfj-9w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infj-9w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/infp-9w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/intp-9w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfj-9w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfp-9w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/isfp-9w8"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istj-9w1"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/istp-9w8"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enneagram-1-mbti"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enneagram-2-mbti"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enneagram-3-mbti"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enneagram-4-mbti"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enneagram-5-mbti"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enneagram-6-mbti"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enneagram-7-mbti"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enneagram-8-mbti"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/enneagram-9-mbti"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/what-are-the-9-personality-types"
+to = "/blog/mbti-vs-enneagram"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/how-do-i-know-if-im-intj-or-intp"
+to = "/blog/intj-vs-intp"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]
+
+[[redirects]]
+from = "/blog/how-do-i-know-if-im-infj-or-infp"
+to = "/blog/infj-vs-infp"
+status = 301
+force = false
+
+  [redirects.query]
+
+  [redirects.conditions]
+
+  [redirects.headers]

@@ -48,7 +48,7 @@ async function fetchOne(t1, t2, mode) {
   };
   const resp = await fetch(ENDPOINT, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Build-Secret': process.env.CLAUDE_RUN_SECRET || '' },
     body: JSON.stringify(body),
   });
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);

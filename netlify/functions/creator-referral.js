@@ -38,7 +38,7 @@ exports.handler = async (event) => {
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   const { data: creator, error: cErr } = await supabase
-    .from('creators').select('id').eq('slug', creatorSlug).single();
+    .from('creators').select('id, email, display_name, user_id').eq('slug', creatorSlug).single();
   if (cErr || !creator) {
     return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: 'Creator not found' }) };
   }
@@ -85,5 +85,75 @@ exports.handler = async (event) => {
   if (iErr) {
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: iErr.message }) };
   }
+
+  // Notify the sender that a friend completed (only when the friend consented).
+  if (consented && creator.email) {
+    try { await notifySender(supabase, creator, mbtiType); } catch (_) { /* non-fatal */ }
+  }
+
   return { statusCode: 200, headers: CORS, body: JSON.stringify({ success: true }) };
 };
+
+const TYPE_NAMES = {
+  INTJ: 'Architect', INTP: 'Logician', ENTJ: 'Commander', ENTP: 'Debater',
+  INFJ: 'Advocate', INFP: 'Mediator', ENFJ: 'Protagonist', ENFP: 'Campaigner',
+  ISTJ: 'Logistician', ISFJ: 'Defender', ESTJ: 'Executive', ESFJ: 'Consul',
+  ISTP: 'Virtuoso', ISFP: 'Adventurer', ESTP: 'Entrepreneur', ESFP: 'Entertainer',
+};
+
+function compatUrl(a, b) {
+  const slug = [a.toLowerCase(), b.toLowerCase()].sort().join('-') + '-compatibility';
+  return 'https://personality.fyi/blog/' + slug;
+}
+
+async function notifySender(supabase, creator, friendType) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return;
+
+  // Sender's own type (to build a compatibility link), if we can find it.
+  let senderType = null;
+  if (creator.user_id) {
+    try {
+      const { data } = await supabase.auth.admin.getUserById(creator.user_id);
+      const t = data && data.user && (data.user.user_metadata || {}).mbti_type;
+      if (t && TYPE_NAMES[String(t).toUpperCase()]) senderType = String(t).toUpperCase();
+    } catch (_) { /* ignore */ }
+  }
+
+  const friendName = TYPE_NAMES[friendType] || '';
+  const name = creator.display_name ? (' ' + creator.display_name) : '';
+  let compatLine = '';
+  let compatText = '';
+  if (senderType) {
+    const url = compatUrl(senderType, friendType);
+    compatLine = `<p style="margin:0 0 14px">See how you two get along: <a href="${url}" style="color:#2563eb">${senderType} and ${friendType} compatibility</a>.</p>`;
+    compatText = `See how you two get along (${senderType} and ${friendType}): ${url}\n\n`;
+  }
+
+  const html = `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;font-size:15px;line-height:1.55;color:#1a1a1a;max-width:520px">
+<p style="margin:0 0 14px">Hi${name},</p>
+<p style="margin:0 0 14px">Someone you invited just took the personality test. They came out <strong>${friendType} (${friendName})</strong>.</p>
+${compatLine}
+<p style="margin:0 0 14px">You can see everyone you've invited on your <a href="https://personality.fyi/account" style="color:#2563eb">results page</a>.</p>
+<p style="margin:0">Brad</p>
+</div>`;
+  const text = `Hi${name},
+
+Someone you invited just took the personality test. They came out ${friendType} (${friendName}).
+
+${compatText}See everyone you've invited on your results page: https://personality.fyi/account
+
+Brad`;
+
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({
+      from: process.env.RESEND_FROM || 'Brad Kam <brad@personality.fyi>',
+      to: [creator.email],
+      reply_to: 'brad@personality.fyi',
+      subject: 'Someone you invited took the test',
+      text, html,
+    }),
+  });
+}

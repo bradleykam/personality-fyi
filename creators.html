@@ -274,7 +274,7 @@ body { font-family: 'DM Mono', monospace; background: var(--paper); color: var(-
   </div>
 
   <div id="cr-content-panel" class="hidden">
-    <h1 class="cr-h1">Content by Type</h1>
+    <h2 class="cr-h1">Content by Type</h2>
     <p class="cr-sub">Paste a piece of text. Get 16 versions \u2014 one rewritten for each MBTI type so it lands the way they hear it.</p>
 
     <div id="cr-content-auth-prompt" class="cr-auth-prompt hidden">
@@ -403,8 +403,10 @@ async function cbtRun() {
 
     async function runOneBatch(batchTypes) {
       const user = 'Rewrite for these types: ' + batchTypes.join(', ') + '\n\nOriginal text:\n"""\n' + input + '\n"""';
+      const _sess = await _supabase.auth.getSession();
+      const _tok = _sess && _sess.data && _sess.data.session && _sess.data.session.access_token;
       const resp = await fetch('/.netlify/functions/claude', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (_tok || '') },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: Math.min(4000, 400 + batchTypes.length * 600),
@@ -547,7 +549,7 @@ function crRenderDashboard(d) {
     : '<tr><td colspan="3" style="opacity:.55;padding:1rem 0;text-align:center">No completions yet.</td></tr>';
 
   dash.innerHTML = `
-    <h1 class="cr-h1">${d.creator.displayName}</h1>
+    <h2 class="cr-h1">${d.creator.displayName}</h2>
     <p class="cr-sub">Your creator dashboard \u00B7 personality.fyi</p>
 
     <div style="background:var(--cream);border:0.5px solid var(--border);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem">

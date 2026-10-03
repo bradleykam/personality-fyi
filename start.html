@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, follow">
+<title>Find your personality type | Personality.fyi</title>
+<meta name="description" content="Take the free 60-second personality test, or enter your type if you already know it.">
+<link rel="canonical" href="https://personality.fyi/start">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Find your personality type">
+<meta property="og:description" content="Take the free 60-second personality test, or enter your type if you already know it.">
+<meta property="og:url" content="https://personality.fyi/start">
+<meta property="og:site_name" content="Personality.fyi">
+<meta property="og:image" content="https://personality.fyi/og-image.png">
+<meta name="twitter:card" content="summary">
+
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#0e0e0e;--paper:#f5f2ed;--cream:#ede9e1;--accent:#c8411a;--border:#d4cfc7}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:'DM Mono',ui-monospace,monospace;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;min-height:100vh}
+  .brand{padding:22px 28px;font-size:15px;font-weight:700}
+  .brand a{color:var(--ink);text-decoration:none}
+  .brand span{color:var(--accent)}
+  main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 24px 12vh}
+  h1{font-size:clamp(30px,6vw,56px);font-weight:700;line-height:1.12;letter-spacing:-.01em;margin:0 0 48px;max-width:15ch}
+  .btns{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+  .btn{font-family:inherit;font-size:14px;font-weight:500;letter-spacing:.02em;padding:14px 26px;border-radius:6px;text-decoration:none;cursor:pointer;border:1px solid var(--ink);transition:all .15s}
+  .btn-primary{background:var(--ink);color:var(--paper)}
+  .btn-primary:hover{background:var(--accent);border-color:var(--accent)}
+  .btn-secondary{background:transparent;color:var(--ink)}
+  .btn-secondary:hover{background:var(--cream)}
+  @media(max-width:520px){.btn{width:100%;max-width:340px}}
+</style>
+</head>
+<body>
+  <div class="brand"><a href="/">Personality<span>.fyi</span></a></div>
+  <main>
+    <h1>Find careers and people that match your personality</h1>
+    <div class="btns">
+      <a class="btn btn-primary" href="/take-the-test">Take the Test →</a>
+      <a class="btn btn-secondary" href="/your-type">I know my type</a>
+    </div>
+  </main>
+</body>
+</html>

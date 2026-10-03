@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin — Personality.fyi</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root{--ink:#1a1a1a;--muted:#7a7670;--paper:#faf9f6;--border:#e4e2dc;--accent:#d4541e;--green:#0a7d2c}
+  *{box-sizing:border-box}
+  body{font-family:'DM Mono',ui-monospace,monospace;background:var(--paper);color:var(--ink);margin:0;padding:32px;font-size:13px}
+  h1{font-size:18px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:24px}
+  .card-login{max-width:360px;margin:8vh auto;border:1px solid var(--border);border-radius:12px;padding:28px;background:#fff}
+  .card-login h1{margin-bottom:6px}
+  input{width:100%;padding:11px 13px;font-family:inherit;font-size:14px;border:1px solid var(--border);border-radius:8px;margin:8px 0;background:var(--paper);color:var(--ink)}
+  button{width:100%;padding:12px;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.03em;background:var(--ink);color:#fff;border:none;border-radius:8px;cursor:pointer;margin-top:4px}
+  button:hover{background:var(--accent)}
+  button.ghost{background:transparent;color:var(--muted);border:1px solid var(--border);font-weight:400}
+  .err{color:var(--accent);font-size:12px;margin-top:10px;min-height:16px}
+  .hide{display:none}
+  .cards{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+  .stat{border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:110px;background:#fff}
+  .stat .n{font-size:24px;font-weight:700}
+  .stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  table{border-collapse:collapse;width:100%;font-size:12px;background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+  th{background:var(--paper);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.03em;position:sticky;top:0}
+  td.num,th.num{text-align:right}
+  tr:hover td{background:#fafbff}
+  .yes{color:var(--green);font-weight:700}.no{color:#bbb}.muted{color:#bbb}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .topbar button{width:auto;padding:8px 14px;font-size:12px}
+  .wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="card-login hide">
+  <h1>Personality.fyi Admin</h1>
+  <div class="sub">Sign in with the admin email. A 6-digit code will be emailed.</div>
+  <div id="step-email">
+    <input id="email" type="email" value="brad@personality.fyi" autocomplete="email">
+    <button id="send-btn">Email me a code</button>
+  </div>
+  <div id="step-code" class="hide">
+    <input id="code" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code">
+    <button id="verify-btn">Verify and sign in</button>
+    <button id="back-btn" class="ghost">Use a different email</button>
+  </div>
+  <div id="login-err" class="err"></div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="hide">
+  <div class="topbar">
+    <div><h1>Admin dashboard</h1><div class="sub" id="dash-sub">Loading…</div></div>
+    <button id="signout" class="ghost">Sign out</button>
+  </div>
+  <div class="cards" id="cards"></div>
+  <div id="analytics">
+    <h2 style="font-size:15px;margin:26px 0 4px">Product health
+      <select id="period" onchange="loadAnalytics(window._adminToken,this.value==='all'?null:Number(this.value))" style="width:auto;padding:4px 8px;font-family:inherit;font-size:11px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--ink);margin-left:10px">
+        <option value="all">All time</option><option value="90">Last 90 days</option><option value="28">Last 28 days</option><option value="7">Last 7 days</option>
+      </select>
+    </h2>
+    <div class="sub">Activation and retention. D<i>n</i> = active on exactly day <i>n</i> after signup, in UTC; only fully completed target days count. Retention covers all account cohorts. The period filter applies to event activity. Every rate shows numerator / denominator.</div>
+    <div class="cards" id="northstar"></div>
+    <div class="cards" id="lifecycle-cards"></div>
+    <h3 style="font-size:13px;margin:20px 0 8px">Activation funnel <span class="muted" style="font-weight:400">(same visitors, in order; starts since Sep 14 or selected period)</span></h3>
+    <div class="wrap"><table id="funnel-tbl"></table></div>
+    <h3 style="font-size:13px;margin:20px 0 8px">Cohort retention — by signup week</h3>
+    <div class="wrap"><table id="cohort-signup-tbl"></table></div>
+    <h3 style="font-size:13px;margin:20px 0 8px">Cohort retention — days since activation, grouped by activation week</h3>
+    <div class="wrap"><table id="cohort-act-tbl"></table></div>
+    <h3 style="font-size:13px;margin:20px 0 8px">Retention: activated vs not</h3>
+    <div class="wrap"><table id="seg-tbl"></table></div>
+    <h3 style="font-size:13px;margin:20px 0 8px">Activation paths <span class="muted" style="font-weight:400">(which use case predicts retention and pay)</span></h3>
+    <div class="wrap"><table id="paths-tbl"></table></div>
+    <h3 style="font-size:13px;margin:20px 0 8px">Relationship types</h3>
+    <div class="wrap"><table id="reltype-tbl"></table></div>
+    <div class="cards" id="ai-usage-cards"></div><div class="sub">Historical metered AI calls include automatic test explanations. AI activation requires an explicit interaction event. Older events may be incomplete.</div>
+    <h3 style="font-size:13px;margin:20px 0 8px">Feature usage and retention</h3>
+    <div class="wrap"><table id="feat-tbl"></table></div>
+    <h3 style="font-size:13px;margin:20px 0 8px">Your People metrics</h3>
+    <div class="cards" id="people-cards"></div>
+    <div class="wrap"><table id="people-ret-tbl"></table></div>
+    <h3 style="font-size:13px;margin:20px 0 8px">Why users return <span class="muted" style="font-weight:400">(first feature opened in return sessions)</span></h3>
+    <div class="wrap"><table id="return-tbl"></table></div>
+    <h3 style="font-size:13px;margin:20px 0 8px">Attribution</h3>
+    <div class="wrap"><table id="attr-tbl"></table></div>
+  </div>
+  <h2 style="font-size:15px;margin:26px 0 8px">Accounts</h2><div class="sub">Email counts are recorded welcome/digest sends, not confirmed deliveries. Clicks are recorded webhook events; zero does not establish no clicks when tracking is unverified. Check Resend for delivery and engagement. Saved types do not prove a result was viewed.</div>
+  <div class="wrap"><table id="tbl"></table></div>
+</div>
+
+<div id="boot" class="sub" style="text-align:center;margin-top:10vh">Loading…</div>
+
+<script>
+const ADMIN_EMAIL='brad@personality.fyi';
+let sb=null;
+
+function show(id){['login','dash','boot'].forEach(x=>document.getElementById(x).classList.toggle('hide',x!==id));}
+
+async function init(){
+  try{
+    const cfg=await (await fetch('/.netlify/functions/config')).json();
+    sb=supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);
+    const {data:{session}}=await sb.auth.getSession();
+    if(session&&session.user&&(session.user.email||'').toLowerCase()===ADMIN_EMAIL){loadDash();}
+    else{show('login');}
+  }catch(e){show('login');document.getElementById('login-err').textContent='Could not load. Refresh.';}
+}
+
+document.getElementById('send-btn').onclick=async function(){
+  const email=document.getElementById('email').value.trim().toLowerCase();
+  const err=document.getElementById('login-err');err.textContent='';
+  if(email!==ADMIN_EMAIL){err.textContent='Not an authorized admin email.';return;}
+  this.disabled=true;this.textContent='Sending…';
+  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+  this.disabled=false;this.textContent='Email me a code';
+  if(error){err.textContent=error.message;return;}
+  document.getElementById('step-email').classList.add('hide');
+  document.getElementById('step-code').classList.remove('hide');
+  document.getElementById('code').focus();
+};
+document.getElementById('back-btn').onclick=function(){
+  document.getElementById('step-code').classList.add('hide');
+  document.getElementById('step-email').classList.remove('hide');
+  document.getElementById('login-err').textContent='';
+};
+document.getElementById('verify-btn').onclick=async function(){
+  const email=document.getElementById('email').value.trim().toLowerCase();
+  const token=document.getElementById('code').value.trim();
+  const err=document.getElementById('login-err');err.textContent='';
+  this.disabled=true;this.textContent='Verifying…';
+  const {data,error}=await sb.auth.verifyOtp({email,token,type:'email'});
+  this.disabled=false;this.textContent='Verify and sign in';
+  if(error){err.textContent=error.message;return;}
+  if((data.user.email||'').toLowerCase()!==ADMIN_EMAIL){err.textContent='Not authorized.';await sb.auth.signOut();return;}
+  loadDash();
+};
+document.getElementById('signout').onclick=async function(){await sb.auth.signOut();location.reload();};
+
+async function loadDash(){
+  show('boot');
+  const {data:{session}}=await sb.auth.getSession();
+  const resp=await fetch('/.netlify/functions/admin-data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:session.access_token})});
+  if(!resp.ok){show('login');document.getElementById('login-err').textContent='Access denied.';return;}
+  const {summary,users,dauSeries}=await resp.json();
+  renderCards(summary);renderDau(dauSeries||[]);renderTable(users);
+  loadAnalytics(session.access_token);
+  document.getElementById('dash-sub').textContent=summary.qualifiedUsers+' qualified users · test/internal accounts hidden · updated '+new Date().toLocaleString();
+  show('dash');
+}
+
+// ── Product health (activation + retention) ──
+function fr(x){ if(!x||x.pct==null) return '<span class="muted">—</span>'; return '<b>'+x.pct+'%</b> <span class="muted">'+x.n+' / '+x.d+'</span>'; }
+async function loadAnalytics(token,days){
+  window._adminToken=token;
+  try{
+    const resp=await fetch('/.netlify/functions/admin-analytics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:token,days:days||null})});
+    if(!resp.ok) return;
+    const a=await resp.json();
+    renderNorthstar(a);renderLifecycle(a);renderFunnel(a.funnel);
+    renderCohorts('cohort-signup-tbl',a.cohorts.bySignup);renderCohorts('cohort-act-tbl',a.cohorts.byActivation);
+    renderSegs('seg-tbl',a.segments);renderFeatures(a.features);renderPeople(a.people);
+    renderReturn(a.whyReturn);renderAttr(a.attribution);renderPaths(a);
+    window._analyticsUserRows=a.userRows;
+    annotateUserTable(token);
+  }catch(e){console.warn('analytics load failed',e);}
+}
+function renderNorthstar(a){
+  const ns=a.northStar;
+  document.getElementById('northstar').innerHTML=
+    '<div class="stat" style="border-color:var(--ink)"><div class="n">'+ns.weeklyRetainedUsers+'</div><div class="l">Weekly retained users</div></div>'+
+    '<div class="stat" style="border-color:var(--ink)"><div class="n">'+ns.weeklyActivatedUsers+'</div><div class="l">Weekly activated users</div></div>'+
+    '<div class="stat" style="border-color:var(--ink)"><div class="n">'+(ns.activatedD7&&ns.activatedD7.pct!=null?ns.activatedD7.pct+'%':'—')+'</div><div class="l">Activated D7 ('+(ns.activatedD7?ns.activatedD7.n+'/'+ns.activatedD7.d:'')+')</div></div>';
+}
+function renderLifecycle(a){
+  const s=a.scorecards,l=a.lifecycle;
+  const tiles=[['Email captures',s.emailCaptures],['Result viewers',s.resultViewers],['Engaged',s.engagedUsers],['Activated users',s.activatedUsers],['Deep activated',s.deepActivatedUsers],['Retained (2+ days)',l.retained]];
+  let html=tiles.map(c=>'<div class="stat"><div class="n">'+c[1]+'</div><div class="l">'+c[0]+'</div></div>').join('');
+  html+='<div class="stat" style="min-width:230px"><div class="l" style="margin-bottom:6px">Rates</div>'+
+    Object.keys(s.rates).map(k=>'<div style="font-size:11px;display:flex;justify-content:space-between;gap:10px"><span class="muted">'+k+'</span><span>'+fr(s.rates[k])+'</span></div>').join('')+
+    '<div style="font-size:11px;display:flex;justify-content:space-between;gap:10px;margin-top:4px"><span class="muted">D1 / D7 / D30</span><span>'+fr(s.retention.d1)+' · '+fr(s.retention.d7)+' · '+fr(s.retention.d30)+'</span></div></div>';
+  document.getElementById('lifecycle-cards').innerHTML=html;
+}
+function renderFunnel(f){
+  document.getElementById('funnel-tbl').innerHTML='<thead><tr><th>Step</th><th class="num">Count</th><th class="num">% of previous</th><th class="num">% of test starters</th></tr></thead><tbody>'+
+    f.map(s=>'<tr><td>'+s.step+'</td><td class="num"><b>'+s.count+'</b></td><td class="num">'+(s.pctPrev==null?'—':s.pctPrev+'%')+'</td><td class="num">'+(s.pctOrig==null?'—':s.pctOrig+'%')+'</td></tr>').join('')+'</tbody>';
+}
+function renderCohorts(id,rows){
+  document.getElementById(id).innerHTML='<thead><tr><th>Week of</th><th class="num">Signups</th><th class="num">Activated</th><th class="num">D1</th><th class="num">D3</th><th class="num">D7</th><th class="num">D14</th><th class="num">D30</th></tr></thead><tbody>'+
+    (rows.length?rows.map(r=>'<tr><td>'+r.cohort+'</td><td class="num">'+r.signups+'</td><td class="num">'+r.activated+'</td><td class="num">'+fr(r.d1)+'</td><td class="num">'+fr(r.d3)+'</td><td class="num">'+fr(r.d7)+'</td><td class="num">'+fr(r.d14)+'</td><td class="num">'+fr(r.d30)+'</td></tr>').join(''):'<tr><td colspan="8" class="muted">no data yet</td></tr>')+'</tbody>';
+}
+function renderSegs(id,rows){
+  document.getElementById(id).innerHTML='<thead><tr><th>Segment</th><th class="num">Users</th><th class="num">D1</th><th class="num">D3</th><th class="num">D7</th><th class="num">D14</th><th class="num">D30</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td>'+r.segment+'</td><td class="num">'+r.users+'</td><td class="num">'+fr(r.d1)+'</td><td class="num">'+fr(r.d3)+'</td><td class="num">'+fr(r.d7)+'</td><td class="num">'+fr(r.d14)+'</td><td class="num">'+fr(r.d30)+'</td></tr>').join('')+'</tbody>';
+}
+function renderFeatures(rows){
+  document.getElementById('feat-tbl').innerHTML='<thead><tr><th>Feature</th><th class="num">Users</th><th class="num">% of engaged</th><th class="num">D1 after use</th><th class="num">D7</th><th class="num">D30</th><th class="num">Avg sessions</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td>'+r.feature+'</td><td class="num">'+r.users+'</td><td class="num">'+r.pctActive+'%</td><td class="num">'+fr(r.d1)+'</td><td class="num">'+fr(r.d7)+'</td><td class="num">'+fr(r.d30)+'</td><td class="num">'+r.avgSessions+'</td></tr>').join('')+'</tbody>';
+}
+function renderPeople(p){
+  document.getElementById('people-cards').innerHTML=
+    [['0 people',p.dist.p0],['1 person',p.dist.p1],['2 people',p.dist.p2],['3+ people',p.dist.p3plus],['Avg per activated',p.avgPerActivated],['Known types',p.typeStatus.known],['Estimated',p.typeStatus.estimated],['Verified',p.typeStatus.verified],['Type pending',p.typeStatus.pending],['Invites sent',p.invitesSent],['Hrs to first person',p.avgHoursToFirstPerson==null?'—':p.avgHoursToFirstPerson]]
+    .map(c=>'<div class="stat"><div class="n">'+c[1]+'</div><div class="l">'+c[0]+'</div></div>').join('');
+  renderSegs('people-ret-tbl',p.retentionByCount);
+}
+function renderReturn(w){
+  const keys=Object.keys(w);const total=keys.reduce((n,k)=>n+w[k].sessions,0)||1;
+  document.getElementById('return-tbl').innerHTML='<thead><tr><th>First feature opened</th><th class="num">Return sessions</th><th class="num">Share</th><th class="num">Avg minutes</th><th class="num">Came back again</th></tr></thead><tbody>'+
+    (keys.length?keys.sort((a,b)=>w[b].sessions-w[a].sessions).map(k=>'<tr><td>'+k+'</td><td class="num">'+w[k].sessions+'</td><td class="num">'+Math.round(100*w[k].sessions/total)+'%</td><td class="num">'+w[k].avgMin+'</td><td class="num">'+w[k].subsequentPct+'%</td></tr>').join(''):'<tr><td colspan="5" class="muted">no return sessions recorded yet</td></tr>')+'</tbody>';
+}
+function renderAttr(rows){
+  document.getElementById('attr-tbl').innerHTML='<thead><tr><th>Source</th><th class="num">Email captures</th><th class="num">Activated</th><th class="num">Activation rate</th><th class="num">D1</th><th class="num">D7</th><th class="num">D30</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td>'+r.source+'</td><td class="num">'+r.emails+'</td><td class="num">'+r.activated+'</td><td class="num">'+r.activationPct+'%</td><td class="num">'+fr(r.d1)+'</td><td class="num">'+fr(r.d7)+'</td><td class="num">'+fr(r.d30)+'</td></tr>').join('')+'</tbody>';
+}
+
+// Lifecycle state chips on the accounts table + click-through timeline (S20).
+function annotateUserTable(token){
+  const map={};(window._analyticsUserRows||[]).forEach(r=>{map[(r.email||'').toLowerCase()]=r;});
+  document.querySelectorAll('#tbl tbody tr').forEach(tr=>{
+    const email=(tr.cells[0]&&tr.cells[0].textContent||'').trim().toLowerCase();
+    const r=map[email];if(!r)return;
+    if(!tr.cells[0].querySelector('.lc')){
+      const chip=document.createElement('span');chip.className='lc';
+      chip.style.cssText='margin-left:8px;font-size:10px;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:9px;border:1px solid var(--border);color:'+(r.state==='deep_activated'||r.state==='activated'?'var(--green)':'var(--muted)');
+      chip.textContent=r.state.replace('_',' ');
+      tr.cells[0].appendChild(chip);
+    }
+    tr.style.cursor='pointer';
+    tr.onclick=function(){showUserTimeline(token,r.id,email);};
+  });
+}
+async function showUserTimeline(token,id,email){
+  let panel=document.getElementById('user-timeline');
+  if(!panel){panel=document.createElement('div');panel.id='user-timeline';
+    panel.style.cssText='position:fixed;top:0;right:0;bottom:0;width:min(430px,92vw);background:#fff;border-left:1px solid var(--border);box-shadow:-8px 0 30px rgba(0,0,0,.08);padding:20px;overflow-y:auto;z-index:50';
+    document.body.appendChild(panel);}
+  panel.innerHTML='<div class="muted">Loading timeline…</div>';
+  const resp=await fetch('/.netlify/functions/admin-analytics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accessToken:token,user:id})});
+  if(!resp.ok){panel.innerHTML='<div class="muted">Could not load.</div>';return;}
+  const d=await resp.json();const u=d.user;
+  const ppl=(u.people||[]).map(p=>p.n+' ('+(p.st==='estimated'?'≈':'')+(p.t||'?')+', '+p.r+')').join(' · ')||'none';
+  panel.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>'+email+'</b><button class="ghost" style="width:auto;padding:4px 10px;margin:0" onclick="this.closest(\'#user-timeline\').remove()">×</button></div>'+
+    '<div class="sub" style="margin-bottom:12px">'+(u.type||'no type')+' · '+(u.source||'modal')+' · '+u.attribution+(u.unsub?' · <b style="color:var(--accent)">UNSUBSCRIBED'+(u.unsub_at?' '+u.unsub_at.slice(0,10):'')+'</b>':'')+'<br>sessions: '+(u.sessions||0)+' · active days: '+((u.days||[]).length)+'<br>people: '+ppl+'</div>'+
+    '<div style="border-top:1px solid var(--border);padding-top:10px">'+
+    ((d.timeline&&d.timeline.length)?d.timeline.map(e=>{
+      const extra=[e.rel,e.type_status,e.surface].filter(Boolean).join(', ');
+      return '<div style="display:flex;gap:10px;padding:5px 0;border-bottom:1px dashed var(--border)"><span class="muted" style="min-width:118px">'+e.at.slice(0,16).replace('T',' ')+'</span><span><b>'+e.event.replace(/_/g,' ')+'</b>'+(extra?' <span class="muted">('+extra+')</span>':'')+'</span></div>';
+    }).join(''):'<div class="muted">No events recorded for this user (events began 2026-07-02; enriched linkage began 2026-09-14).</div>')+'</div>';
+}
+function renderPaths(a){
+  document.getElementById('paths-tbl').innerHTML='<thead><tr><th>Path</th><th class="num">Users</th><th class="num">D1</th><th class="num">D7</th><th class="num">D30</th><th class="num">AI per user</th><th class="num">Paid</th></tr></thead><tbody>'+
+    a.activationPaths.map(r=>'<tr><td>'+r.path+'</td><td class="num">'+r.users+'</td><td class="num">'+fr(r.d1)+'</td><td class="num">'+fr(r.d7)+'</td><td class="num">'+fr(r.d30)+'</td><td class="num">'+r.aiPerUser+'</td><td class="num">'+r.paid+'</td></tr>').join('')+'</tbody>';
+  document.getElementById('reltype-tbl').innerHTML='<thead><tr><th>Relationship</th><th class="num">People saved</th><th class="num">Users</th><th class="num">D1</th><th class="num">D7</th><th class="num">D30</th><th class="num">AI per user</th></tr></thead><tbody>'+
+    (a.relTypeRows.length?a.relTypeRows.map(r=>'<tr><td style="text-transform:capitalize">'+r.rel+'</td><td class="num">'+r.people+'</td><td class="num">'+r.users+'</td><td class="num">'+fr(r.d1)+'</td><td class="num">'+fr(r.d7)+'</td><td class="num">'+fr(r.d30)+'</td><td class="num">'+r.aiPerUser+'</td></tr>').join(''):'<tr><td colspan="7" class="muted">no relationships yet</td></tr>')+'</tbody>';
+  const u=a.aiUsage;
+  document.getElementById('ai-usage-cards').innerHTML=
+    [['Metered AI calls this window',u.consumedTotal],['AI failures',u.failed],['Upgrade shown',u.upgradeShown],['Upgrade clicked',u.upgradeClicked],['Paid subscribers',u.paidUsers]]
+    .map(c=>'<div class="stat"><div class="n">'+c[1]+'</div><div class="l">'+c[0]+'</div></div>').join('');
+}
+function renderCards(s){
+  const cards=[['Qualified users',s.qualifiedUsers],['Active today',s.activeToday],['Active 7d',s.active7d],['Took test',s.tookTest],['Entered type',s.enteredType],['Paid subs',s.paid],['Used AI',s.usedAI],['Referred ≥1',s.withReferrals]];
+  document.getElementById('cards').innerHTML=cards.map(c=>'<div class="stat"><div class="n">'+(c[1]==null?0:c[1])+'</div><div class="l">'+c[0]+'</div></div>').join('');
+}
+function renderDau(series){
+  let host=document.getElementById('dau-strip');
+  if(!host){
+    host=document.createElement('div');
+    host.id='dau-strip';
+    host.style.cssText='margin:14px 0 20px;padding:12px 14px;border:1px solid var(--border,#e4e2dc);border-radius:8px;font-size:12px;color:var(--ink,#222)';
+    const cards=document.getElementById('cards');
+    cards.parentNode.insertBefore(host,cards.nextSibling);
+  }
+  if(!series.length){host.textContent='Daily actives: no data yet (counting starts 2026-07-01).';return;}
+  const max=Math.max(1,...series.map(x=>x.count));
+  host.innerHTML='<div style="font-weight:700;margin-bottom:8px;font-size:11px;letter-spacing:.06em;text-transform:uppercase">Daily active users, last 14 days</div>'+
+    '<div style="display:flex;gap:6px;align-items:flex-end">'+
+    series.map(x=>'<div style="text-align:center;flex:1"><div style="height:'+(6+Math.round(34*x.count/max))+'px;background:'+(x.count?'#1D9E75':'#e4e2dc')+';border-radius:3px 3px 0 0;margin:0 auto;max-width:26px" title="'+x.date+': '+x.count+'"></div><div style="margin-top:4px;color:#7a7670">'+x.date.slice(5).replace('-','/')+'</div><div style="font-weight:700">'+x.count+'</div></div>').join('')+
+    '</div>';
+}
+function renderTable(rows){
+  const head='<thead><tr><th>Email</th><th>Signed up</th><th>Country</th><th>Type</th><th>Via</th><th>Subscription</th><th class="num">Sessions</th><th class="num" title="Career Match AI questions">Career AI</th><th class="num" title="People Match comparisons + AI type guesses">People AI</th><th class="num" title="Profile chat, roast/flatter, ask box, automatic test explanations, and older untagged AI calls">Chat AI</th><th class="num">AI total</th><th class="num">NHIE</th><th class="num">Email sends</th><th class="num">Recorded clicks</th><th class="num">Referrals</th></tr></thead>';
+  const body=rows.map(r=>{
+    const sub=r.subscription==='active'?'<span class="yes">active</span>':(r.subscription?r.subscription:'<span class="muted">—</span>');
+    const type=r.type?('<b>'+r.type+'</b>'):'<span class="no">—</span>';
+    const via=r.via==='test'?'<span class="yes">test</span>':(r.via==='entered'?'<span style="color:var(--muted)">entered</span>':'<span class="no">—</span>');
+    const num=v=>v?('<span>'+v+'</span>'):'<span class="muted">0</span>';
+    const country=r.country?r.country:'<span class="muted">—</span>';
+    const unsubChip=r.unsub?' <span style="font-size:10px;letter-spacing:.03em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:9px;padding:1px 6px">unsub</span>':'';
+    return '<tr><td>'+r.email+unsubChip+'</td><td>'+r.signedUp+'</td><td>'+country+'</td><td>'+type+'</td><td>'+via+'</td><td>'+sub+'</td><td class="num">'+num(r.sessions)+'</td><td class="num">'+num(r.career)+'</td><td class="num">'+num(r.people)+'</td><td class="num">'+num(r.chatAi)+'</td><td class="num">'+num(r.aiTotal)+'</td><td class="num">'+num(r.nhieVotes)+'</td><td class="num">'+num(r.emailsReceived)+'</td><td class="num">'+num(r.emailClicks)+'</td><td class="num">'+num(r.referrals)+'</td></tr>';
+  }).join('');
+  document.getElementById('tbl').innerHTML=head+'<tbody>'+body+'</tbody>';
+}
+
+init();
+</script>
+</body>
+</html>
