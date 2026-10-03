@@ -2895,7 +2895,7 @@ textarea::placeholder { color: var(--muted); }
 
 /* ── ChatGPT-style chat UI (Career Planning + Ask a Type) ── */
 /* Career: conversation first, optional details on demand. */
-.career-page-active #app-topbar-creators { display: none !important; }
+
 #relationship-conversation[hidden] { display: none; }
 #compat-section { max-width: 880px; margin: 0 auto; }
 #relationship-conversation { margin-top: 28px; height: calc(100dvh - 380px); min-height: 320px; }
@@ -3576,14 +3576,14 @@ textarea::placeholder { color: var(--muted); }
    Cross-cutting responsive polish (≤768px tablet, ≤520px phone, ≤380px small phone)
    ─────────────────────────────────────────────────────────────── */
 
-/* Hide the top-right "For Creators" pill on mobile — it collides with the mobile header.
-   Creators get into the dashboard via the sidebar nav once they’re signed in. */
+/* Keep the creator link compact in the mobile header. */
 @media (max-width: 768px) {
   .app-topbar-emp { padding-top: 6px; padding-right: 8px; }
   #app-topbar-creators { font-size: 11px !important; padding: 5px 9px !important; }
 }
 @media (max-width: 520px) {
-  #app-topbar-creators { display: none !important; }
+  #app-topbar-creators { font-size: 10px !important; padding: 5px 7px !important; }
+  .app-mobile-header .wordmark { font-size: 15px; }
 }
 
 /* Hero / home selector — make sure it never causes horizontal scroll. */
@@ -10277,7 +10277,7 @@ function _navMoreGroup() {
     _navBtn('characters', 'Fictional Characters', true) +
     '<a class="app-nav-item" href="/blog/data" style="text-decoration:none;padding-left:1.75rem">Data</a>' +
     '<a class="app-nav-item" href="/blog/" style="text-decoration:none;padding-left:1.75rem">Articles</a>' +
-    '<a class="app-nav-item" href="/creators" style="text-decoration:none;padding-left:1.75rem">For Creators</a></div>';
+    '</div>';
 }
 function renderSidebar() {
   var host = document.getElementById('sidebar-primary-nav');
@@ -10338,11 +10338,11 @@ function updateTopbarAuth(signedIn) {
         (type ? '<span style="background:var(--ink);color:var(--paper);padding:3px 8px;border-radius:6px;font-weight:700;font-size:11px;letter-spacing:.04em">' + type + '</span>' : '') +
         '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + email + '</span>';
     }
-    if (creatorsLink) creatorsLink.style.display = 'none';
+    if (creatorsLink) creatorsLink.style.display = 'inline-block';
   } else {
     if (si) si.style.display = 'block';
     if (sb) sb.style.display = 'none';
-    if (creatorsLink) creatorsLink.style.display = 'none';
+    if (creatorsLink) creatorsLink.style.display = 'inline-block';
   }
 }
 
