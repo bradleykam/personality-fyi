@@ -25,24 +25,24 @@ async function record(sb, event, props, at) {
     if (i === 2) throw error;
   }
 }
-async function sendTracked({to, subject, text, html, from, reply_to, campaign, userId}) {
+async function sendTracked({to, subject, text, html, from, reply_to, campaign, userId, emailToken, extra = {}}) {
   if (!process.env.RESEND_API_KEY) return {sent:false, reason:'no-resend-key'};
   const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-  const token = randomUUID();
-  const props = {email_token:token, campaign, user_id:userId || null, event_id:'queued:' + token};
+  const token = emailToken || randomUUID();
+  const props = {...extra,email_token:token, campaign, user_id:userId || null, event_id:'queued:' + token};
   // Check durable storage before sending. Never retry a successful send because logging failed.
   try { await record(sb, 'mail_queued', props); }
   catch { return {sent:false, reason:'email-reporting-unavailable'}; }
   let r;
   try {
     r = await fetch('https://api.resend.com/emails', {
-      method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer ' + process.env.RESEND_API_KEY, 'Idempotency-Key':token},
+      method:'POST', signal:AbortSignal.timeout(8000), headers:{'Content-Type':'application/json', Authorization:'Bearer ' + process.env.RESEND_API_KEY, 'Idempotency-Key':token},
       body:JSON.stringify({from, to:[to], reply_to, subject,
         text:taggedLinks(text,campaign,token), html:html == null ? undefined : taggedLinks(html,campaign,token),
         tags:[{name:'pf_campaign',value:campaign},{name:'pf_token',value:token}]})
     });
-  } catch { return {sent:false, reason:'resend-network-error'}; }
-  if (!r.ok) return {sent:false, reason:'resend-' + r.status};
+  } catch { await record(sb,'mail_send_failed',{...props,reason:'network-outcome-unknown'}).catch(()=>{});return {sent:false, reason:'resend-network-error'}; }
+  if (!r.ok) { await record(sb,'mail_send_failed',{...props,reason:'resend-' + r.status}).catch(()=>{});return {sent:false, reason:'resend-' + r.status}; }
   const data = await r.json();
   let tracked = true;
   try { await record(sb, 'mail_accepted', {...props, message_id:data.id, event_id:'accepted:' + token}); }
@@ -67,9 +67,11 @@ function emailReport(users, events, now = Date.now(), days) {
     if (!s || !/^mail_/.test(e.event)) continue;
     if (p.message_id) byMessage.set(p.message_id,s);
     if (e.event==='mail_accepted') s.states.add('accepted');
+    if (e.event==='mail_send_failed') s.states.add(p.reason==='network-outcome-unknown'?'unknown':'failed');
   }
   let lastWebhook=null;
   const failures = new Map();
+  for(const e of events){const p=e.props||{};if(e.event==='mail_send_failed'&&valid.has(p.user_id)&&Date.parse(e.created_at)>=cutoff)failures.set(p.email_token+':send', {at:e.created_at,kind:p.reason==='network-outcome-unknown'?'Unknown send outcome':'Send rejected',reason:p.reason,campaign:p.campaign});}
   for (const e of events) {
     const p=e.props||{};
     if (e.event!=='mail_webhook') continue;
@@ -90,7 +92,7 @@ function emailReport(users, events, now = Date.now(), days) {
     const cohort=week.toISOString().slice(0,10), key=s.campaign+'|'+cohort;
     const g=groups[key]??={campaign:s.campaign,week:cohort,queued:0,accepted:0,delivered:0,bounced:0,opened:0,clicked:0,complained:0,failed:0,suppressed:0,returned:0,acted:0};
     g.queued++;
-    for (const k of ['accepted','delivered','bounced','opened','clicked','complained','failed','suppressed']) if(s.states.has(k) || (k==='accepted' && s.states.has('sent')))g[k]++;
+    for (const k of ['accepted','delivered','bounced','opened','clicked','complained','failed','suppressed']) if(s.states.has(k) || (k==='accepted' && ['sent','delivered','opened','clicked'].some(x=>s.states.has(x))))g[k]++;
     if(s.landed)g.returned++;
     if(s.acted)g.acted++;
   }
