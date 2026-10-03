@@ -1055,6 +1055,8 @@ textarea::placeholder { color: var(--muted); }
 .ppl-x { position: absolute; top: 2px; right: 4px; background: none; border: none; color: var(--muted); font-size: 15px; cursor: pointer; padding: 2px 5px; line-height: 1; }
 .ppl-x:hover { color: var(--ink); }
 .ppl-add { padding: 12px 16px; background: none; border: 1.5px dashed var(--border, #cfccc4); border-radius: 8px; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer; }
+.ppl-add-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.cha-side .ppl-add-actions .ppl-add { width: auto; flex: 1 1 auto; }
 .ppl-add:hover { border-color: var(--ink); color: var(--ink); }
 .ppl-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; padding: 14px; background: var(--cream, #f6f4ef); border: 1px solid var(--border, #e4e2dc); border-radius: 8px; }
 .ppl-input { padding: 9px 11px; border: 1px solid var(--border, #cfccc4); border-radius: 6px; font-size: 14px; font-family: inherit; background: var(--paper); color: var(--ink); }
@@ -5780,15 +5782,17 @@ function rosterRender() {
       '<button class="ppl-x" onclick="event.stopPropagation();rosterRemove(' + i + ')" title="Remove">&times;</button>' +
     '</div>';
   }).join('');
+  var addButtons = OBP_RELS.map(function(rel) {
+    return '<button type="button" class="ppl-add" onclick="pplWidgetOpen({ presetRel: \'' + rel.key + '\' })">+ ' + rel.label + '</button>';
+  }).join('');
   // The "Your people" heading shows only in the profile side panel; on the
   // People Match page the row speaks for itself.
   hosts.forEach(function(h) {
     h.innerHTML =
       '<div class="ppl-wrap">' +
         (h.id === 'home-people' ? '<div class="ppl-title">Your people</div>' : '') +
-        '<div class="ppl-row">' + cards +
-          '<button class="ppl-add" onclick="pplWidgetOpen()">+ Type someone</button>' +
-        '</div>' +
+        (cards ? '<div class="ppl-row">' + cards + '</div>' : '') +
+        '<div class="ppl-add-actions" role="group" aria-label="Add someone to your people">' + addButtons + '</div>' +
       '</div>';
   });
 }
@@ -5913,7 +5917,7 @@ function personAsk(i, q) {
 }
 
 // ── Type Someone: a conversation in the page chat ───────────────────
-// Pressing "+ Type someone" (or "Save this X to your people") starts a short
+// Selecting a relationship (or "Save this X to your people") starts a short
 // scripted exchange in whichever chat is on screen: name, relationship, then
 // describe-and-guess or send the test. Only the guess itself calls the AI.
 var _tsFlow = null;
@@ -5997,6 +6001,11 @@ function tsStart(opts) {
       tsFocus();
       return;
     }
+  }
+  if (OBP_RELS.some(function(r) { return r.key === opts.presetRel; })) {
+    tsHandle(opts.presetRel);
+    tsFocus();
+    return;
   }
   var relChips = OBP_RELS.map(function(r) { return [r.key, r.label]; });
   relChips.push(TS_CANCEL_CHIP);
