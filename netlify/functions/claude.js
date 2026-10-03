@@ -6,7 +6,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Build-Secret',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Build-Secret, X-PF-Answer, X-PF-Surface, X-PF-Email-Token, X-PF-Email-At',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -30,6 +30,7 @@ exports.handler = async function(event) {
     return { statusCode: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
       body: JSON.stringify({ error: { message: 'Sign in required.' } }) };
   }
+  let verifiedUserId = null;
   if (!isBuildTool) {
     if (!process.env.SUPABASE_URL || !(process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) {
       return { statusCode: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
@@ -42,6 +43,7 @@ exports.handler = async function(event) {
         return { statusCode: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
           body: JSON.stringify({ error: { message: 'Invalid or expired session.' } }) };
       }
+      verifiedUserId = data.user.id;
     } catch (e) {
       return { statusCode: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
         body: JSON.stringify({ error: { message: 'Auth check failed.' } }) };
@@ -56,8 +58,17 @@ exports.handler = async function(event) {
       body: JSON.stringify(body),
     });
     const data = await response.json();
+    if (verifiedUserId) {
+      const ok=response.ok && Array.isArray(data.content) && data.content.some(c=>c.type==='text' && c.text?.trim());
+      try { await require('../lib/product-events').write(ok?(event.headers['x-pf-answer']==='1'?'server_ai_answer':'server_ai_response'):'server_ai_failure', verifiedUserId, {
+        request_id:data.id || require('node:crypto').randomUUID(), status:response.status,
+        surface:String(event.headers['x-pf-surface']||'unknown').slice(0,60),
+        ...require('../lib/product-events').touch(event.headers)
+      }); } catch(e) { console.error('Product outcome could not be recorded',e.message); }
+    }
     return { statusCode: response.status, headers: { ...CORS, 'Content-Type': 'application/json' }, body: JSON.stringify(data) };
   } catch (err) {
+    if(verifiedUserId)try{await require('../lib/product-events').write('server_ai_failure',verifiedUserId,{status:500,surface:String(event.headers['x-pf-surface']||'unknown').slice(0,60)});}catch(e){console.error('Outcome recording failed');}
     return { statusCode: 500, headers: { ...CORS, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: { message: err.message } }) };
   }
 };

@@ -424,28 +424,15 @@ exports.handler = async (event) => {
   }
   const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
   try {
-    const users = await listAllUsers(sb);
-    const events = await listEvents(sb);
-    const subMap = {};
-    try {
-      const { data: creds } = await sb.from('user_credits').select('user_id, subscription_status');
-      (creds || []).forEach((c) => { subMap[c.user_id] = c.subscription_status; });
-    } catch (_) {}
-    // User timeline mode (S20): event history for one user, AI text never exists in events.
-    if (body.user) {
-      const usr = users.find((x) => x.id === body.user && !(hidden(x.email) || x.user_metadata?.seed === true));
-      if (!usr) return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: 'user not found' }) };
-      const md = usr.user_metadata || {};
-      const timeline = events
-        .filter((e) => (e.props || {}).user_id === usr.id || (md.anon_id && e.anon_id === md.anon_id))
-        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-        .map((e) => ({ at: e.created_at, event: e.event, rel: (e.props || {}).rel || (e.props || {}).relationship || null, type_status: (e.props || {}).type_status || null, surface: (e.props || {}).surface || null }));
-      return { statusCode: 200, headers: CORS, body: JSON.stringify({ user: { email: usr.email, signup: usr.created_at, type: md.mbti_type, source: md.signup_source, unsub: md.digest_unsub === true, unsub_at: md.unsub_at || null, attribution: attributionBucket(md), people: (md.people || []).map((p) => ({ n: p.n, r: p.r, t: p.t, st: p.st || (p.g ? 'estimated' : 'known') })), sessions: md.session_n, days: md.session_days }, timeline }) };
+    {
+      const {allUsers,allRows}=require('../lib/product-data');
+      const now=Date.now(), until=new Date(now).toISOString();
+      const [users,events,credits]=await Promise.all([allUsers(sb),allRows(sb,'funnel_events','*','id',until),allRows(sb,'user_credits','*','user_id')]);
+      const {buildReport,billingSnapshot}=require('../lib/admin-report');
+      const billing=await billingSnapshot(users,credits);
+      return {statusCode:200,headers:CORS,body:JSON.stringify(buildReport({users,events,billing,now,days:[7,30,90].includes(Number(body.days))?Number(body.days):30}))};
     }
-    const days = body.days ? Number(body.days) : null;
-    const out = computeAll(users, events, Date.now(), days, subMap);
-    out.email = require('../lib/email-reporting').emailReport(users, events, Date.now(), days);
-    return { statusCode: 200, headers: CORS, body: JSON.stringify(out) };
+
   } catch (e) {
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: e.message }) };
   }

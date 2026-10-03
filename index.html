@@ -4890,7 +4890,7 @@ async function homeChatSend() {
   try {
     var resp = await fetch('/.netlify/functions/claude', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-PF-Answer':'1', 'X-PF-Surface':'profile' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: rewriteMode ? 1200 : 500,
@@ -5108,7 +5108,7 @@ async function famousChatSend() {
   try {
     var resp = await fetch('/.netlify/functions/claude', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-PF-Answer':'1', 'X-PF-Surface':'famous' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: rewriteMode ? 1200 : 500,
@@ -5773,11 +5773,14 @@ function rosterList() {
 
 function rosterPersist(list, cb) {
   if (!supabaseClient || !currentUser) return;
+  var _savedContext = list.length > 0 && list.length >= rosterList().length;
   var _d = { people: list };
   var _m = currentUser.user_metadata || {};
   if (list.length && !_m.first_person_added_at) _d.first_person_added_at = new Date().toISOString();
   supabaseClient.auth.updateUser({ data: _d }).then(function(res) {
-    if (res && res.data && res.data.user) currentUser = res.data.user;
+    if (!res || res.error || !res.data?.user) { console.warn('Relationship save failed'); return; }
+    currentUser = res.data.user;
+    if (_savedContext) trackEvent('relationship_context_saved', {});
     rosterRender();
     if (cb) cb();
   }).catch(function(e) { console.warn('roster save error:', e); });
@@ -7115,7 +7118,7 @@ async function compatChatSend() {
   try {
     var resp = await fetch('/.netlify/functions/claude', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-PF-Answer':'1', 'X-PF-Surface':'compat' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: rewriteMode ? 1200 : 500,
@@ -7715,7 +7718,7 @@ async function askSend() {
     var messages = askHistory.map(function(m) { return { role: m.role, content: m.content }; });
     var resp = await fetch('/.netlify/functions/claude', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-PF-Answer':'1', 'X-PF-Surface':'ask' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: maxTok,
@@ -8430,13 +8433,12 @@ function renderCareerContext() {
 function careerCtxSave() {
   if (typeof currentUser === 'undefined' || !currentUser || !supabaseClient) return;
   var read = function(id) { var el = document.getElementById('cc-' + id); return el ? el.value.trim().slice(0, 120) : ''; };
-  var next = { role: read('role'), goal: read('goal'), concern: read('concern') };
+  var next = { field: careerCtx().field || '', role: read('role'), goal: read('goal'), concern: read('concern') };
   var cur = careerCtx();
   if (next.role === (cur.role || '') && next.goal === (cur.goal || '') && next.concern === (cur.concern || '')) return;
   supabaseClient.auth.updateUser({ data: { career: next } }).then(function(res) {
-    if (res && res.data && res.data.user) currentUser = res.data.user;
+    if (res && !res.error && res.data && res.data.user) { currentUser = res.data.user; trackEvent('career_context_saved', { has_role: !!next.role, has_goal: !!next.goal, has_concern: !!next.concern }); }
   }).catch(function() {});
-  trackEvent('career_context_saved', { has_role: !!next.role, has_goal: !!next.goal, has_concern: !!next.concern });
 }
 function careerSituation(q) {
   trackEvent('career_situation_clicked', {});
@@ -8528,7 +8530,7 @@ async function pfBumpUserSession() {
 // Keep the activity clock fresh; a click after a long idle starts a new session.
 document.addEventListener('click', function() { pfSession(); }, { passive: true, capture: true });
 
-function trackEvent(name, props) {
+async function trackEvent(name, props) {
   try {
     var anonId = pfAnonId();
     var s = _pfSess || pfSession();
@@ -8556,8 +8558,10 @@ function trackEvent(name, props) {
       }
     } catch(e) {}
     var merged = Object.assign(base, props || {});
+    var eventHeaders = { 'Content-Type': 'application/json' };
+    if (currentUser && supabaseClient) { var eventSession = await supabaseClient.auth.getSession(); var eventToken = eventSession.data?.session?.access_token; if(eventToken) eventHeaders.Authorization = 'Bearer ' + eventToken; }
     fetch('/.netlify/functions/track-event', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+      method: 'POST', headers: eventHeaders, keepalive: true,
       body: JSON.stringify({ event: name, anonId: anonId, props: merged, path: location.pathname, ts: Date.now() })
     }).catch(function(){});
   } catch (e) {}
@@ -9821,12 +9825,13 @@ function advisorBrowseType(type) {
   if (side) side.style.display = 'block';
 }
 
-function careerCheckFit() {
+async function careerCheckFit() {
   var field = document.getElementById('career-fit-field').value.trim();
   var job = document.getElementById('career-fit-job').value.trim();
   if (!field || !job) return;
   var type = localStorage.getItem('typeread_selected_type');
   if (!type) { appNav('analyze'); return; }
+  if(currentUser && supabaseClient) { const saved = await supabaseClient.auth.updateUser({data:{career:Object.assign({},careerCtx(),{field:field,role:job})}}); if(saved.error){alert('Could not save your career details. Please try again.');return;} if(saved.data?.user)currentUser=saved.data.user; trackEvent('career_context_saved',{has_role:true,has_field:true}); }
   advisorIntake.done = true;
   var input = document.getElementById('advisor-input');
   input.value = 'How compatible is working as a ' + job + ' in ' + field + ' with my ' + type + ' personality? Give me an estimated score out of 100, the main strengths and friction, and one practical suggestion.';
@@ -9919,7 +9924,7 @@ async function _advisorAskClaude(msg, input, sendBtn) {
   try {
     const resp = await fetch('/.netlify/functions/claude', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-PF-Answer':'1', 'X-PF-Surface':'career' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: advisorRewriteMode ? 1200 : 400,
@@ -10382,7 +10387,7 @@ function syncTypeEverywhere(type, percentages) {
   if (supabaseClient && currentUser) {
     var meta = { mbti_type: type };
     if (percentages) meta.mbti_percentages = percentages;
-    supabaseClient.auth.updateUser({ data: meta });
+    supabaseClient.auth.updateUser({ data: meta }).then(function(res){if(!res.error)trackEvent('type_saved',{});});
   }
   refreshHeaderAuthDisplay();
   if (typeof updateTopbarAuth === 'function') updateTopbarAuth(!!currentUser);
@@ -11047,6 +11052,8 @@ function resolvePendingAiLogin(ok) {
       } catch (e) { /* fall through — server will reject if unauthenticated */ }
       // 4. Consume one AI question only after a successful response (S53).
       var _feature = (typeof _lastAiFeature !== 'undefined' && _lastAiFeature) || 'ai';
+      options = options || {}; options.headers = Object.assign({'X-PF-Surface':_feature}, options.headers || {});
+      try { var emailTouch=JSON.parse(sessionStorage.getItem('pf_email_touch')||'null'); if(emailTouch && Date.now()-emailTouch.at<=1800000){options.headers['X-PF-Email-Token']=emailTouch.token;options.headers['X-PF-Email-At']=String(emailTouch.at);} } catch(e) {}
       return originalFetch(url, options).then(function(resp) {
         if (resp.ok && currentUser && !paywallInEmployerMode()) { pfConsumeAi(_feature); trackEvent('ai_response_received', {surface:_feature}); }
         else if (!resp.ok) trackEvent('ai_request_failed', { surface: _feature, status: resp.status });
