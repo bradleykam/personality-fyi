@@ -2893,6 +2893,28 @@ textarea::placeholder { color: var(--muted); }
 }
 
 /* ── ChatGPT-style chat UI (Career Planning + Ask a Type) ── */
+/* Career: conversation first, optional details on demand. */
+.career-page-active #app-topbar-creators { display: none !important; }
+#relationship-conversation[hidden] { display: none; }
+#compat-section { max-width: 880px; margin: 0 auto; }
+#relationship-conversation { margin-top: 28px; height: calc(100dvh - 380px); min-height: 320px; }
+#relationship-conversation .cha-main { width: 100%; }
+.relationships-intro { color: var(--muted); font-size: 14px; margin: 0; }
+.relationship-name { margin: 0 0 12px; font-size: 20px; }
+.relationship-name span { font-weight: 400; color: var(--muted); font-size: 12px; margin-left: 10px; }
+.relationship-about { margin-bottom: 20px; font-size: 12px; color: var(--muted); }
+.relationship-about summary { cursor: pointer; width: fit-content; }
+.relationship-details { max-width: 65ch; padding-top: 10px; line-height: 1.7; }
+.relationship-edit-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.career-page-header { display: block; margin-bottom: 24px; }
+.career-page-header h1 { margin: 0 0 14px; font-size: 26px; letter-spacing: -.04em; }
+.career-background summary { width: fit-content; cursor: pointer; font-size: 12px; color: var(--muted); }
+.career-background summary span { opacity: .7; }
+.career-background-fields { display: flex; flex-wrap: wrap; gap: 12px; padding-top: 16px; }
+.career-role-picker { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; font-size: 12px; color: var(--muted); }
+.career-role-picker .type-dropdown { min-width: 88px; padding: 6px 10px; font-size: 12px; }
+#advisor-jobs-header { display: none !important; }
+
 .cha-container {
   display: flex;
   flex-direction: column;
@@ -3729,32 +3751,21 @@ textarea::placeholder { color: var(--muted); }
       </header>
 
   <div id="compat-section" style="display:none">
-    <div id="person-profile-host"></div>
+    <header class="career-page-header"><h1>Relationships</h1><p class="relationships-intro">Choose someone, or add a person.</p></header>
     <div id="compat-people-host"></div>
-    <div class="cha-container">
+    <div class="cha-container" id="relationship-conversation" hidden>
+      <div id="person-profile-host"></div>
       <div class="cha-layout">
         <div class="cha-main">
-          <div class="compat-pickers">
-            <div class="compat-pick-row">
-              <div class="compat-pick-label">Your type</div>
-              <div class="type-select-grid compat-grid" id="my-type-grid"></div>
-            </div>
-            <div class="compat-pick-row">
-              <div class="compat-pick-label">Their type</div>
-              <div class="type-select-grid compat-grid" id="their-type-grid"></div>
-            </div>
-          </div>
           <div class="cha-thread" id="compat-chat-thread"></div>
           <form class="cha-input-bar" onsubmit="event.preventDefault();compatChatSend()">
-            <textarea class="cha-input" id="compat-chat-input" placeholder="Ask anything" rows="1"></textarea>
+            <textarea class="cha-input" id="compat-chat-input" placeholder="What would you like help with?" rows="1"></textarea>
             <button type="submit" class="cha-send-btn" id="compat-chat-send">Send</button>
           </form>
         </div>
-        <aside class="cha-side" id="compat-side">
-          <div id="compat-side-content" style="color:var(--muted);font-size:13px">Pick your type and theirs to see the dynamic.</div>
-        </aside>
       </div>
     </div>
+    <div hidden aria-hidden="true"><div id="my-type-grid"></div><div id="their-type-grid"></div></div>
   </div>
 
 
@@ -3805,27 +3816,27 @@ textarea::placeholder { color: var(--muted); }
   </div>
 
   <div id="advisor-section" style="display:none">
-    <div id="career-context-host"></div>
+    <header class="career-page-header">
+      <h1>Career</h1>
+      <div id="career-context-host"></div>
+    </header>
     <div class="cha-container">
-      <div class="cha-header" style="justify-content:space-between;gap:12px;flex-wrap:wrap">
-        <a href="#" onclick="event.preventDefault();showTeamInvite()" style="font-size:13px;font-weight:700;color:var(--accent,#d4541e);text-decoration:none">Share with your teammates and see what they are &rarr;</a>
-        <div id="advisor-browse-block" style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)">Browse careers for</span>
-          <select id="advisor-browse-type" class="type-dropdown" style="min-width:120px" onchange="advisorBrowseType(this.value)"></select>
-        </div>
-        <div id="advisor-badge" style="display:none"></div>
-      </div>
-      <div id="advisor-team-invite" style="display:none;margin:0 0 12px"></div>
+      <div id="advisor-badge" style="display:none"></div>
+      <div id="advisor-team-invite" style="display:none"></div>
       <div class="cha-layout">
         <div class="cha-main">
           <div class="cha-thread" id="advisor-chat"></div>
           <form class="cha-input-bar" onsubmit="event.preventDefault();advisorSend()">
-            <textarea class="cha-input" id="advisor-input" placeholder="Ask anything" rows="1"></textarea>
+            <textarea class="cha-input" id="advisor-input" placeholder="Tell me what’s on your mind at work…" rows="1"></textarea>
             <button type="submit" class="cha-send-btn" id="advisor-send-btn">Send</button>
           </form>
         </div>
         <aside class="cha-side" id="advisor-side">
           <button class="cha-side-close" onclick="advisorSideClose()" aria-label="Close panel" style="display:none">&times;</button>
+          <div id="advisor-browse-block" class="career-role-picker">
+            <label for="advisor-browse-type">Explore roles for</label>
+            <select id="advisor-browse-type" class="type-dropdown" aria-label="Personality type for career suggestions" onchange="advisorBrowseType(this.value)"></select>
+          </div>
           <div class="advisor-jobs-header" id="advisor-jobs-header" style="display:none">Roles for <span id="advisor-jobs-type">your type</span></div>
           <div class="advisor-jobs-count" id="advisor-jobs-count"></div>
           <div class="advisor-jobs-list" id="advisor-jobs-list"></div>
@@ -5767,7 +5778,12 @@ function rosterRender() {
   // Compatibility page (the meta home for Type Someone).
   var hosts = [document.getElementById('home-people'), document.getElementById('compat-people-host'), document.getElementById('home-workspace-people')].filter(Boolean);
   if (!hosts.length) return;
-  if (!currentUser) { hosts.forEach(function(h) { h.innerHTML = ''; }); return; }
+  if (!currentUser) {
+    var conversation = document.getElementById('relationship-conversation');
+    if (conversation) conversation.hidden = true;
+    var profile = document.getElementById('person-profile-host');
+    if (profile) profile.innerHTML = '';
+  }
   var mine = localStorage.getItem('typeread_selected_type');
   var list = rosterList();
   var cards = list.map(function(p, i) {
@@ -5815,54 +5831,27 @@ function renderPersonProfile(i) {
   var host = document.getElementById('person-profile-host');
   var p = rosterList()[i];
   if (!host || !p) return;
-  trackEvent('person_profile_viewed', { rel: p.r, type_status: p.st || (p.g ? 'estimated' : 'known') });
   var mine = localStorage.getItem('typeread_selected_type');
-  var g = REL_GUIDE[p.r] || REL_GUIDE.friend;
-  var approx = (p.g || p.st === 'estimated') ? '\u2248' : '';
-  var score = (mine && p.t && COMPAT[mine]) ? COMPAT[mine][p.t] : null;
-  var col = (score != null) ? TIER_COLORS[compatTier(score)] : null;
-  var statusChip = p.st === 'verified'
-    ? '<span style="font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:#0a7d2c;border:1px solid #0a7d2c;border-radius:9px;padding:2px 8px">verified</span>'
-    : (approx ? '<span style="font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:2px 8px">estimate</span>' : '');
-
-  // Legacy Family records: ask, never guess (S20).
-  var famAsk = '';
-  if (p.r === 'family') {
-    famAsk = '<div style="margin:10px 0;padding:12px 14px;background:var(--cream,#f6f4ef);border:1px solid var(--border);border-radius:8px;font-size:13px">How is ' + pplEsc(p.n) + ' related to you? ' +
-      '<span class="ts-chips" style="margin-top:8px">' +
-      '<button class="ts-chip" onclick="personSetRel(' + i + ',\'parent\')">Parent</button>' +
-      '<button class="ts-chip" onclick="personSetRel(' + i + ',\'sibling\')">Sibling</button>' +
-      '<button class="ts-chip ghost" onclick="this.closest(\'div\').remove()">Keep as family</button></span></div>';
-  }
-
-  var situations = (g.situations || []).map(function(label) {
-    return '<button class="ts-chip" onclick="personSituation(' + i + ', this.textContent)">' + label.replace(/NAME/g, pplEsc(p.n)) + '</button>';
-  }).join('');
-  var starters = (g.starters || []).map(function(q) {
-    return '<button class="ts-chip ghost" style="text-align:left" onclick="personAsk(' + i + ', this.textContent)">' + q.replace(/NAME/g, pplEsc(p.n)) + '</button>';
-  }).join('');
-
-  host.innerHTML =
-    '<div style="border:1px solid var(--border,#e4e2dc);border-radius:10px;padding:18px 20px;margin-bottom:16px;background:var(--paper)">' +
-      '<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">' +
-        '<span style="font-family:\'DM Mono\',monospace;font-size:20px;font-weight:700">' + pplEsc(p.n) + '</span>' +
-        '<span style="color:var(--muted);font-size:13px">' + relLabelOf(p.r) + '</span>' +
-        '<span class="ppl-type">' + approx + (p.t || '?') + '</span>' + statusChip +
-        (score != null ? '<span style="font-family:\'DM Mono\',monospace;font-size:22px;font-weight:700;color:' + col.text + ';margin-left:auto">' + score + '</span>' : '') +
+  var score = mine && p.t && COMPAT[mine] ? COMPAT[mine][p.t] : null;
+  var guide = REL_GUIDE[p.r] || REL_GUIDE.friend;
+  trackEvent('person_profile_viewed', { rel: p.r, type_status: p.st || (p.g ? 'estimated' : 'known') });
+  host.innerHTML = '<h2 class="relationship-name">' + pplEsc(p.n) +
+    ' <span>' + pplEsc(relLabelOf(p.r)) + '</span></h2>' +
+    '<details class="relationship-about"><summary>About this relationship</summary>' +
+      '<div class="relationship-details">' +
+        '<p>' + guide.frame.replace(/NAME/g, pplEsc(p.n)) + '</p>' +
+        '<p>Your type: ' + pplEsc(mine || 'not set') + ' · Their type: ' + pplEsc(p.t || 'not set') +
+          (p.g || p.st === 'estimated' ? ' (estimated)' : '') + '</p>' +
+        (score !== null ? '<p>Compatibility score: ' + score + '/100</p>' : '') +
+        (p.t && COMM_TIPS[p.t] ? '<p>' + COMM_TIPS[p.t] + '</p>' : '') +
+        '<div class="relationship-edit-actions">' +
+          '<button class="ts-chip ghost" onclick="personRename(' + i + ')">Edit name</button>' +
+          '<button class="ts-chip ghost" onclick="personRelChips(' + i + ', this)">Edit relationship</button>' +
+          '<button class="ts-chip ghost" onclick="rosterAddOpen(' + i + ')">' + (p.t ? 'Update type' : 'Find their type') + '</button>' +
+        '</div>' +
       '</div>' +
-      famAsk +
-      '<div style="font-size:13px;color:var(--muted);line-height:1.6;margin:10px 0 0;max-width:64ch">' + g.frame.replace(/NAME/g, pplEsc(p.n)) + '</div>' +
-      (p.t && COMM_TIPS[p.t] ? '<div class="you-block" style="margin:14px 0 0"><div class="you-label">How to communicate with ' + pplEsc(p.n) + '</div><p style="font-size:13px;line-height:1.65;margin:4px 0 0;max-width:64ch">' + COMM_TIPS[p.t] + '</p></div>' : '') +
-      (p.t ? '' : '<div style="margin-top:12px;font-size:13px;color:var(--muted)">No type yet. <a href="#" onclick="event.preventDefault();rosterAddOpen(' + i + ')">Estimate it or send the test \u2192</a></div>') +
-      '<div class="you-block" style="margin:16px 0 0"><div class="you-label">Situations</div><div class="ts-chips">' + situations + '</div></div>' +
-      '<div class="you-block" style="margin:14px 0 0"><div class="you-label">Ask about ' + pplEsc(p.n) + '</div><div class="ts-chips">' + starters + '</div></div>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;border-top:1px solid var(--border);padding-top:12px">' +
-        '<button class="ts-chip ghost" onclick="personRename(' + i + ')">Rename</button>' +
-        '<button class="ts-chip ghost" onclick="personRelChips(' + i + ', this)">Change relationship</button>' +
-        (p.st !== 'verified' ? '<button class="ts-chip ghost" onclick="rosterAddOpen(' + i + ')">' + (p.t ? 'Confirm type (send test)' : 'Find their type') + '</button>' : '') +
-        '<button class="ts-chip ghost" onclick="rosterRemove(' + i + ')">Remove</button>' +
-      '</div>' +
-    '</div>';
+    '</details>';
+  if (_compatChat.person) { _compatChat.person.n = p.n; _compatChat.person.r = p.r; }
 }
 
 function personSetRel(i, rel) {
@@ -5981,6 +5970,13 @@ function tsStart(opts) {
     appNav('analyze');
     setTimeout(function() { tsStart(opts); }, 150);
     return;
+  }
+  if (tsCtx().thread === 'compat-chat-thread') {
+    document.getElementById('relationship-conversation').hidden = false;
+    document.getElementById('person-profile-host').innerHTML = '';
+    document.getElementById('compat-chat-thread').innerHTML = '';
+    _compatChat = { myType: null, theirType: null, history: [] };
+    chaBindInput(document.getElementById('compat-chat-input'), document.getElementById('compat-chat-send'), compatChatSend);
   }
   trackEvent('person_flow_started', { via: opts.presetType ? 'compat_save' : (opts.editIdx != null ? 'edit' : 'button') });
   _tsFlow = {
@@ -6173,7 +6169,9 @@ function tsPersist(t, guessed, quiet) {
     entry.ts = Date.now();
     list.push(entry);
   }
-  rosterPersist(list);
+  var savedIndex = _tsFlow.editIdx >= 0 ? _tsFlow.editIdx : list.length - 1;
+  var openAfterSave = !quiet && tsCtx().thread === 'compat-chat-thread';
+  rosterPersist(list, function() { if (openAfterSave) rosterOpen(savedIndex); });
   window._tsLastPersonId = (_tsFlow.editIdx >= 0 && list[_tsFlow.editIdx]) ? list[_tsFlow.editIdx].id : entry.id;
   if (typeof trackEvent === 'function') trackEvent('roster_person_added', { rel: _tsFlow.r, hasType: !!t, guessed: !!guessed, via: 'chat' });
   trackEvent('person_added', { relationship: _tsFlow.r, type_status: guessed ? 'estimated' : (t ? 'self_reported_by_user' : 'pending'), person_count: list.length });
@@ -6427,32 +6425,33 @@ function rosterRemove(i) {
   if (!p) return;
   if (!confirm('Remove ' + p.n + ' from your people?')) return;
   list.splice(i, 1);
-  rosterPersist(list);
+  rosterPersist(list, function() {
+    if (_compatChat.person && (_compatChat.person.id ? _compatChat.person.id === p.id : _compatChat.person.n === p.n)) {
+      document.getElementById('relationship-conversation').hidden = true;
+      document.getElementById('person-profile-host').innerHTML = '';
+      document.getElementById('compat-chat-thread').innerHTML = '';
+      _compatChat = { myType: null, theirType: null, history: [] };
+    }
+  });
 }
 
 function rosterOpen(i) {
-  try { var _p0 = rosterList()[i]; if (_p0 && _p0.t) trackEvent('compatibility_detail_viewed', { rel: _p0.r, type_status: _p0.g ? 'estimated' : 'known' }); } catch (e) {}
-  var list = rosterList();
-  var p = list[i];
+  var p = rosterList()[i];
   if (!p) return;
-  if (!p.t) { rosterAddOpen(i); return; }
-  var mine = localStorage.getItem('typeread_selected_type');
-  var mode = PPL_MODES[p.r] || 'friends';
   appNav('compat');
-  setTimeout(function() {
-    var msel = document.querySelector('#my-type-grid .type-dropdown');
-    var tsel = document.querySelector('#their-type-grid .type-dropdown');
-    if (mine && msel) msel.value = mine;
-    if (tsel) tsel.value = p.t;
-    if (mine) selectType('my', mine);
-    selectType('their', p.t);
-    setTimeout(function() { compatSetMode(mine || myType, p.t, mode); }, 80);
-    setTimeout(function() {
-      _compatChat.person = { id: p.id, n: p.n, r: p.r, est: !!(p.g || p.st === 'estimated') };
-      compatRestoreChat(p.id, p.n);
-      renderPersonProfile(i);
-    }, 160);
-  }, 30);
+  _tsFlow = null;
+  myType = localStorage.getItem('typeread_selected_type');
+  theirType = p.t || null;
+  _compatChat = { myType: myType, theirType: theirType, history: [],
+    person: { id: p.id, n: p.n, r: p.r, est: !!(p.g || p.st === 'estimated') } };
+  document.getElementById('relationship-conversation').hidden = false;
+  document.getElementById('compat-chat-thread').innerHTML = '';
+  var input = document.getElementById('compat-chat-input');
+  input.value = '';
+  input.placeholder = 'Ask about ' + p.n + '…';
+  renderPersonProfile(i);
+  compatRestoreChat(p.id, p.n);
+  chaBindInput(input, document.getElementById('compat-chat-send'), compatChatSend);
 }
 
 // "Save this person" hook on the compatibility result: opens the Add Someone
@@ -6973,6 +6972,7 @@ function ordinal(n) {
 }
 
 function renderCompat() {
+  if (!document.getElementById('compat-side-content')) return;
   trackEvent('compatibility_viewed', { pair: myType + '-' + theirType });
   const score = COMPAT[myType][theirType];
   const tier = compatTier(score);
@@ -7126,6 +7126,7 @@ async function compatChatSend() {
     tsHandle(msg);
     return;
   }
+  if (!_compatChat.person) { tsBubble('Choose someone above to start a conversation.'); return; }
   input.value = '';
   sendBtn.disabled = true;
 
@@ -8447,14 +8448,6 @@ function pfConvoOpen(ctx) {
 function careerCtx() {
   return ((typeof currentUser !== 'undefined' && currentUser && currentUser.user_metadata) || {}).career || {};
 }
-var CAREER_SITUATIONS = [
-  'Should I change careers?',
-  'Should I become a manager?',
-  'Why am I unhappy in my current job?',
-  'Would I enjoy this role? (paste the description)',
-  'How should I handle my manager?',
-  'How should I prepare for this interview?'
-];
 function renderCareerContext() {
   var host = document.getElementById('career-context-host');
   if (!host) return;
@@ -8464,16 +8457,14 @@ function renderCareerContext() {
     return '<label style="display:flex;flex-direction:column;gap:3px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);flex:1;min-width:150px">' + label +
       '<input id="cc-' + key + '" value="' + pplEsc(val || '') + '" onblur="careerCtxSave()" placeholder="optional" style="padding:8px 10px;font-family:inherit;font-size:13px;border:1px solid var(--border);border-radius:6px;background:var(--paper);color:var(--ink);text-transform:none;letter-spacing:0"></label>';
   };
-  var chips = CAREER_SITUATIONS.map(function(q) {
-    return '<button class="ts-chip ghost" style="text-align:left" onclick="careerSituation(this.textContent)">' + q + '</button>';
-  }).join('');
   host.innerHTML =
-    '<div style="border:1px solid var(--border,#e4e2dc);border-radius:10px;padding:14px 16px;margin-bottom:14px;background:var(--paper)">' +
-      '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+    '<details class="career-background">' +
+      '<summary>Your background <span>(optional)</span></summary>' +
+      '<div class="career-background-fields">' +
         field('role', 'Current role', c.role) + field('goal', 'Career goal', c.goal) + field('concern', 'Biggest concern', c.concern) +
       '</div>' +
-      '<div class="ts-chips" style="margin-top:12px">' + chips + '</div>' +
-    '</div>';
+    '</details>';
+
 }
 function careerCtxSave() {
   if (typeof currentUser === 'undefined' || !currentUser || !supabaseClient) return;
@@ -13060,6 +13051,7 @@ function sidebarExpandMoreIfNeeded(key) {
 }
 
 function appNav(key, opts) {
+  document.body.classList.toggle('career-page-active', key === 'advisor' || key === 'compat');
   if (typeof sidebarExpandMoreIfNeeded === 'function') sidebarExpandMoreIfNeeded(key);
   opts = opts || {};
   // Push a clean-URL history entry. Routes mapped in NAV_ROUTE_MAP get a real
@@ -13108,7 +13100,7 @@ function appNav(key, opts) {
 
   // Trigger init functions for sections that need them
   if (key === 'compat') {
-    if (typeof buildTypeGrids === 'function' && !document.getElementById('my-type-grid').children.length) buildTypeGrids();
+    rosterRender();
   }
   if (key === 'ask') {
     if (typeof buildAskTypeGrid === 'function') buildAskTypeGrid();
