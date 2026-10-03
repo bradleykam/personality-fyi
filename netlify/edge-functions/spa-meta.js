@@ -3,7 +3,7 @@
  * metadata instead of all routes inheriting the home page's <head>.
  *
  * Configured in netlify.toml for these paths only:
- *   /career-planning, /compatibility, /ask-a-type, /take-the-test,
+ *   /career-planning, /compatibility, /take-the-test,
  *   /fictional-characters, /never-have-i-ever, /all-types
  */
 
@@ -13,12 +13,8 @@ const ROUTES = {
     desc:  'AI career advisor calibrated to your MBTI type. Get role recommendations, industry fit, and a path tailored to how you think.',
   },
   '/compatibility': {
-    title: 'MBTI Compatibility | Personality.fyi',
-    desc:  'Compatibility scores for every MBTI type pair. Romantic, friends, and colleagues calibrated separately.',
-  },
-  '/ask-a-type': {
-    title: 'Ask a Type — MBTI Q&A | Personality.fyi',
-    desc:  'Ask questions about any of the 16 MBTI types. AI advisor calibrated to each type\'s cognitive profile.',
+    title: 'MBTI Compatibility Calculator — Score Any Two Types | Personality.fyi',
+    desc:  'Free MBTI compatibility calculator. Pick any two of the 16 types for an instant compatibility score, plus romantic, friendship, and work dynamics.',
   },
   '/take-the-test': {
     title: 'Free MBTI Test | Personality.fyi',
@@ -106,7 +102,6 @@ export const config = {
   path: [
     '/career-planning',
     '/compatibility',
-    '/ask-a-type',
     '/take-the-test',
     '/fictional-characters',
     '/never-have-i-ever',

@@ -74,7 +74,7 @@ Hard rules:
     system,
     messages: [{ role: 'user', content: user }]
   };
-  const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Build-Secret': process.env.CLAUDE_RUN_SECRET || '' }, body: JSON.stringify(body) });
   const ctype = res.headers.get('content-type') || '';
   if (!ctype.includes('application/json')) {
     const t = await res.text();

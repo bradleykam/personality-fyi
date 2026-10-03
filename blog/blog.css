@@ -459,3 +459,13 @@ p { margin-bottom: 1rem; }
   .learn-toggle-btn { font-size: 12px; padding: 6px 10px; }
   .learn-header { flex-wrap: wrap; gap: 8px; }
 }
+
+/* Cite & link block */
+.blog-cite { margin-top: 2.5rem; padding: 16px 18px; border: 1px solid #e4e2dc; border-radius: 10px; background: #faf9f6; }
+.blog-cite h2 { font-size: 15px; margin: 0 0 10px; }
+.blog-cite .cite-row { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; }
+.blog-cite .cite-text { flex: 1; margin: 0; font-size: 12.5px; line-height: 1.5; color: #555; background: #fff; border: 1px solid #eceae4; border-radius: 6px; padding: 8px 10px; word-break: break-word; }
+.blog-cite .cite-copy { flex-shrink: 0; font: inherit; font-size: 12px; padding: 7px 12px; border: 1px solid #d8d5cd; border-radius: 6px; background: #fff; cursor: pointer; }
+.blog-cite .cite-copy:hover { background: #f0eee8; }
+/* Heading anchors */
+.blog-article h2[id] { scroll-margin-top: 80px; }
