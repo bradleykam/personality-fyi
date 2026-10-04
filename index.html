@@ -4821,15 +4821,15 @@ function youRenderThreads() {
   var host = document.getElementById('you-thread-list');
   if (!host) return;
   host.innerHTML = '';
-  var rows = youThreads();
+  var rows = youThreads().map(function(t) { return Object.assign({area:'you'},t); }).concat(careerThreads().map(function(t) { return Object.assign({area:'career'},t); })).sort(function(a,b) { return b.at-a.at; });
   if (!rows.length) return;
   var label = document.createElement('div'); label.textContent = 'Your conversations';
   label.style.cssText = 'padding:16px 20px 6px;font-size:11px;color:var(--muted)'; host.appendChild(label);
   rows.forEach(function(t) {
     var button = document.createElement('button'); button.className = 'app-nav-item';
     button.style.cssText = 'display:block;width:100%;max-width:100%;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
-    button.textContent = t.title; button.title = t.title;
-    button.onclick = function() { appNav('analyze'); homeChatInit(localStorage.getItem('typeread_selected_type'), t); };
+    button.textContent = (t.area === 'career' ? 'Career · ' : '') + t.title; button.title = button.textContent;
+    button.onclick = function() { if (t.area === 'career') { careerOpenThread(t.id); return; } appNav('analyze'); homeChatInit(localStorage.getItem('typeread_selected_type'), t); };
     host.appendChild(button);
   });
 }
@@ -8418,6 +8418,47 @@ function careerCtx() {
   return list.find(function(c) { return c.id === md.active_career_id; }) || list[0] || {};
 }
 function careerChatKey() { return 'pf_chat_career_' + (currentUser ? currentUser.id : 'anonymous') + '_' + (careerCtx().id || 'general'); }
+var careerActiveThread = null;
+var careerThreadContext = null;
+function careerThreadsKey() { return 'pf_career_threads_' + (currentUser ? currentUser.id : 'anonymous'); }
+function careerThreads() {
+  try {
+    var existing = localStorage.getItem(careerThreadsKey());
+    if (existing) return JSON.parse(existing);
+    var profiles = careerList();
+    var rows = [];
+    profiles.concat([{id:'general'}]).forEach(function(c) {
+      var raw = localStorage.getItem('pf_chat_career_' + (currentUser ? currentUser.id : 'anonymous') + '_' + c.id);
+      if (!raw && (c.id === 'legacy' || (!profiles.length && c.id === 'general'))) raw = localStorage.getItem('pf_chat_career');
+      var history = JSON.parse(raw || '[]');
+      if (history.length) rows.push({id:'import-'+c.id,title:String(history[0]).slice(0,70),history:history,context:c,at:Date.now()});
+    });
+    localStorage.setItem(careerThreadsKey(),JSON.stringify(rows));
+    return rows;
+  } catch(e) { return []; }
+}
+function careerSaveThread() {
+  if (!advisorHistory.length) return;
+  if (!careerActiveThread) careerActiveThread = crypto.randomUUID();
+  if (!careerThreadContext) careerThreadContext = Object.assign({},careerCtx());
+  var rows = careerThreads().filter(function(t) { return t.id !== careerActiveThread; });
+  rows.unshift({id:careerActiveThread,title:String(advisorHistory[0]).slice(0,70),history:advisorHistory.slice(),context:careerThreadContext,at:Date.now()});
+  try { localStorage.setItem(careerThreadsKey(),JSON.stringify(rows)); } catch(e) {}
+  youRenderThreads();
+}
+function careerOpenThread(id) {
+  if (document.getElementById('advisor-send-btn').disabled) return;
+  var t = careerThreads().find(function(t) { return t.id === id; });
+  if (!t) return;
+  appNav('advisor');
+  careerActiveThread = t.id;
+  careerThreadContext = t.context || {};
+  advisorHistory = t.history.slice();
+  advisorIntake.done = true;
+  document.getElementById('advisor-chat').innerHTML = '';
+  advisorHistory.forEach(function(m,i) { advisorAddBubble(i % 2 === 0 ? m : advisorMarkdown(m),i % 2 === 0 ? 'user' : 'app'); });
+  document.getElementById('advisor-input').placeholder = '';
+}
 var careerEditing = null;
 var careerSaving = false;
 function renderCareerContext() {
@@ -8479,6 +8520,8 @@ async function careerSelect(i) {
 }
 function careerResetChat() {
   advisorHistory = [];
+  careerActiveThread = null;
+  careerThreadContext = null;
   advisorInited = false;
   advisorIntake = {step:0,answers:[],done:!!careerCtx().field};
   document.getElementById('advisor-chat').innerHTML = '';
@@ -9584,28 +9627,6 @@ function advisorInit() {
   if (advisorInited) return;
   trackEvent('career_planning_started', {});
   if (typeof renderCareerContext === 'function') renderCareerContext();
-  // Continuity: restore the last career conversation instead of restarting.
-  try {
-    var storedC = localStorage.getItem(careerChatKey());
-    if (!storedC && careerCtx().id === 'legacy') {
-      storedC = localStorage.getItem('pf_chat_career');
-      if (storedC) localStorage.setItem(careerChatKey(), storedC);
-    }
-    var savedC = JSON.parse(storedC || 'null');
-    if (savedC && savedC.length) {
-      advisorInited = true;
-      advisorIntake.done = true;
-      advisorHistory = savedC.slice(-12);
-      advisorAddBubble('Earlier conversation:', 'app');
-      advisorHistory.forEach(function(m, i) { advisorAddBubble(m, i % 2 === 0 ? 'user' : 'app'); });
-      advisorUpdateBadge();
-      advisorLoadJobsList();
-      var input0 = document.getElementById('advisor-input');
-      var btn0 = document.getElementById('advisor-send-btn');
-      if (input0 && btn0 && typeof chaBindInput === 'function') chaBindInput(input0, btn0, advisorSend);
-      return;
-    }
-  } catch (e) {}
   advisorInited = true;
   advisorIntake.done = !!careerCtx().field;
   if (!advisorIntake.done) advisorAddBubble(chaRenderMarkdown(ADVISOR_INTAKE_QS[0]), 'app');
@@ -9941,7 +9962,7 @@ async function _advisorAskClaude(msg, input, sendBtn) {
     (i % 2 === 0 ? 'User: ' : 'Advisor: ') + m
   ).join('\n');
 
-  var _cc = (typeof careerCtx === 'function') ? careerCtx() : {};
+  var _cc = careerThreadContext || ((typeof careerCtx === 'function') ? careerCtx() : {});
   var _ccLine = [_cc.field ? 'industry: ' + _cc.field : '', _cc.role ? 'current role: ' + _cc.role : '', _cc.goal ? 'goal: ' + _cc.goal : '', _cc.concern ? 'concern: ' + _cc.concern : ''].filter(Boolean).join('; ');
   const userContent = "User’s MBTI type: " + type +
     (_ccLine ? "\nUser’s career context: " + _ccLine : '') + "\n\nUser says: " + msg +
@@ -10020,7 +10041,7 @@ async function _advisorAskClaude(msg, input, sendBtn) {
     }
 
     advisorHistory.push(prose);
-    try { localStorage.setItem(careerChatKey(), JSON.stringify(advisorHistory.slice(-12))); pfConvoTouch('career', 'Career'); } catch (e) {}
+    careerSaveThread();
 
     // Remove typing indicator
     typingDiv.remove();
@@ -13187,7 +13208,7 @@ function appNav(key, opts) {
     if (typeof testStart === 'function' && !testStarted) testStart();
   }
   if (key === 'advisor') {
-    if (typeof advisorInit === 'function') advisorInit();
+    if (!document.getElementById('advisor-send-btn').disabled) careerResetChat();
     if (typeof advisorInitBrowser === 'function') advisorInitBrowser();
   }
   if (key === 'account') {
