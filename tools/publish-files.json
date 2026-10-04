@@ -646,5 +646,6 @@
   "about/brad-kam.html",
   ".well-known/ai-plugin.json",
   "email-attribution.js",
-  "clarity.css"
+  "clarity.css",
+  "relationship-dynamics.js"
 ]
