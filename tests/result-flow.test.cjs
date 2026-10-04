@@ -154,7 +154,7 @@ test('career history migrates to named threads without being rendered on entry',
 
 test('career thread saving keeps distinct conversations and updates only the selected thread', () => {
   const data = new Map(); let n=0;
-  const ctx={currentUser:{id:'u1'},careerActiveThread:null,careerThreadContext:null,advisorHistory:['First question','First answer'],careerList:()=>[],careerCtx:()=>({field:'Tech',role:'Sales'}),localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)},crypto:{randomUUID:()=>String(++n)},youRenderThreads(){}};
+  const ctx={currentUser:{id:'u1'},careerActiveThread:null,careerThreadContext:null,advisorHistory:['First question','First answer'],careerList:()=>[],careerCtx:()=>({field:'Tech',role:'Sales'}),careerSelectedContext:()=>({role:'Sales'}),localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)},crypto:{randomUUID:()=>String(++n)},youRenderThreads(){}};
   vm.runInNewContext(fn('careerThreadsKey')+'\n'+fn('careerThreads')+'\n'+fn('careerSaveThread'),ctx);
   ctx.careerSaveThread();
   ctx.careerActiveThread=null;ctx.advisorHistory=['Second question','Second answer'];ctx.careerSaveThread();
@@ -200,4 +200,23 @@ test('roommate name step uses roommate label and selection',()=>{
  const {c,bubbles}=setup();c._tsFlow={active:true,step:'rel'};c.tsBubble=x=>bubbles.push(x);c.tsHighlightRelationship=x=>{c.selected=x;};
  vm.runInContext(fn('tsParseRel'),c);vm.runInContext(fn('tsHandle'),c);c.tsHandle('roommate');
  assert.equal(c.selected,'roommate');assert.equal(bubbles[0],'What’s your roommate’s first name?');
+});
+
+test('career selection scopes saved context to only selected cards',()=>{
+ const ctx={careerSelection:['field'],careerCtx:()=>({role:'Business development',field:'Technology',goal:'hidden'})};
+ vm.runInNewContext(fn('careerSelectedContext'),ctx);
+ assert.equal(JSON.stringify(ctx.careerSelectedContext()),JSON.stringify({field:'Technology'}));
+ ctx.careerSelection=['role','field'];assert.equal(Object.keys(ctx.careerSelectedContext()).length,2);
+ ctx.careerSelection=[];assert.equal(Object.keys(ctx.careerSelectedContext()).length,0);
+});
+test('relationship selection toggles independently and preserves the other person',()=>{
+ const ctx={relationshipSelection:[],document:{getElementById:()=>({disabled:false})},renderRelationshipSelection(){}};
+ vm.runInNewContext(fn('rosterOpen'),ctx);
+ ctx.rosterOpen(0);ctx.rosterOpen(1);assert.equal(JSON.stringify(ctx.relationshipSelection),'[0,1]');
+ ctx.rosterOpen(0);assert.equal(JSON.stringify(ctx.relationshipSelection),'[1]');
+});
+test('group overview includes parent-partner roles and all named participants',()=>{
+ const host={};const ctx={_compatChat:{myType:'INTJ',people:[{n:'Mom',r:'parent',t:'ENFJ'},{n:'Sam',r:'partner',t:'ENFP'}]},document:{getElementById:()=>host},pplEsc:x=>x,relLabelOf:x=>x};
+ vm.runInNewContext(fn('renderRelationshipGroup'),ctx);ctx.renderRelationshipGroup();
+ assert.match(host.innerHTML,/Mom knows you through a parent-child relationship/);assert.match(host.innerHTML,/Sam relates to you as a partner/);assert.match(host.innerHTML,/you may need time/i);assert.doesNotMatch(host.innerHTML,/\/100/);
 });
