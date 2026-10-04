@@ -235,3 +235,7 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner { paddin
 .career-fit-overview h3 { margin-top:18px; }
 .career-fit-overview p { margin-top:6px; margin-bottom:12px; }
 @media(max-width:900px) { #career-overview { display:block; } #career-overview .career-suggestions { margin-top:24px; } }
+
+.career-info-edit { grid-column:1/-1; justify-self:end; margin:0; text-align:right; font-size:14px; }
+.career-info-edit summary { cursor:pointer; color:var(--muted); }
+.career-info-edit button { margin-top:8px; }

@@ -6036,6 +6036,7 @@ function tsExtractType(m) {
 function tsParseRel(m) {
   var s = m.toLowerCase();
   if (/(partner|boyfriend|girlfriend|husband|wife|spouse|fianc|dating|crush)/.test(s)) return 'partner';
+  if (/\b(roommate|room mate|housemate|flatmate)\b/.test(s)) return 'roommate';
   if (/(mom|dad|mother|father|parent)/.test(s)) return 'parent';
   if (/(sister|brother|sibling)/.test(s)) return 'sibling';
   if (/(family|cousin|aunt|uncle|son|daughter|grand)/.test(s)) return 'family';
@@ -8559,11 +8560,30 @@ function renderCareerContext() {
   if (!currentUser) { host.innerHTML = ''; return; }
   var selected = careerCtx();
   var card = function(key,label,value) {
-    return '<button type="button" class="ppl-card career-fact ' + (value ? '' : 'career-empty') + '" onclick="careerEdit(\'' + key + '\')"><span>' + label + '</span><strong>' + pplEsc(value || '+ Add ' + label.toLowerCase()) + '</strong></button>';
+    return '<button type="button" class="ppl-card career-fact ' + (value ? '' : 'career-empty') + '" onclick="careerOpenInfo(\'' + key + '\')"><span>' + label + '</span><strong>' + pplEsc(value || '+ Add ' + label.toLowerCase()) + '</strong></button>';
   };
   host.innerHTML = '<div class="career-facts">' + card('role','Job title',selected.role) + card('field','Industry',selected.field) +
-    ((selected.role || selected.field) ? '<button type="button" class="ts-chip ghost career-edit" onclick="careerEdit()">Edit</button>' : '') + '</div><div id="career-editor"></div>';
+    '</div><div id="career-editor"></div>';
   renderCareerOverview();
+}
+function careerOpenInfo(key) {
+  if (!careerCtx()[key]) { careerEdit(key); return; }
+  if (document.getElementById('advisor-send-btn').disabled) return;
+  careerResetChat();
+  var cards = document.querySelectorAll('.career-fact');
+  cards.forEach(function(card, i) {
+    var selected = i === (key === 'role' ? 0 : 1);
+    card.classList.toggle('selected', selected);
+    card.setAttribute('aria-pressed', String(selected));
+  });
+  // Rare maintenance stays secondary, just like a selected relationship.
+  var overview = document.getElementById('career-overview');
+  var tools = document.createElement('details'); tools.className='career-info-edit';
+  var summary = document.createElement('summary'); summary.textContent='Edit'; tools.appendChild(summary);
+  var button = document.createElement('button'); button.type='button'; button.className='ts-chip ghost';
+  button.textContent = key === 'role' ? 'Change job title' : 'Change industry';
+  button.onclick=function(){careerEdit(key);}; tools.appendChild(button);
+  overview.prepend(tools);
 }
 function careerEdit(key) {
   var c = careerCtx();
