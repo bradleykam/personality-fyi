@@ -39,3 +39,7 @@ Send at most one recurring lifecycle email per user per local calendar week, sch
 ## Shared layout release check
 
 For layout or content-size changes, run `tools/layout-audit.js` read-only in the browser against the affected pages at 390, 1024, and 1440 px widths. It checks sibling overlap, content exceeding its allocated height, horizontal overflow, and off-screen composers. Exercise expanded panels and long results as well as empty states. Fix all reported failures before publishing; retain screenshots. Flowing vertical content must determine its own height rather than inherit a shrinking flex basis from a two-column layout.
+
+## UI copy preference (October 4, 2026)
+
+Do not add explanatory subheaders or subtitle copy beneath headings unless the owner explicitly asks. Prefer compact, label-only action buttons over wide cards with descriptions.
