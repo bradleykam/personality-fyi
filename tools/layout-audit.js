@@ -16,6 +16,10 @@ function auditPageLayout() {
     });
   });
   document.querySelectorAll('.cha-input-bar').forEach(el=>{if(!visible(el))return;const r=rect(el);if(r.left<0||r.right>innerWidth+1||r.bottom>innerHeight+1)failures.push('Composer outside viewport');});
+  const main=document.querySelector('.app-main');
+  if(main&&visible(main)) document.querySelectorAll('.cha-input-bar,#app-footer,#app-sidebar-credits').forEach(el=>{
+    if(visible(el)&&rect(main).bottom>rect(el).top+1)failures.push('Scrollable content extends behind bottom control: '+(el.id||el.className));
+  });
   if(document.documentElement.scrollWidth>innerWidth+2)failures.push('Horizontal page overflow');
   return failures;
 }
