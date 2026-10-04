@@ -5808,7 +5808,7 @@ function rosterRender() {
   var cards = list.map(function(p, i) {
     var score = (mine && p.t && COMPAT[mine]) ? COMPAT[mine][p.t] : null;
     var col = (score != null) ? TIER_COLORS[compatTier(score)] : null;
-    return '<div class="ppl-card" onclick="rosterOpen(' + i + ')">' +
+    return '<div class="ppl-card" data-person-index="' + i + '" onclick="rosterOpen(' + i + ')">' +
       '<span class="ppl-type"' + (p.t ? '' : ' style="background:var(--cream,#f6f4ef);color:var(--muted)"') + (p.g ? ' title="AI guess"' : '') + '>' + (p.t ? (p.g ? '≈' : '') + p.t : '?') + '</span>' +
       '<span><span class="ppl-name">' + pplEsc(p.n) + '</span><br><span class="ppl-rel">' + pplEsc(p.r) + '</span></span>' +
       (score != null
@@ -5985,6 +5985,7 @@ function tsChipClick(step, value, el) {
 var TS_CANCEL_CHIP = ['cancel', 'Cancel', true];
 
 function tsStart(opts) {
+  document.querySelectorAll('.ppl-card.selected').forEach(function(card) { card.classList.remove('selected'); card.removeAttribute('aria-current'); });
   if (!currentUser) { openAuthModal('Sign in free to start typing the people in your life.'); return; }
   if (!document.getElementById(tsCtx().thread)) {
     if (opts._retried) return;
@@ -6412,6 +6413,7 @@ function rosterOpen(i) {
   var input = document.getElementById('compat-chat-input');
   input.value = '';
   input.placeholder = ''; 
+  document.querySelectorAll('[data-person-index]').forEach(function(card) { var active = Number(card.dataset.personIndex) === i; card.classList.toggle('selected',active); card.setAttribute('aria-current',String(active)); });
   renderPersonProfile(i);
   compatRestoreChat(p.id, p.n);
   chaBindInput(input, document.getElementById('compat-chat-send'), compatChatSend);
@@ -6601,7 +6603,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // If we matched on legacy ?tab=, also REPLACE the URL with the clean path so
   // the user never sees the messy version in the address bar.
   try {
-    var allowed = { alltypes: 1, advisor: 1, compat: 1, ask: 1, test: 1, account: 1, nhie: 1, why: 1, blog: 1, characters: 1, analyze: 1 };
+    var allowed = { data:1, articles:1, content:1, alltypes: 1, advisor: 1, compat: 1, ask: 1, test: 1, account: 1, nhie: 1, why: 1, blog: 1, characters: 1, analyze: 1 };
     var pathKey = (typeof NAV_PATH_TO_KEY !== 'undefined') ? NAV_PATH_TO_KEY[window.location.pathname] : null;
     var queryKey = new URLSearchParams(window.location.search).get('tab');
     var tab = pathKey || queryKey;
@@ -6631,7 +6633,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Wire browser back/forward to switch in-app tabs. Resolves the target tab from
   // history state, then pathname (new clean URLs), then ?tab= query (legacy).
   window.addEventListener('popstate', function(ev) {
-    var allowed = { alltypes: 1, advisor: 1, compat: 1, ask: 1, test: 1, account: 1, nhie: 1, why: 1, blog: 1, characters: 1, analyze: 1 };
+    var allowed = { data:1, articles:1, content:1, alltypes: 1, advisor: 1, compat: 1, ask: 1, test: 1, account: 1, nhie: 1, why: 1, blog: 1, characters: 1, analyze: 1 };
     var target = (ev.state && ev.state.tab)
       || (typeof NAV_PATH_TO_KEY !== 'undefined' ? NAV_PATH_TO_KEY[window.location.pathname] : null)
       || new URLSearchParams(window.location.search).get('tab')
@@ -7903,7 +7905,7 @@ async function updateJobCount() {
 let techJobsCache = null;
 async function loadTechJobs() {
   if (techJobsCache) return techJobsCache;
-  try { const r = await fetch('./jobs_tech.json'); techJobsCache = await r.json(); return techJobsCache; }
+  try { const r = await fetch('/jobs_tech.json'); techJobsCache = await r.json(); return techJobsCache; }
   catch(e) { console.error('Failed to load jobs_tech.json:', e); return null; }
 }
 
@@ -8472,13 +8474,13 @@ function renderCareerContext() {
   if (!host) return;
   if (!currentUser) { host.innerHTML = ''; return; }
   var selected = careerCtx();
-  host.innerHTML = '<div class="career-cards">' + careerList().map(function(c, i) {
-    return '<button type="button" class="ts-chip career-card" aria-pressed="' + (c.id === selected.id) + '" onclick="careerSelect(' + i + ')"><strong>' + pplEsc(c.role || 'Career') + '</strong><span>' + pplEsc(c.field || '') + '</span></button>';
-  }).join('') + '<button type="button" class="ts-chip" onclick="careerEdit(-1)">+ Add career</button></div>' +
-    (selected.id ? '<div class="career-selected"><span>Ask a question</span><button type="button" class="ghost" onclick="careerEdit(careerList().findIndex(function(c){return c.id===careerCtx().id}))">Edit</button></div>' : '') + '<div id="career-editor"></div>';
+  host.innerHTML = '<div class="career-facts"><div class="career-fact"><span>Job title</span><strong>' + pplEsc(selected.role || 'Not set') + '</strong></div>' +
+    '<div class="career-fact"><span>Industry</span><strong>' + pplEsc(selected.field || 'Not set') + '</strong></div>' +
+    '<button type="button" class="ghost career-edit" onclick="careerEdit()">Edit</button></div><div id="career-editor"></div>';
+
 }
 function careerEdit(i) {
-  var c = careerList()[i] || {};
+  var c = careerCtx();
   careerEditing = c.id || null;
   document.getElementById('career-editor').innerHTML = '<form class="career-profile-form" onsubmit="event.preventDefault();careerCtxSave()">' +
     '<label>Industry<input id="cc-field" required maxlength="120" value="' + pplEsc(c.field || '') + '" placeholder="e.g. Technology"></label>' +
@@ -8491,7 +8493,8 @@ async function careerPersist(next, editing) {
   careerSaving = true;
   try {
     var list = careerList().slice();
-    var idx = editing ? list.findIndex(function(c) { return c.id === editing; }) : list.findIndex(function(c) { return c.field === next.field && c.role === next.role; });
+    var activeId = editing || careerCtx().id;
+    var idx = list.findIndex(function(c) { return c.id === activeId; });
     var c = Object.assign({}, idx >= 0 ? list[idx] : {}, next, {id: idx >= 0 ? list[idx].id : crypto.randomUUID()});
     if (idx >= 0) list[idx] = c; else list.push(c);
     var res = await supabaseClient.auth.updateUser({data:{careers:list,active_career_id:c.id,career:c}});
@@ -10307,7 +10310,7 @@ function onLogin(user) {
   // Skip this entirely when the login was triggered to resume an AI action:
   // the user should land back exactly where they were, not on the test prompt.
   try {
-    if (!_pendingAiLogin && !mbtiType && !localType && !sessionStorage.getItem('pf_get_type_routed')) {
+    if (!window.PF_CONTENT_PAGE && !_pendingAiLogin && !mbtiType && !localType && !sessionStorage.getItem('pf_get_type_routed')) {
       sessionStorage.setItem('pf_get_type_routed', '1');
       if (typeof appNav === 'function') appNav('analyze');
     }
@@ -10381,7 +10384,7 @@ function _navMoreGroup() {
     _navBtn('alltypes', 'All Types', true) +
     _navBtn('characters', 'Fictional Characters', true) +
     _navBtn('data', 'Data', true) +
-    '<a class="app-nav-item" href="/blog/" style="text-decoration:none;padding-left:1.75rem">Articles</a>' +
+    _navBtn('articles', 'Articles', true) +
     '</div>';
 }
 function renderSidebar() {
@@ -13089,6 +13092,8 @@ var NAV_SECTION_MAP = {
   'why':        'why-section',
   'blog':       'blog-section',
   'data':       'data-section',
+  'articles': 'data-section',
+  'content': 'data-section',
   'characters': 'characters-section',
   'employer-landing':   'employer-landing-section',
   'employer-signup':    'employer-signup-section',
@@ -13098,6 +13103,7 @@ var NAV_SECTION_MAP = {
 // Pretty-URL routing: each tab key maps to a path + a per-route <title> +
 // description. Keys not listed stay on "/" with the SPA’s default meta.
 var NAV_ROUTE_MAP = {
+  'articles': {path:'/blog/',title:'Articles | Personality.fyi',desc:'Explore personality articles.'},
   'data': {path:'/data',title:'Personality Data | Personality.fyi',desc:'Explore personality data studies.'},
   'analyze':    { path: '/',                  title: 'Personality.fyi — MBTI test, career planning, compatibility', desc: 'Free 60-second MBTI test, AI career advisor, and compatibility analysis for every personality type.' },
   'advisor':    { path: '/career-planning',   title: 'Career Planning by Personality Type | Personality.fyi',       desc: 'AI career advisor calibrated to your MBTI type. Get role recommendations, industry fit, and a path tailored to how you think.' },
@@ -13110,6 +13116,7 @@ var NAV_ROUTE_MAP = {
   'account':    { path: '/account',           title: 'Your Account | Personality.fyi',                              desc: 'Manage your personality.fyi account.' }
 };
 // Reverse lookup: pathname → tab key.
+if (window.PF_CONTENT_PAGE) NAV_ROUTE_MAP.content = {path:location.pathname,title:window.PF_CONTENT_PAGE.title,desc:''};
 var NAV_PATH_TO_KEY = {};
 Object.keys(NAV_ROUTE_MAP).forEach(function(k) {
   NAV_PATH_TO_KEY[NAV_ROUTE_MAP[k].path] = k;
@@ -13120,7 +13127,14 @@ function dataReaderLoaded(frame) {
     var doc = frame.contentDocument;
     doc.querySelectorAll('a[href]').forEach(function(a) {
       var url = new URL(a.href, location.origin);
-      if (url.origin !== location.origin || !url.pathname.startsWith('/blog/')) a.target = '_top';
+      if (url.origin !== location.origin) { a.target = '_blank'; a.rel = 'noopener'; return; }
+      a.addEventListener('click',function(e) {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || a.hasAttribute('download')) return;
+        var key = NAV_PATH_TO_KEY[url.pathname];
+        if (key && !['content','articles','data'].includes(key)) { e.preventDefault(); appNav(key); return; }
+        if (url.pathname === frame.contentWindow.location.pathname && url.hash) return;
+        e.preventDefault(); url.searchParams.set('_content','1'); frame.src = url.pathname + url.search + url.hash;
+      });
     });
   } catch(e) {}
 }
@@ -13136,7 +13150,7 @@ function sidebarToggleMore() {
   if (btn) btn.setAttribute('aria-expanded', open ? 'false' : 'true');
 }
 function sidebarExpandMoreIfNeeded(key) {
-  if (['alltypes', 'nhie', 'characters', 'data'].indexOf(key) === -1) return;
+  if (['alltypes', 'nhie', 'characters', 'data', 'articles', 'content'].indexOf(key) === -1) return;
   var grp = document.getElementById('sidebar-more-group');
   if (grp && grp.style.display === 'none') sidebarToggleMore();
 }
@@ -13203,9 +13217,13 @@ function appNav(key, opts) {
   if (key === 'nhie') {
     if (typeof nhieInit === 'function') nhieInit();
   }
-  if (key === 'data') {
+  if (['data','articles','content'].includes(key)) {
     var reader = document.getElementById('data-reader');
-    if (!reader.getAttribute('src')) reader.src = '/blog/data';
+    var path = key === 'data' ? '/blog/data' : key === 'articles' ? '/blog/' : window.PF_CONTENT_PAGE.url;
+    if (reader.dataset.entry !== path) {
+      var contentURL = new URL(path,location.origin); contentURL.searchParams.set('_content','1');
+      reader.src = contentURL.pathname + contentURL.search + contentURL.hash; reader.dataset.entry = path;
+    }
   }
   if (key === 'blog') {
     var postSlug = '';
@@ -13401,8 +13419,8 @@ document.addEventListener('DOMContentLoaded', function() {
   initSupabase();
   appUpdateSidebarUser();
 
-  // Default to Home for candidates (employer redirect happens in onLogin)
-  appNav('analyze');
+  // Preserve the requested destination when initializing the shared shell.
+  appNav(NAV_PATH_TO_KEY[location.pathname] || 'analyze', {fromPop:true});
 });
 
 </script>

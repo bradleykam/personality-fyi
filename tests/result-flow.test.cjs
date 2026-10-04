@@ -125,24 +125,18 @@ test('suggested self and career questions submit immediately; career skips intak
   }
 });
 
-test('careers preserve legacy context, add independently, and edit without duplicates', async () => {
-  let n = 0;
-  const ctx = {currentUser:{id:'u1',user_metadata:{career:{field:'Technology',role:'Designer',goal:'Lead a team'}}},careerSaving:false,crypto:{randomUUID:()=> 'career-'+(++n)},document:{getElementById:()=>({disabled:false})},trackEvent(){},careerResetChat(){},alert(){}};
+test('career editing updates the single job and industry while retaining other context', async () => {
+  const ctx = {currentUser:{id:'u1',user_metadata:{career:{field:'Technology',role:'Designer',goal:'Lead a team'}}},careerSaving:false,crypto:{randomUUID:()=> 'career-1'},document:{getElementById:()=>({disabled:false})},trackEvent(){},careerResetChat(){},alert(){}};
   ctx.supabaseClient = {auth:{updateUser:async ({data})=>({data:{user:{...ctx.currentUser,user_metadata:{...ctx.currentUser.user_metadata,...data}}}})}};
-  vm.runInNewContext(fn('careerList')+'\n'+fn('careerCtx')+'\n'+fn('careerPersist')+'\n'+fn('careerChatKey'),ctx);
-  assert.equal(ctx.careerList()[0].goal,'Lead a team');
+  vm.runInNewContext(fn('careerList')+'\n'+fn('careerCtx')+'\n'+fn('careerPersist'),ctx);
   await ctx.careerPersist({field:'Healthcare',role:'Sales'},null);
-  assert.equal(ctx.careerList().length,2);
-  const firstKey = ctx.careerChatKey();
-  await ctx.careerPersist({field:'Healthcare',role:'Sales manager'},ctx.careerCtx().id);
-  assert.equal(ctx.careerList().length,2);
-  assert.equal(ctx.careerCtx().role,'Sales manager');
-  assert.equal(ctx.careerList()[0].goal,'Lead a team');
-  await ctx.careerPersist({field:'Education',role:'Teacher'},null);
-  assert.notEqual(ctx.careerChatKey(),firstKey);
+  assert.equal(ctx.careerList().length,1);
+  assert.equal(ctx.careerCtx().role,'Sales');
+  assert.equal(ctx.careerCtx().field,'Healthcare');
+  assert.equal(ctx.careerCtx().goal,'Lead a team');
   ctx.supabaseClient.auth.updateUser = async()=>({error:{message:'failed'}});
   await ctx.careerPersist({field:'Other',role:'Unsaved'},null);
-  assert.equal(ctx.careerList().length,3);
+  assert.equal(ctx.careerCtx().role,'Sales');
 });
 
 test('career history migrates to named threads without being rendered on entry', () => {
