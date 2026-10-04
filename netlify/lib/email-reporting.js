@@ -1,4 +1,5 @@
 const { randomUUID } = require('node:crypto');
+const {canReserve,weekKey,zoneFor}=require('./email-schedule');
 const { createClient } = require('@supabase/supabase-js');
 const INTERNAL = new Set(['bradleykam@gmail.com', 'brad@real.photos', 'info@real.photos', 'brad@personality.fyi']);
 function excluded(user) {
@@ -30,19 +31,30 @@ async function record(sb, event, props, at) {
     if (i === 2) throw error;
   }
 }
-async function sendTracked({to, subject, text, html, from, reply_to, campaign, userId, emailToken, extra = {}}) {
+async function sendTracked({to, subject, text, html, from, reply_to, campaign, userId, emailToken, scheduledAt, emailKind='extra', extra = {}}) {
   if (!process.env.RESEND_API_KEY) return {sent:false, reason:'no-resend-key'};
   const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  // All product emails use the same recipient-level limit, including reservations.
+  if(!userId)return {sent:false,reason:'recipient-account-required'};
+  let recipientZone;
+  try {
+    const {data,error}=await sb.auth.admin.getUserById(userId);
+    if(error||!data?.user)throw Error('account unavailable');
+    recipientZone=zoneFor(data.user)||'Europe/London';
+    const {allRows}=require('./product-data');
+    const events=await allRows(sb,'funnel_events');
+    if(!canReserve(data.user,events,Date.parse(scheduledAt)||Date.now(),emailKind))return {sent:false,reason:'weekly-email-limit'};
+  }catch{return {sent:false,reason:'email-limit-unavailable'};}
   const token = emailToken || randomUUID();
-  const props = {...extra,email_token:token, campaign, user_id:userId || null, event_id:'queued:' + token};
+  const props = {...extra,scheduled_at:scheduledAt||null,email_kind:emailKind,email_token:token, campaign, user_id:userId || null, event_id:'queued:' + token};
   // Check durable storage before sending. Never retry a successful send because logging failed.
   try { await record(sb, 'mail_queued', props); }
   catch { return {sent:false, reason:'email-reporting-unavailable'}; }
   let r;
   try {
     r = await fetch('https://api.resend.com/emails', {
-      method:'POST', signal:AbortSignal.timeout(8000), headers:{'Content-Type':'application/json', Authorization:'Bearer ' + process.env.RESEND_API_KEY, 'Idempotency-Key':token},
-      body:JSON.stringify({from, to:[to], reply_to, subject,
+      method:'POST', signal:AbortSignal.timeout(8000), headers:{'Content-Type':'application/json', Authorization:'Bearer ' + process.env.RESEND_API_KEY, 'Idempotency-Key':require('node:crypto').createHash('sha256').update(userId+':'+weekKey(Date.parse(scheduledAt)||Date.now(),recipientZone)+':'+emailKind).digest('hex')},
+      body:JSON.stringify({from, to:[to], reply_to, subject, scheduled_at:scheduledAt,
         text:taggedLinks(text,campaign,token), html:html == null ? undefined : taggedLinks(html,campaign,token),
         tags:[{name:'pf_campaign',value:campaign},{name:'pf_token',value:token}]})
     });

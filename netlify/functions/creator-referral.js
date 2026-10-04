@@ -145,15 +145,9 @@ ${compatText}See everyone you've invited on your results page: https://personali
 
 Brad`;
 
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: JSON.stringify({
-      from: process.env.RESEND_FROM || 'Brad Kam <brad@personality.fyi>',
-      to: [creator.email],
-      reply_to: 'brad@personality.fyi',
-      subject: 'Someone you invited took the test',
-      text, html,
-    }),
+  await require('../lib/email-reporting').sendTracked({
+    to:creator.email,subject:'Someone you invited took the test',text,html,
+    userId:creator.user_id,campaign:'referral-completed',
+    from:process.env.RESEND_FROM || 'Brad Kam <brad@personality.fyi>',reply_to:'brad@personality.fyi'
   });
 }
