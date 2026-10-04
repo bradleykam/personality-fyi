@@ -88,3 +88,21 @@ test('tagged provider suppressions block recipients even when webhooks lack a us
  const u=user('a',{mbti_type:'ENTP'}),base=[event('mail_queued','a',now-10*DAY,{email_token:'t',campaign:'life-add-career'}),event('mail_accepted','a',now-10*DAY,{email_token:'t',campaign:'life-add-career'})];
  for(const kind of ['complained','suppressed','bounced'])assert.equal(selectEmail(u,[...base,event('mail_webhook',null,now-9*DAY,{email_token:'t',kind})],now),null);
 });
+test('usage counts saved NHIE votes once per account/question and excludes seeds, invalid and future votes',()=>{
+ const users=[user('a',{career:{field:'Technology'},people:[{n:'Friend'},{n:' '}]}),user('b'),user('seed',{seed:true})];
+ const vote=(id,q,at=now-DAY,answer='i_have')=>({user_id:id,statement_id:q,answer,created_at:new Date(at).toISOString()});
+ const r=buildReport({users,events:[],votes:[vote('a',1),vote('a',1),vote('a',2,now-35*DAY),vote('b',1),vote('seed',1),vote('a',3,now+DAY),vote('a',4,now-DAY,'invalid')],now,days:30});
+ assert.equal(r.usage.nhieAnswered,2);assert.equal(r.accounts.find(u=>u.id==='a').nhieAnswered,2);assert.equal(r.usage.relationshipsSaved,1);assert.equal(r.usage.careerAccounts,1);assert.equal(r.accounts.find(u=>u.id==='a').career,true);assert.equal(r.accounts.find(u=>u.id==='b').career,false);
+ assert.equal(r.usage.relationshipQuestions,null);assert.equal(buildReport({users,events:[],now}).usage.nhieAnswered,null);
+});
+test('questions asked count requests separately from answers, scoped to period and coverage',()=>{
+ const u=user('a'),marker=event('lifecycle_question_measurement_start',null,now-20*DAY),q=event('server_ai_question','a',now-DAY,{request_id:'q1',surface:'compat'});
+ const events=[marker,q,q,event('server_ai_answer','a',now-DAY,{surface:'compat'}),event('server_ai_question','a',now-10*DAY,{surface:'career'}),event('server_ai_question','a',now-DAY,{surface:'career'}),event('server_ai_question','a',now-25*DAY,{surface:'career'}),event('server_ai_question','a',now-DAY,{surface:'career',server_verified:false})];
+ const r=buildReport({users:[u],events,votes:[],now,days:7});assert.equal(r.usage.relationshipQuestions,1);assert.equal(r.usage.careerQuestions,1);assert.equal(r.accounts[0].careerQuestions,2);assert.equal(r.accounts[0].relationshipQuestions,1);
+});
+test('authenticated submitted questions are recorded before provider failures, without question text',async()=>{
+ const written=[];const c={exports:{},console:{error(){}},process:{env:{SUPABASE_URL:'mock',SUPABASE_ANON_KEY:'mock'}},fetch:async()=>{throw Error('provider offline')},require(name){if(name==='@supabase/supabase-js')return {createClient:()=>({auth:{getUser:async()=>({data:{user:{id:'actual'}}})}})};if(name==='../lib/product-events')return {write:async(...args)=>written.push(args),touch:()=>({})};return require(name)}};
+ vm.runInNewContext(fs.readFileSync('netlify/functions/claude.js','utf8'),c);
+ await c.exports.handler({httpMethod:'POST',headers:{authorization:'Bearer valid','x-pf-answer':'1','x-pf-surface':'career'},body:JSON.stringify({messages:[{role:'user',content:'Private career question'}]})});
+ assert.equal(written[0][0],'server_ai_question');assert.equal(written[0][1],'actual');assert.equal(written[0][2].surface,'career');assert.equal(written[1][0],'server_ai_failure');assert.doesNotMatch(JSON.stringify(written),/Private career question/);
+});

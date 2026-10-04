@@ -52,6 +52,9 @@ exports.handler = async function(event) {
 
   try {
     const body = JSON.parse(event.body);
+    if (verifiedUserId && event.headers['x-pf-answer']==='1' && Array.isArray(body.messages) && body.messages.some(m=>m.role==='user' && m.content)) {
+      try { await require('../lib/product-events').write('server_ai_question',verifiedUserId,{request_id:require('node:crypto').randomUUID(),surface:String(event.headers['x-pf-surface']||'unknown').slice(0,60)}); } catch(e) { console.error('Question recording failed',e.message); }
+    }
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
