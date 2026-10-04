@@ -3711,7 +3711,7 @@ textarea::placeholder { color: var(--muted); }
 #career-roles:not([open]) { min-height: 0; }
 </style>
 <link rel="alternate" type="application/rss+xml" title="Personality.fyi Blog" href="/feed.xml">
-</head>
+<script src="/relationship-dynamics.js?v=20261004-pair"></script></head>
 <body>
 <!-- Mobile header -->
 <div class="app-mobile-header">
@@ -5859,8 +5859,8 @@ function renderPersonProfile(i) {
     '</div></div>' +
     '<section class="person-match" aria-label="Match details">' +
       (score !== null ? '<div class="person-match-score">' + score + '<span>/100</span></div><p class="person-match-caption">Personality compatibility estimate</p>' : '') +
-      '<p>' + guide.frame.replace(/NAME/g, pplEsc(p.n)) + '</p>' +
-      (p.t && COMM_TIPS[p.t] ? '<p>' + COMM_TIPS[p.t] + '</p>' : '') +
+      relationshipDynamics(mine,p.t,p.r,p.n).map(function(section) { return '<h3>' + pplEsc(section.title) + '</h3><p>' + pplEsc(section.text) + '</p>'; }).join('') +
+      '<p class="person-dynamics-note">Personality-based possibilities—not a verdict on either of you.</p>' +
     '</section>' +
     '<label for="compat-chat-input" style="display:block;margin-top:24px;font-size:18px;font-weight:700;cursor:text">Ask a question</label>';
   if (_compatChat.person) { _compatChat.person.n = p.n; _compatChat.person.r = p.r; }
@@ -9321,66 +9321,39 @@ var OBP_RELS = [
 var REL_GUIDE = {
   roommate: {
     my: 'my roommate',
-    frame: 'Living with NAME works best when expectations about shared space, chores, guests, and quiet time are explicit.',
     situations: ['Set a boundary with NAME', 'Agree on chores with NAME'],
     starters: ['How should NAME and I split household responsibilities?', 'How do I bring up a problem with NAME without making home awkward?', 'What boundaries would help us live together better?']
   },
   partner: {
     my: 'my romantic partner',
-    frame: 'Romantic pairs live and die on how they handle friction and how each one feels supported.',
     situations: ['Help me respond to something NAME said', 'Prepare for a hard conversation', 'Why do we keep having the same argument?', 'Help me understand something NAME did'],
     starters: ['Why do we keep having the same argument?', 'How should I bring this up with NAME?', 'What does NAME need from me when they’re upset?']
   },
   friend: {
     my: 'my friend',
-    frame: 'Friendships run on unspoken expectations. Knowing how NAME is wired makes the unspoken visible.',
     situations: ['Help me understand something NAME did', 'Help me respond to NAME', 'Handle a disagreement with NAME'],
     starters: ['What should I avoid doing that would quietly bother NAME?', 'How do I support NAME when they’re struggling?', 'Why did NAME go quiet on me?']
   },
   parent: {
     my: 'my parent',
-    frame: 'Parent dynamics predate either of you choosing them. Boundaries and expectations are where type differences show up hardest.',
     situations: ['Prepare for a conversation with NAME', 'Handle a disagreement with NAME', 'Set a boundary with NAME'],
     starters: ['Why do NAME and I keep having the same argument?', 'How do I get NAME to actually hear me?', 'How do I set a boundary without a blowup?']
   },
   sibling: {
     my: 'my sibling',
-    frame: 'Sibling patterns are the oldest habits you have. Type explains which ones are personality, not history.',
     situations: ['Help me understand something NAME did', 'Handle a disagreement with NAME', 'Break an old pattern with NAME'],
     starters: ['Why do NAME and I push each other’s buttons?', 'How are NAME and I actually different?', 'How do I stop old patterns with NAME repeating?']
   },
   coworker: {
     my: 'my coworker',
-    frame: 'Working with NAME goes better when the collaboration matches how they process, decide, and communicate.',
     situations: ['Give NAME feedback', 'Prepare for a meeting with NAME', 'Understand NAME’s message', 'Help me respond to NAME', 'Handle conflict with NAME', 'Persuade NAME'],
     starters: ['What’s the best way to give NAME feedback?', 'Why might NAME disagree with my approach?', 'How should NAME and I divide responsibilities?']
   },
   boss: {
     my: 'my boss',
-    frame: 'Managing up is a skill with a manual, and the manual is NAME’s type: how they want information, how they decide, and what earns their trust.',
     situations: ['Manage up', 'Prepare for a meeting with NAME', 'Disagree with NAME safely', 'Ask NAME for something', 'Understand NAME’s message', 'Help me respond to NAME'],
     starters: ['How should I present this to NAME?', 'How do I disagree with NAME without damage?', 'How do I ask NAME for a raise or more scope?']
   }
-};
-
-// How to communicate with each type: deterministic, no tokens needed.
-var COMM_TIPS = {
-  INTJ: 'Lead with the conclusion, then the reasoning. Give them time to think before expecting a reaction, and never mistake their silence for agreement or anger.',
-  INTP: 'Bring the interesting problem, not the small talk. Let them think out loud without holding them to every draft idea, and expect precision questions rather than reassurance.',
-  ENTJ: 'Be direct and come prepared. They respect pushback with evidence far more than quiet compliance, and they read hedging as weakness rather than politeness.',
-  ENTP: 'Debate is how they connect, so don’t take the counterargument personally. Pin down decisions explicitly at the end or the conversation was just entertainment.',
-  INFJ: 'Ask what they actually think and then really listen; they reveal in layers. Harsh delivery closes them down even when your point is right.',
-  INFP: 'Values first, logistics second. Criticize the idea, never the person, and give them space to process before expecting a decision.',
-  ENFJ: 'They track how everyone feels, so name your feelings honestly instead of making them guess. Appreciate them out loud; they run on it more than they admit.',
-  ENFP: 'Match their energy first, then steer. They hear possibility better than criticism, so frame corrections as a more exciting alternative.',
-  ISTJ: 'Be specific, be on time, and honor what was agreed. Changes land better with notice and a reason; surprises read as broken commitments.',
-  ISFJ: 'Notice the quiet work they do and say so. Raise problems gently and privately; public confrontation feels like betrayal to them.',
-  ESTJ: 'Get to the point and respect the plan. They argue positions, not feelings, so bring facts and accept a decision once it’s made.',
-  ESFJ: 'Warmth before business. They need to feel the relationship is solid before hard topics, and they remember exactly how conversations made them feel.',
-  ISTP: 'Fewer words, more substance. Give them a problem instead of a lecture, and don’t chase them for emotional narration they were never going to give.',
-  ISFP: 'Gentle and concrete beats grand and abstract. Pressure makes them retreat; patience makes them open up on their own schedule.',
-  ESTP: 'Keep it fast, real, and preferably in motion. They respond to doing over discussing, and they respect people who say things straight.',
-  ESFP: 'Make it enjoyable and keep it human. Heavy topics land better in small doses, and they never forget who made them feel judged.'
 };
 
 var OBP_QUESTIONS = [
@@ -9604,33 +9577,11 @@ async function obpActivation() {
     '</div>' +
     '<div style="font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px">' + rel.label + (score != null ? ' · ' + TIER_COLORS[compatTier(score)].label : '') + '</div>';
 
-  // Relationship-specific sections from the pre-generated pair bank.
-  var click = '', clash = '';
-  try {
-    var bank = await loadCompatTextsBank();
-    var key = mine + '_' + t + '_' + rel.mode;
-    var text = bank && bank[key];
-    if (text) {
-      var mClick = text.match(/WHERE THEY CLICK[:\s]*/i);
-      var mClash = text.match(/WHERE THEY CLASH[:\s]*/i);
-      var mKill = text.match(/WHAT KILLS IT[:\s]*/i);
-      if (mClick && mClash) {
-        click = text.substring(mClick.index + mClick[0].length, mClash.index).trim();
-        clash = text.substring(mClash.index + mClash[0].length, mKill ? mKill.index : text.length).trim();
-      }
-    }
-  } catch (e) {}
-  var famLine = rel.family ? ' Family patterns run deep here: the dynamic below predates either of you choosing it, which is exactly why naming it helps.' : '';
-  var comm = (COMM_TIPS[t] || '') + famLine;
-
-  var sec = function(title, body) {
-    return body ? '<div class="compat-section" style="margin-top:14px"><h4>' + title + '</h4><p>' + pplEsc(body).replace(/\n+/g, ' ') + '</p></div>' : '';
-  };
+  var sections = relationshipDynamics(mine,t,rel.key,_obp.name);
+  var sec = function(title,body) { return '<div class="compat-section" style="margin-top:14px"><h4>' + pplEsc(title) + '</h4><p>' + pplEsc(body) + '</p></div>'; };
   testAddBubble(
     head +
-    sec('Why you click', click) +
-    sec('Where you clash', clash) +
-    sec('How to communicate', comm),
+    sections.map(function(section) { return sec(section.title,section.text); }).join(''),
     'result'
   );
 

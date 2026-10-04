@@ -239,3 +239,6 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner { paddin
 .career-info-edit { grid-column:1/-1; justify-self:end; margin:0; text-align:right; font-size:14px; }
 .career-info-edit summary { cursor:pointer; color:var(--muted); }
 .career-info-edit button { margin-top:8px; }
+
+.person-match h3 { text-align:left; font-size:18px; margin:24px 0 8px; }
+.person-match .person-dynamics-note { font-size:14px; color:var(--muted); }
