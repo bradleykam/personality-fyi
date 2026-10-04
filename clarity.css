@@ -269,7 +269,7 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner { paddin
 
 /* You: action first, profile second, shared composer unchanged. */
 #home-profile .you-overview-layout { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr); align-items:start; gap:48px; }
-.you-next-step h2 { font-size:clamp(25px,2.4vw,34px); max-width:560px; margin:0 0 12px; }
+.you-next-step h2 { font-size:clamp(18px,1.65vw,26px); max-width:none; white-space:nowrap; margin:0 0 12px; }
 .you-next-step > p { color:var(--muted); max-width:520px; font-size:18px; }
 .you-action-paths { display:flex; flex-wrap:wrap; gap:12px; margin:24px 0 18px; }
 .you-action-path { width:25%; min-width:160px; max-width:100%; min-height:44px; padding:10px 14px; font-size:16px; font-weight:600; text-align:center; color:var(--ink); background:var(--card); border:1px solid var(--border); border-radius:10px; cursor:pointer; }
@@ -312,3 +312,5 @@ body { overflow:hidden; }
 }
 .app-main-inner,body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner { padding-bottom:24px!important; }
 @media(max-width:768px) { .app-main,body:has(#app-sidebar-credits[style*="display: block"]) .app-main { top:48px; left:0; } }
+
+@media(max-width:850px) { .you-next-step h2 { font-size:clamp(14px,3.9vw,26px); } }
