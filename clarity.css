@@ -128,9 +128,10 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner {
 .career-card[aria-pressed="true"] { border:2px solid var(--ink); background:var(--ink); color:var(--paper); }
 .career-selected { display:flex; justify-content:space-between; align-items:center; font-weight:600; }
 .career-selected button { font-size:14px; padding:6px 10px; }
-.career-profile-form { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin:20px 0; }
-.career-profile-form label { display:flex; flex:1; min-width:180px; flex-direction:column; gap:8px; }
-.career-profile-form input { padding:12px; width:100%; box-sizing:border-box; }
+.career-profile-form { display:flex; flex-wrap:wrap; align-items:end; gap:10px; margin:16px 0; max-width:520px; padding:16px; border:1px solid var(--border); border-radius:8px; background:#fff; }
+.career-profile-form label { display:flex; flex:1 1 100%; min-width:0; flex-direction:column; gap:6px; font-size:14px; }
+.career-profile-form input { padding:10px 12px; width:100%; box-sizing:border-box; border:1px solid var(--border); border-radius:8px; font:inherit; font-size:16px; background:var(--paper); color:var(--ink); }
+.career-profile-form p:empty { display:none; }
 
 /* Embedded studies retain the app sidebar instead of introducing another nav. */
 .embedded-content .blog-header { display:none!important; }
@@ -164,7 +165,7 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner { paddin
 .career-fact { display:flex; flex-direction:column; gap:6px; padding:16px 20px; border:1px solid var(--border); border-radius:12px; min-width:180px; background:#fff; }
 .career-fact > span { color:var(--muted); font-size:15px; }
 .career-fact > strong { font-size:18px; font-weight:600; }
-.career-edit { margin-left:auto; font-size:14px; padding:8px; }
+.career-edit { margin-left:0; font-size:14px; padding:8px 10px; }
 .career-facts .career-fact { text-align:left; align-items:flex-start; cursor:pointer; color:var(--ink); font-family:inherit; }
 .career-facts .career-empty { background:transparent; border-style:dashed; }
 .career-facts .career-fact:hover,.career-facts .career-fact:focus-visible { border-color:#506b55; background:#eef2ee; }
