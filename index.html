@@ -5709,9 +5709,9 @@ function showHomeProfile(type) {
     '<header class="career-page-header"><h1>You</h1></header>' +
     '<div class="you-overview-layout"><section class="you-next-step" aria-labelledby="you-next-heading">' +
       '<h2 id="you-next-heading">What would you like to understand better?</h2>' +
-      '<div class="you-action-paths"><button class="you-action-path" onclick="appNav(\'compat\')">Someone in my life</button>' +
+      '<div class="you-action-paths"><button class="you-action-path" onclick="appNav(\'compat\')">My Relationships</button>' +
       '<button class="you-action-path" onclick="appNav(\'advisor\')">My work</button></div>' +
-      '<p class="you-freeform-hint">Or ask your own question below.</p></section>' +
+      '</section>' +
       '<aside class="you-overview you-profile-secondary" aria-label="Your personality overview"><div class="you-profile-heading"><h2>' + type + ' · ' + d.title + '</h2><button class="you-change-type-link" id="you-change-type" aria-expanded="false" aria-controls="you-type-picker" onclick="youChangeType()">Change type</button></div><div id="you-type-picker" hidden></div>' +
       youBlock('How you think', d.cognitive) + youBlock('Work life', YOU_LIFE[type][0]) +
       youBlock('Personal life', YOU_LIFE[type][1]) +
