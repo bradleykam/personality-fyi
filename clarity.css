@@ -314,3 +314,6 @@ body { overflow:hidden; }
 @media(max-width:768px) { .app-main,body:has(#app-sidebar-credits[style*="display: block"]) .app-main { top:48px; left:0; } }
 
 @media(max-width:850px) { .you-next-step h2 { font-size:clamp(14px,3.9vw,26px); } }
+
+.career-score-summary { margin:16px 0; font-weight:600; font-size:18px; }
+.career-variant { margin:20px 0; }

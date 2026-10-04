@@ -3711,7 +3711,7 @@ textarea::placeholder { color: var(--muted); }
 #career-roles:not([open]) { min-height: 0; }
 </style>
 <link rel="alternate" type="application/rss+xml" title="Personality.fyi Blog" href="/feed.xml">
-<script src="/career-fit.js?v=20261004-questions"></script>
+<script src="/career-fit.js?v=20261004-percent"></script>
 <script src="/relationship-dynamics.js?v=20261004-balance"></script></head>
 <body>
 <!-- Mobile header -->
@@ -8586,7 +8586,9 @@ var CAREER_REASONS = {
 };
 function careerLens(type) { return CAREER_LENSES[type] || null; }
 var careerSelection = [];
+var careerExploring = null;
 function careerSelectedContext() {
+ if(careerExploring)return careerExploring;
  var c=careerCtx(), selected={};
  careerSelection.forEach(function(k){if(c[k]) selected[k]=c[k];});
  if(selected.role && c.demands) selected.demands=c.demands;
@@ -8603,6 +8605,7 @@ function renderCareerOverview() {
  if (!host) return;
  var c = careerSelectedContext(), type = localStorage.getItem('typeread_selected_type'), lens = careerLens(type);
  document.getElementById('advisor-side').classList.toggle('industry-only',!!c.field&&!c.role);
+ renderCareerScore(host,careerThreadContext||c,type);
  host.hidden = !!advisorHistory.length;
  host.innerHTML = '';
  if (!c.role && !c.field) {
@@ -8617,6 +8620,19 @@ function renderCareerOverview() {
  renderIndustryOverview(host,c.field,type,lens);
 }
 
+function renderCareerScore(host,c,type) {
+ var bar=document.getElementById('career-score-summary');
+ if(!bar){bar=document.createElement('div');bar.id='career-score-summary';bar.className='career-score-summary';host.before(bar);}
+ bar.hidden=!c.role||!type;
+ if(bar.hidden)return;
+ var broad=careerFit.categoryScore(type,c.role), refined=careerFit.score(type,c.demands);
+ bar.textContent=c.role+' · '+broad+'% category fit'+(c.variant?' · '+c.variant+' '+c.variantScore+'%':'')+(refined!==null?' · '+refined+'% for your described role':'');
+}
+function careerExploreRole(role,field) {
+ careerExploring={role:role,field:field,exploring:true};
+ careerResetChat();
+ renderCareerOverview();
+}
 // Employment shares describe US software publishers, not all technology or personal fit.
 var TECHNOLOGY_ROLE_FAMILIES = [
  {name:'Engineering',share:30.22,work:'Build software, test it, and solve technical problems.',angle:'complex systems, focused problem solving, and practical delivery',soc:['15-1252','15-1253','15-1251','15-1254']},
@@ -8639,8 +8655,8 @@ function renderIndustryOverview(host,field,type,lens) {
  var list=host.querySelector('.industry-roles');
  (tech?TECHNOLOGY_ROLE_FAMILIES:[{name:'Explore roles in '+field,work:'See the main kinds of work and where your preferences could fit.',angle:'the main role families in this industry',share:null}]).forEach(function(r){
   var b=document.createElement('button');b.type='button';b.className='industry-role';
-  b.innerHTML='<span><strong>'+pplEsc(r.name)+'</strong><span class="industry-role-description">'+pplEsc(r.work)+'</span></span><span aria-hidden="true">→</span>';
-  b.onclick=function(){careerSituation('How could '+(tech?r.name+' in ':'roles in ')+field+' fit my '+type+' preferences? Compare '+r.angle+'. Explain where I might thrive or struggle, and give concrete examples. I am exploring this industry, not changing my saved job title.');};list.appendChild(b);
+  b.innerHTML='<span><strong>'+pplEsc(r.name)+'</strong><span class="industry-role-description">'+pplEsc(r.work)+'</span></span><strong>'+careerFit.categoryScore(type,r.name)+'%</strong>';
+  b.onclick=function(){careerExploreRole(r.name,field);};list.appendChild(b);
  });
 }
 
@@ -8649,30 +8665,35 @@ var roleFitStep = 0;
 function renderRoleFit(host,c,type) {
  var result=careerFit.report(type,c.demands);
  var title=pplEsc([c.role,c.field].filter(Boolean).join(' · '));
- if(!result){host.innerHTML='<div class="career-fit-overview"><h2>'+title+'</h2><p>The same job title can describe very different work. Map what your role actually demands to see your fit and the personality styles it favors.</p><button class="ts-chip" onclick="roleFitStart()">Find my career fit</button><p class="career-fit-note">8 quick questions about the job, not about you.</p></div>';return;}
- var score=result.score===null?'Mixed':result.score+'<span>/100</span>';
+ if(!result){
+  host.innerHTML='<div class="career-fit-overview"><h2>'+title+'</h2><div class="person-match-score">'+careerFit.categoryScore(type,c.role)+'%</div><p class="career-fit-note">Estimated preference fit · based on illustrative role patterns.</p>'+careerFit.variants(type,c.role).map(function(v){return '<div class="career-variant"><strong>'+pplEsc(v.name)+' · '+v.score+'%</strong><p>'+pplEsc(v.description)+'</p><p>Best-aligned styles: '+pplEsc(v.ideal.join(' · '))+'</p><button class="ts-chip" data-role-question="'+pplEsc(v.name)+'">Ask about this role</button></div>';}).join('')+'<button class="ts-chip" onclick="roleFitStart()">Refine this role’s fit</button></div>';
+  host.querySelectorAll('[data-role-question]').forEach(function(b){b.onclick=function(){var chosen=careerFit.variants(type,c.role).find(function(v){return v.name===b.dataset.roleQuestion;});careerExploring=Object.assign({},c,{variant:chosen.name,variantScore:chosen.score});renderCareerScore(host,careerExploring,type);careerSituation('How would '+b.dataset.roleQuestion+' fit me? Include its estimated fit percentage, explain the demands behind that score, and ask one specific question to narrow down the work.');};});return;
+ }
+
+ var score=result.score+'<span>%</span>';
  var ideal=result.ideal.length===16||!result.ideal.length?'No single style':result.ideal.join(' · ');
  var matches=careerFit.roleMatches(c.role,c.demands);
- var mappedHtml=matches.length?'<h3>The role you’re describing</h3>'+matches.map(function(m,i){return '<p><strong>'+pplEsc(m.name)+(i===0?' · closest work pattern':'')+'</strong><br>'+pplEsc(m.description)+' '+pplEsc(m.note)+'</p>';}).join('')+'<p class="career-fit-note">Role hypotheses from your answers, not a job-title classification. These describe the work; your fit score compares your personality with that work.</p>':'<p>Choose at least three directional answers to distinguish role patterns.</p>';
+ var mappedHtml=matches.length?'<h3>The role you’re describing</h3>'+matches.map(function(m,i){return '<p><strong>'+pplEsc(m.name)+' · '+careerFit.score(type,Object.fromEntries(careerFit.questions.map(function(q,n){return [q.id,m.a[n]];})))+'%'+(i===0?' · closest work pattern':'')+'</strong><br>'+pplEsc(m.description)+' '+pplEsc(m.note)+'</p>';}).join('')+'<p class="career-fit-note">Role hypotheses from your answers, not a job-title classification. These describe the work; your fit score compares your personality with that work.</p>':'<p>Choose at least three directional answers to distinguish role patterns.</p>';
  var variants=careerFit.variants(type,c.role);
- var variantHtml='<h3>Different versions of this work</h3>'+variants.map(function(v){return '<p><strong>'+pplEsc(v.name)+'</strong> · '+v.score+'/100 preference fit<br>'+pplEsc(v.description)+'</p>';}).join('')+'<p class="career-fit-note">These are illustrative work patterns, not facts about every employer or a prediction of success.</p>';
+ var variantHtml='<h3>Different versions of this work</h3>'+variants.map(function(v){return '<p><strong>'+pplEsc(v.name)+'</strong> · '+v.score+'% preference fit<br>'+pplEsc(v.description)+'</p>';}).join('')+'<p class="career-fit-note">These are illustrative work patterns, not facts about every employer or a prediction of success.</p>';
  host.innerHTML='<div class="career-fit-overview"><h2>'+title+'</h2><div class="person-match-score">'+score+'</div><p class="person-match-caption">Estimated personality fit</p><h3>Best-aligned personality style'+(result.ideal.length>1?'s':'')+'</h3><p>'+pplEsc(ideal)+'</p><p class="career-fit-note">Based on the demands you described. This compares preferences, not skill or potential; it is not a validated job-performance score.</p>'+mappedHtml+'<h3>Where you fit</h3><ul>'+result.fit.map(function(x){return '<li>'+pplEsc(x)+'</li>';}).join('')+'</ul>'+(result.fit.length?'':'<p>The demands you described lean toward different preferences. Your experience and skills can still make you effective.</p>')+'<h3>Where you may need to stretch</h3><ul>'+result.friction.map(function(x){return '<li>'+pplEsc(x)+'</li>';}).join('')+'</ul>'+(result.friction.length?'':'<p>No clear preference mismatch in the answers you gave.</p>')+(result.mixed.length?'<p class="career-fit-note">'+result.mixed.length+' balanced demands do not favor either style.</p>':'')+variantHtml+'<button class="ts-chip ghost" onclick="roleFitStart()">Refine role demands</button></div><div class="career-suggestions"><h3>Ask about your work</h3><div class="ts-chips"></div></div>';
  careerFit.suggestedQuestions(type,c).forEach(function(q){var b=document.createElement('button');b.type='button';b.className='ts-chip';b.textContent=q;b.onclick=function(){careerSituation(q);};host.querySelector('.career-suggestions .ts-chips').appendChild(b);});
 }
 function roleFitStart() {
  if(document.getElementById('advisor-send-btn').disabled)return;
- roleFitDraft=Object.assign({},careerCtx().demands||{});roleFitStep=0;
+ roleFitDraft=Object.assign({},careerSelectedContext().demands||{});roleFitStep=0;
  roleFitRender();
 }
 function roleFitRender() {
  var host=document.getElementById('career-overview'),q=careerFit.questions[roleFitStep];host.hidden=false;
- host.innerHTML='<div class="career-fit-overview"><p class="career-fit-note">Your role · '+(roleFitStep+1)+' of '+careerFit.questions.length+'</p><h2>'+pplEsc(q.title)+'</h2><p>Choose what the job rewards, even if it differs from your own preference.</p><div class="ts-chips role-fit-options"></div><div class="role-fit-controls">'+(roleFitStep?'<button class="ts-chip ghost" onclick="roleFitStep--;roleFitRender()">Back</button>':'')+'<button class="ts-chip ghost" onclick="roleFitDraft=null;renderCareerOverview()">Cancel</button></div><p id="role-fit-error" role="alert"></p></div>';
+ host.innerHTML='<div class="career-fit-overview"><div class="person-match-score">'+careerFit.provisional(localStorage.getItem('typeread_selected_type'),careerSelectedContext().role,roleFitDraft)+'%</div><p class="career-fit-note">Estimated fit · unanswered demands use category assumptions</p><p class="career-fit-note">Your role · '+(roleFitStep+1)+' of '+careerFit.questions.length+'</p><h2>'+pplEsc(q.title)+'</h2><p>Choose what the job rewards, even if it differs from your own preference.</p><div class="ts-chips role-fit-options"></div><div class="role-fit-controls">'+(roleFitStep?'<button class="ts-chip ghost" onclick="roleFitStep--;roleFitRender()">Back</button>':'')+'<button class="ts-chip ghost" onclick="roleFitDraft=null;renderCareerOverview()">Cancel</button></div><p id="role-fit-error" role="alert"></p></div>';
  [q.low,'Both about equally',q.high].forEach(function(label,i){var b=document.createElement('button');b.className='ts-chip';b.type='button';b.textContent=label;b.setAttribute('aria-pressed',String(roleFitDraft[q.id]===i-1));b.onclick=function(){roleFitAnswer(i-1);};host.querySelector('.role-fit-options').appendChild(b);});
 }
 async function roleFitAnswer(value) {
  if(careerSaving)return;
  roleFitDraft[careerFit.questions[roleFitStep].id]=value;
  if(roleFitStep<careerFit.questions.length-1){roleFitStep++;roleFitRender();return;}
+ if(careerExploring){careerExploring.demands=Object.assign({},roleFitDraft);roleFitDraft=null;renderCareerOverview();return;}
  var saved=await careerPersist({demands:Object.assign({},roleFitDraft),demands_version:1},careerCtx().id);
  if(saved){roleFitDraft=null;}else{var error=document.getElementById('role-fit-error');if(error)error.textContent='Could not save your answers. Please try your last answer again.';}
 }
@@ -8685,13 +8706,14 @@ function renderCareerContext() {
   if (!currentUser) { host.innerHTML = ''; return; }
   var selected = careerCtx();
   var card = function(key,label,value) {
-    return '<button type="button" aria-pressed="' + String(careerSelection.indexOf(key)>=0) + '" class="ppl-card career-fact ' + (careerSelection.indexOf(key)>=0 ? 'selected ' : '') + (value ? '' : 'career-empty') + '" onclick="careerOpenInfo(\'' + key + '\')"><span>' + label + '</span><strong>' + pplEsc(value || '+ Add ' + label.toLowerCase()) + '</strong>' + (key==='role' && careerFit.score(localStorage.getItem('typeread_selected_type'),selected.demands)!==null ? '<span class="ppl-score">'+careerFit.score(localStorage.getItem('typeread_selected_type'),selected.demands)+'</span>' : '') + '</button>';
+    return '<button type="button" aria-pressed="' + String(careerSelection.indexOf(key)>=0) + '" class="ppl-card career-fact ' + (careerSelection.indexOf(key)>=0 ? 'selected ' : '') + (value ? '' : 'career-empty') + '" onclick="careerOpenInfo(\'' + key + '\')"><span>' + label + '</span><strong>' + pplEsc(value || '+ Add ' + label.toLowerCase()) + '</strong>' + (key==='role' && value ? '<span class="ppl-score">'+(careerFit.score(localStorage.getItem('typeread_selected_type'),selected.demands) ?? careerFit.categoryScore(localStorage.getItem('typeread_selected_type'),value))+'%</span>' : '') + '</button>';
   };
   host.innerHTML = '<div class="career-facts">' + card('role','Job title',selected.role) + card('field','Industry',selected.field) +
     '</div><div id="career-editor"></div>';
   renderCareerOverview();
 }
 function careerOpenInfo(key) {
+  careerExploring=null;
   if (!careerCtx()[key]) { careerEdit(key); return; }
   if (document.getElementById('advisor-send-btn').disabled) return;
   var at=careerSelection.indexOf(key); if(at>=0) careerSelection.splice(at,1); else careerSelection.push(key);
