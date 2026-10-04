@@ -3712,7 +3712,7 @@ textarea::placeholder { color: var(--muted); }
 </style>
 <link rel="alternate" type="application/rss+xml" title="Personality.fyi Blog" href="/feed.xml">
 <script src="/career-fit.js?v=20261004-rolemap"></script>
-<script src="/relationship-dynamics.js?v=20261004-multi"></script></head>
+<script src="/relationship-dynamics.js?v=20261004-balance"></script></head>
 <body>
 <!-- Mobile header -->
 <div class="app-mobile-header">
@@ -5801,7 +5801,7 @@ function rosterRender() {
   var mine = localStorage.getItem('typeread_selected_type');
   var list = rosterList();
   var cards = list.map(function(p, i) {
-    var score = (mine && p.t && COMPAT[mine]) ? COMPAT[mine][p.t] : null;
+    var score = null; // No measured relationship-specific compatibility score.
     var col = (score != null) ? TIER_COLORS[compatTier(score)] : null;
     return '<div role="button" tabindex="0" onkeydown="if(event.target===this &amp;&amp; (event.key===&quot;Enter&quot; || event.key===&quot; &quot;)){event.preventDefault();this.click();}" aria-pressed="' + String(relationshipSelection.indexOf(i)>=0) + '" class="ppl-card ' + (relationshipSelection.indexOf(i)>=0 ? 'selected' : '') + '" data-person-index="' + i + '" onclick="rosterOpen(' + i + ')">' +
       '<span class="ppl-type"' + (p.t ? '' : ' style="background:var(--cream,#f6f4ef);color:var(--muted)"') + (p.g ? ' title="AI guess"' : '') + '>' + (p.t ? (p.g ? '≈' : '') + p.t : '?') + '</span>' +
@@ -5847,7 +5847,7 @@ function renderPersonProfile(i) {
   var p = rosterList()[i];
   if (!host || !p) return;
   var mine = localStorage.getItem('typeread_selected_type');
-  var score = mine && p.t && COMPAT[mine] ? COMPAT[mine][p.t] : null;
+
   var guide = REL_GUIDE[p.r] || REL_GUIDE.friend;
   trackEvent('person_profile_viewed', { rel: p.r, type_status: p.st || (p.g ? 'estimated' : 'known') });
   host.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:16px"><h2 class="relationship-name">' + pplEsc(p.n) +
@@ -5859,7 +5859,6 @@ function renderPersonProfile(i) {
       '<button class="ts-chip ghost" onclick="rosterAddOpen(' + i + ')">' + (p.t ? 'Update type' : 'Find their type') + '</button>' +
     '</div></div>' +
     '<section class="person-match" aria-label="Match details">' +
-      (score !== null ? '<div class="person-match-score">' + score + '<span>/100</span></div><p class="person-match-caption">Personality compatibility estimate</p>' : '') +
       relationshipDynamics(mine,p.t,p.r,p.n).map(function(section) { return '<h3>' + pplEsc(section.title) + '</h3><p>' + pplEsc(section.text) + '</p>'; }).join('') +
       '<p class="person-dynamics-note">Personality-based possibilities—not a verdict on either of you.</p>' +
     '</section>' +
@@ -9688,7 +9687,7 @@ async function obpActivation() {
   var name = pplEsc(_obp.name);
   var rel = _obp.rel;
   var approx = _obp.status === 'estimated' ? '≈' : '';
-  var score = (mine && COMPAT[mine]) ? COMPAT[mine][t] : null;
+  var score = null; // Do not present the generic type table as a personal relationship rating.
   var col = (score != null) ? TIER_COLORS[compatTier(score)] : null;
   trackEvent('compatibility_viewed', { via: 'activation', rel: rel.key, type_status: _obp.status });
 

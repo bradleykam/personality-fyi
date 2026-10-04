@@ -77,7 +77,20 @@ function relationshipDynamics(mine,theirs,rel,name){
  let plans;
  if(mine[3]===theirs[3]) plans=mine[3]==='J'?'With '+d[3]+', both may want clarity and follow-through. That creates dependability when you agree, but a standoff when each already has a different plan.':'With '+d[3]+', both may appreciate flexibility. The easygoing atmosphere can become uncertainty when nobody makes the final commitment.';
  else plans=mine[3]==='J'?'With '+d[3]+', you may want an agreement settled while they prefer room to adapt. You can experience changes as unreliability; they can experience your need for closure as pressure.':'With '+d[3]+', they may want an agreement settled while you prefer room to adapt. You can experience their certainty as pressure; they can experience your flexibility as a lack of commitment.';
- return [{title:'How you relate',text:decisions[rel][tf]},{title:'Your everyday dynamic',text:rhythm+' '+outlook},{title:'Where friction can build',text:plans}];
+ const strengths={
+ parent:'Practical help and emotional recognition can give your parent-child relationship more than one way to express care.',
+ partner:'You can build a partnership that makes room for both practical needs and emotional connection.',
+ friend:'Shared interests can give the friendship a place to feel easy, without requiring identical social habits.',
+ sibling:'Your shared history can make small gestures meaningful and give you a sense of being known over time.',
+ roommate:'When your expectations are explicit, shared space can offer both companionship and room to do your own thing.',
+ coworker:'Different perspectives can improve a decision when both have room to contribute.',
+ boss:'Clear expectations and mutual respect can turn different working styles into useful guidance and autonomy.',
+ family:'Shared experiences can support belonging while leaving space for different ways of living.'
+ };
+ const common=mine[1]===theirs[1]?(mine[1]==='N'?'You may enjoy exploring ideas, possibilities, and the meaning behind experiences.':'You may connect through practical activities, concrete experiences, and useful help.'):'One of you may notice possibilities while the other tests what is practical. Together, that can make ideas more usable.';
+ const balance=tf==='TF'?'You may bring clarity and problem solving; they may notice feelings and social needs that would otherwise be missed.':tf==='FT'?'You may notice feelings and social needs; they may contribute clarity and practical problem solving.':tf==='TT'?'Direct discussion and practical problem solving can give you common ground.':'Emotional responsiveness and encouragement can help both of you feel supported.';
+ const home=(rel==='roommate'||rel==='partner')&&mine[0]!==theirs[0]? ' Sharing a home makes differences in stimulation harder to step away from: visitors, background noise, interruptions, and time alone need explicit agreements. A very large difference in social needs can create substantial day-to-day strain; shared interests do not cancel it out.':'';
+ return [{title:'How you relate',text:decisions[rel][tf]+' '+outlook},{title:'What can work well',text:strengths[rel]+' '+common+' '+balance},{title:'Where friction can build',text:rhythm+' '+plans+home}];
 }
 if(typeof module!=='undefined')module.exports={relationshipDynamics};
 root.relationshipDynamics=relationshipDynamics;
