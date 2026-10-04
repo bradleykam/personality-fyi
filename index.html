@@ -3711,7 +3711,7 @@ textarea::placeholder { color: var(--muted); }
 #career-roles:not([open]) { min-height: 0; }
 </style>
 <link rel="alternate" type="application/rss+xml" title="Personality.fyi Blog" href="/feed.xml">
-<script src="/career-fit.js?v=20261004-demand"></script>
+<script src="/career-fit.js?v=20261004-rolemap"></script>
 <script src="/relationship-dynamics.js?v=20261004-multi"></script></head>
 <body>
 <!-- Mobile header -->
@@ -4817,15 +4817,15 @@ function youRenderThreads() {
   var host = document.getElementById('you-thread-list');
   if (!host) return;
   host.innerHTML = '';
-  var rows = youThreads().map(function(t) { return Object.assign({area:'you'},t); }).concat(careerThreads().map(function(t) { return Object.assign({area:'career'},t); })).sort(function(a,b) { return b.at-a.at; });
+  var rows = youThreads().map(function(t) { return Object.assign({area:'you'},t); }).concat(careerThreads().map(function(t) { return Object.assign({area:'career'},t); })).concat(relationshipThreads().map(function(t) { return Object.assign({area:'relationship'},t); })).sort(function(a,b) { return b.at-a.at; });
   if (!rows.length) return;
   var label = document.createElement('div'); label.textContent = 'Your conversations';
   label.style.cssText = 'padding:16px 20px 6px;font-size:11px;color:var(--muted)'; host.appendChild(label);
   rows.forEach(function(t) {
     var button = document.createElement('button'); button.className = 'app-nav-item';
     button.style.cssText = 'display:block;width:100%;max-width:100%;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
-    button.textContent = (t.area === 'career' ? 'Career · ' : '') + t.title; button.title = button.textContent;
-    button.onclick = function() { if (t.area === 'career') { careerOpenThread(t.id); return; } appNav('analyze'); homeChatInit(localStorage.getItem('typeread_selected_type'), t); };
+    button.textContent = (t.area === 'career' ? 'Career · ' : t.area === 'relationship' ? 'Relationships · ' : '') + t.title; button.title = button.textContent;
+    button.onclick = function() { if (t.area === 'relationship') { relationshipOpenThread(t.id); return; } if (t.area === 'career') { careerOpenThread(t.id); return; } appNav('analyze'); homeChatInit(localStorage.getItem('typeread_selected_type'), t); };
     host.appendChild(button);
   });
 }
@@ -6407,7 +6407,7 @@ function renderRelationshipSelection() {
   var i = relationshipSelection[0];
   var p = rosterList()[i];
   if (!p) { document.getElementById('relationship-conversation').hidden=true; _compatChat={history:[]}; document.querySelectorAll('[data-person-index]').forEach(function(c){c.classList.remove('selected');c.setAttribute('aria-pressed','false');}); return; }
-  appNav('compat');
+  appNav('compat', {preserveRelationship:true});
   _tsFlow = null;
   tsHighlightRelationship(null);
   myType = localStorage.getItem('typeread_selected_type');
@@ -6425,7 +6425,8 @@ function renderRelationshipSelection() {
     _compatChat.person = {id:'group-'+_compatChat.people.map(function(p){return p.id || p.n;}).sort().join('|'),n:_compatChat.people.map(function(p){return p.n;}).join(' + '),r:'group'};
     renderRelationshipGroup();
   } else { renderPersonProfile(i); }
-  compatRestoreChat(_compatChat.person.id, _compatChat.person.n);
+  document.getElementById('person-profile-host').hidden = false;
+  youRenderThreads();
   chaBindInput(input, document.getElementById('compat-chat-send'), compatChatSend);
 }
 
@@ -7069,43 +7070,61 @@ function compatOpenChat(myType, theirType) {
   setTimeout(function() { input && input.focus(); }, 400);
 }
 
-// Conversation continuity per person: the last exchanges about a saved
-// person are kept on this device and restored when their profile reopens.
-function compatChatPersist() {
+// Chats are opened only through explicit thread selection, never a person card.
+function relationshipThreadsKey() { return 'pf_relationship_threads_'+(currentUser ? currentUser.id : 'guest'); }
+function relationshipThreads() {
   try {
-    if (!_compatChat.person || !_compatChat.person.id) return;
-    localStorage.setItem('pf_chat_' + _compatChat.person.id, JSON.stringify(_compatChat.history.slice(-12)));
-    pfConvoTouch('person:' + _compatChat.person.id, _compatChat.person.n);
-  } catch (e) {}
-}
-
-function compatRestoreChat(personId, name) {
-  try {
-    if (!personId) return;
-    var saved = JSON.parse(localStorage.getItem('pf_chat_' + personId) || 'null');
-    if (!saved || !saved.length) return;
-    var thread = document.getElementById('compat-chat-thread');
-    if (!thread) return;
-    _compatChat.history = saved;
-    var div = document.createElement('div');
-    div.style.cssText = 'font-size:11px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin:6px 0';
-    div.textContent = 'Earlier conversation about ' + name;
-    thread.appendChild(div);
-    saved.forEach(function(m) {
-      var b = document.createElement('div');
-      if (m.role === 'user') { b.className = 'cha-msg user'; b.textContent = m.content; }
-      else {
-        b.className = 'cha-msg ai';
-        var rendered = (typeof advisorMarkdown === 'function') ? advisorMarkdown(m.content) : ('<p>' + m.content + '</p>');
-        b.innerHTML = '<div class="cha-msg-avatar">AI</div><div class="cha-msg-body">' + rendered + '</div>';
-      }
-      thread.appendChild(b);
+    var rows=JSON.parse(localStorage.getItem(relationshipThreadsKey())||'[]');
+    var people=rosterList(), contexts=people.filter(function(p){return p.id;}).map(function(p){return {person:p,people:null};});
+    // Legacy group IDs encode their members. Only import groups belonging to this roster.
+    Object.keys(localStorage).filter(function(k){return k.indexOf('pf_chat_group-')===0;}).forEach(function(k){
+      var id=k.slice(8),ids=id.slice(6).split('|'),members=ids.map(function(id){return people.find(function(p){return (p.id||p.n)===id;});});
+      if(members.length>1&&members.every(Boolean))contexts.push({person:{id:id,n:members.map(function(p){return p.n;}).join(' + '),r:'group'},people:members});
     });
-    thread.scrollTop = thread.scrollHeight;
-  } catch (e) {}
+    contexts.forEach(function(c){
+      var id='import-'+c.person.id;
+      if(rows.some(function(t){return t.id===id;}))return;
+      var history;try{history=JSON.parse(localStorage.getItem('pf_chat_'+c.person.id)||'[]');}catch(e){return;}
+      if(!Array.isArray(history)||!history.length)return;
+      var first=history.find(function(m){return m.role==='user';});
+      rows.push({id:id,title:c.person.n+' · '+(first?first.content:'Earlier conversation').slice(0,70),history:history,person:c.person,people:c.people,myType:localStorage.getItem('typeread_selected_type'),theirType:c.person.t,at:0});
+    });
+    localStorage.setItem(relationshipThreadsKey(),JSON.stringify(rows));
+    return rows;
+  } catch(e) { return []; }
+}
+function compatChatPersist(chat) {
+  chat=chat||_compatChat;
+  if(!chat.person||!chat.history.length)return;
+  try {
+    if(!chat.id)chat.id=crypto.randomUUID();
+    var rows=relationshipThreads().filter(function(t){return t.id!==chat.id;});
+    var first=chat.history.find(function(m){return m.role==='user';});
+    rows.unshift({id:chat.id,title:chat.person.n+' · '+(first?first.content:'Conversation').slice(0,70),history:chat.history.slice(),person:chat.person,people:chat.people||null,myType:chat.myType,theirType:chat.theirType,at:Date.now()});
+    localStorage.setItem(relationshipThreadsKey(),JSON.stringify(rows));
+    youRenderThreads();
+  } catch(e) {}
+}
+function relationshipOpenThread(id) {
+  var saved=relationshipThreads().find(function(t){return t.id===id;});
+  if(!saved)return;
+  appNav('compat');
+  _tsFlow=null;
+  _compatChat=Object.assign({},saved,{history:saved.history.slice()});
+  relationshipSelection=[];
+  var members=saved.people||[saved.person];
+  rosterList().forEach(function(p,i){if(members.some(function(m){return m.id===p.id;}))relationshipSelection.push(i);});
+  document.querySelectorAll('[data-person-index]').forEach(function(card){var selected=relationshipSelection.indexOf(Number(card.dataset.personIndex))>=0;card.classList.toggle('selected',selected);card.setAttribute('aria-pressed',String(selected));});
+  document.getElementById('relationship-conversation').hidden=false;
+  document.getElementById('person-profile-host').hidden=true;
+  var thread=document.getElementById('compat-chat-thread');thread.innerHTML='';
+  saved.history.forEach(function(m){var b=document.createElement('div');b.className='cha-msg '+(m.role==='user'?'user':'ai');if(m.role==='user')b.textContent=m.content;else b.innerHTML='<div class="cha-msg-avatar">AI</div><div class="cha-msg-body">'+advisorMarkdown(m.content)+'</div>';thread.appendChild(b);});
+  var input=document.getElementById('compat-chat-input');input.value='';input.placeholder='';
+  chaBindInput(input,document.getElementById('compat-chat-send'),compatChatSend);
 }
 
 async function compatChatSend() {
+  var chat = _compatChat;
   var input = document.getElementById('compat-chat-input');
   var sendBtn = document.getElementById('compat-chat-send');
   var thread = document.getElementById('compat-chat-thread');
@@ -7120,7 +7139,7 @@ async function compatChatSend() {
     tsHandle(msg);
     return;
   }
-  if (!_compatChat.person) { tsBubble('Choose someone above to start a conversation.'); return; }
+  if (!chat.person) { tsBubble('Choose someone above to start a conversation.'); return; }
   input.value = '';
   sendBtn.disabled = true;
 
@@ -7138,17 +7157,19 @@ async function compatChatSend() {
   thread.appendChild(typing);
   thread.scrollTop = thread.scrollHeight;
 
-  _compatChat.history.push({ role: 'user', content: msg });
-  var rewriteMode = _isRewriteIntent(msg, _compatChat.history);
-  var surfaceRules = "SURFACE: compatibility follow-up chat. You’re advising on MBTI compatibility between a " + _compatChat.myType + " and a " + _compatChat.theirType + ". Concrete examples over abstractions. 2–4 short paragraphs max.";
-  if (_compatChat.person) {
-    var _pr = ({ partner: 'romantic partner', friend: 'close friend', parent: 'parent', sibling: 'sibling', coworker: 'coworker', family: 'family member' })[_compatChat.person.r] || _compatChat.person.r;
-    surfaceRules += " The " + _compatChat.theirType + " is " + _compatChat.person.n + ", the user's " + _pr + (_compatChat.person.est ? " (type is our estimate, not test-verified)" : "") + ". Refer to them by name. Never ask the user to restate the type, name, or relationship.";
+  chat.history.push({ role: 'user', content: msg });
+  document.getElementById('person-profile-host').hidden=true;
+  compatChatPersist(chat);
+  var rewriteMode = _isRewriteIntent(msg, chat.history);
+  var surfaceRules = "SURFACE: compatibility follow-up chat. You’re advising on MBTI compatibility between a " + chat.myType + " and a " + chat.theirType + ". Concrete examples over abstractions. 2–4 short paragraphs max.";
+  if (chat.person) {
+    var _pr = ({ partner: 'romantic partner', friend: 'close friend', parent: 'parent', sibling: 'sibling', coworker: 'coworker', family: 'family member' })[chat.person.r] || chat.person.r;
+    surfaceRules += " The " + chat.theirType + " is " + chat.person.n + ", the user's " + _pr + (chat.person.est ? " (type is our estimate, not test-verified)" : "") + ". Refer to them by name. Never ask the user to restate the type, name, or relationship.";
   }
-  if (_compatChat.people) surfaceRules = "SURFACE: group relationship advice. The user is " + _compatChat.myType + ". Selected people: " + JSON.stringify(_compatChat.people.map(function(p){return {name:p.n,type:p.t || 'unknown',relationshipToUser:p.r,estimatedType:!!p.g};})) + ". Discuss the whole group INCLUDING the user, interactions between the others, and how each relationship role changes the dynamic. Do not concatenate separate pair reports. Do not assume the others are related to each other, infer gender, invent history, assign alliances, or give a group compatibility score. Use possible tendencies, concrete situations, and practical advice. 2–4 short paragraphs. Never ask for known names, types, or relationships.";
-  var calibLabel = "an " + _compatChat.theirType + " reader (the other person in the pairing)";
-  var system = _composeChatSystem(surfaceRules, calibLabel, msg, _compatChat.history.slice(0, -1));
-  trackAiMessage('compat', { rel: (_compatChat.person && _compatChat.person.r) || null, about_person: !!_compatChat.person });
+  if (chat.people) surfaceRules = "SURFACE: group relationship advice. The user is " + chat.myType + ". Selected people: " + JSON.stringify(chat.people.map(function(p){return {name:p.n,type:p.t || 'unknown',relationshipToUser:p.r,estimatedType:!!p.g};})) + ". Discuss the whole group INCLUDING the user, interactions between the others, and how each relationship role changes the dynamic. Do not concatenate separate pair reports. Do not assume the others are related to each other, infer gender, invent history, assign alliances, or give a group compatibility score. Use possible tendencies, concrete situations, and practical advice. 2–4 short paragraphs. Never ask for known names, types, or relationships.";
+  var calibLabel = "an " + chat.theirType + " reader (the other person in the pairing)";
+  var system = _composeChatSystem(surfaceRules, calibLabel, msg, chat.history.slice(0, -1));
+  trackAiMessage('compat', { rel: (chat.person && chat.person.r) || null, about_person: !!chat.person });
   try {
     var resp = await fetch('/.netlify/functions/claude', {
       method: 'POST',
@@ -7157,7 +7178,7 @@ async function compatChatSend() {
         model: 'claude-sonnet-4-6',
         max_tokens: rewriteMode ? 1200 : 500,
         system: system,
-        messages: _compatChat.history
+        messages: chat.history
       })
     });
     var data = await resp.json();
@@ -7165,9 +7186,11 @@ async function compatChatSend() {
     if (!resp.ok) throw new Error((data.error && data.error.message) || 'API error');
     var text = data.content[0].text.trim();
     if (!rewriteMode) text = _stripDashes(text);
+    if(chat !== _compatChat){chat.history.push({role:'assistant',content:rewriteMode?_splitRewriteResponse(text).body:text});compatChatPersist(chat);return;}
     if (rewriteMode) {
       var sp = _splitRewriteResponse(text);
-      _compatChat.history.push({ role: 'assistant', content: sp.body, _mode: 'rewrite' });
+      chat.history.push({ role: 'assistant', content: sp.body, _mode: 'rewrite' });
+      compatChatPersist(chat);
       var ai1 = document.createElement('div'); ai1.className = 'cha-msg ai';
       var rb = (typeof advisorMarkdown === 'function') ? advisorMarkdown(sp.body) : '<p>' + sp.body + '</p>';
       ai1.innerHTML = '<div class="cha-msg-avatar">AI</div><div class="cha-msg-body">' + rb + '</div>';
@@ -7180,8 +7203,8 @@ async function compatChatSend() {
       }
       thread.scrollTop = thread.scrollHeight;
     } else {
-      _compatChat.history.push({ role: 'assistant', content: text });
-      compatChatPersist();
+      chat.history.push({ role: 'assistant', content: text });
+      compatChatPersist(chat);
       var aiDiv = document.createElement('div'); aiDiv.className = 'cha-msg ai';
       var rendered = (typeof advisorMarkdown === 'function') ? advisorMarkdown(text) : '<p>' + text + '</p>';
       aiDiv.innerHTML = '<div class="cha-msg-avatar">AI</div><div class="cha-msg-body">' + rendered + '</div>';
@@ -7190,13 +7213,14 @@ async function compatChatSend() {
     }
   } catch (err) {
     typing.remove();
+    if(chat !== _compatChat)return;
     var errDiv = document.createElement('div');
     errDiv.className = 'cha-msg ai';
     errDiv.innerHTML = '<div class="cha-msg-avatar">AI</div><div class="cha-msg-body"><p style="color:var(--accent)">Couldn’t get a response. Try again.</p></div>';
     thread.appendChild(errDiv);
   } finally {
     sendBtn.disabled = false;
-    input.focus();
+    if(chat === _compatChat)input.focus();
   }
 }
 
@@ -8436,6 +8460,8 @@ function pfConvoOpen(ctx) {
   if (ctx === 'self') { askAiGo(); return; }
   if (ctx.indexOf('person:') === 0) {
     var id = ctx.slice(7);
+    var saved=relationshipThreads().find(function(t){return t.person&&t.person.id===id;});
+    if(saved){relationshipOpenThread(saved.id);return;}
     var idx = rosterList().findIndex(function(p) { return p && p.id === id; });
     if (id.indexOf('group-') === 0) {
       var ids=id.slice(6).split('|'); relationshipSelection=[]; rosterList().forEach(function(p,i){if(ids.indexOf(p.id || p.n)>=0) relationshipSelection.push(i);}); renderRelationshipSelection();
@@ -8621,9 +8647,11 @@ function renderRoleFit(host,c,type) {
  if(!result){host.innerHTML='<div class="career-fit-overview"><h2>'+title+'</h2><p>The same job title can describe very different work. Map what your role actually demands to see your fit and the personality styles it favors.</p><button class="ts-chip" onclick="roleFitStart()">Find my career fit</button><p class="career-fit-note">8 quick questions about the job, not about you.</p></div>';return;}
  var score=result.score===null?'Mixed':result.score+'<span>/100</span>';
  var ideal=result.ideal.length===16||!result.ideal.length?'No single style':result.ideal.join(' · ');
+ var matches=careerFit.roleMatches(c.role,c.demands);
+ var mappedHtml=matches.length?'<h3>The role you’re describing</h3>'+matches.map(function(m,i){return '<p><strong>'+pplEsc(m.name)+(i===0?' · closest work pattern':'')+'</strong><br>'+pplEsc(m.description)+' '+pplEsc(m.note)+'</p>';}).join('')+'<p class="career-fit-note">Role hypotheses from your answers, not a job-title classification. These describe the work; your fit score compares your personality with that work.</p>':'<p>Choose at least three directional answers to distinguish role patterns.</p>';
  var variants=careerFit.variants(type,c.role);
  var variantHtml='<h3>Different versions of this work</h3>'+variants.map(function(v){return '<p><strong>'+pplEsc(v.name)+'</strong> · '+v.score+'/100 preference fit<br>'+pplEsc(v.description)+'</p>';}).join('')+'<p class="career-fit-note">These are illustrative work patterns, not facts about every employer or a prediction of success.</p>';
- host.innerHTML='<div class="career-fit-overview"><h2>'+title+'</h2><div class="person-match-score">'+score+'</div><p class="person-match-caption">Estimated personality fit</p><h3>Best-aligned personality style'+(result.ideal.length>1?'s':'')+'</h3><p>'+pplEsc(ideal)+'</p><p class="career-fit-note">Based on the demands you described. This compares preferences, not skill or potential; it is not a validated job-performance score.</p><h3>Where you fit</h3><ul>'+result.fit.map(function(x){return '<li>'+pplEsc(x)+'</li>';}).join('')+'</ul>'+(result.fit.length?'':'<p>The demands you described lean toward different preferences. Your experience and skills can still make you effective.</p>')+'<h3>Where you may need to stretch</h3><ul>'+result.friction.map(function(x){return '<li>'+pplEsc(x)+'</li>';}).join('')+'</ul>'+(result.friction.length?'':'<p>No clear preference mismatch in the answers you gave.</p>')+(result.mixed.length?'<p class="career-fit-note">'+result.mixed.length+' balanced demands do not favor either style.</p>':'')+variantHtml+'<button class="ts-chip ghost" onclick="roleFitStart()">Refine role demands</button></div><div class="career-suggestions"><h3>Explore your fit</h3><div class="ts-chips"><button class="ts-chip" onclick="careerSituation(\'Which versions of my role would fit me better or worse? Use the demands I described and give specific examples.\')">Which version of this job fits me best?</button><button class="ts-chip" onclick="careerSituation(\'Where do my personality preferences clash with this role, and how can I adapt without changing who I am?\')">How can I handle the friction?</button><button class="ts-chip" onclick="careerSituation(\'What should I ask in an interview to tell whether a role suits the way I work? Use my role demands.\')">What should I ask in an interview?</button></div></div>';
+ host.innerHTML='<div class="career-fit-overview"><h2>'+title+'</h2><div class="person-match-score">'+score+'</div><p class="person-match-caption">Estimated personality fit</p><h3>Best-aligned personality style'+(result.ideal.length>1?'s':'')+'</h3><p>'+pplEsc(ideal)+'</p><p class="career-fit-note">Based on the demands you described. This compares preferences, not skill or potential; it is not a validated job-performance score.</p>'+mappedHtml+'<h3>Where you fit</h3><ul>'+result.fit.map(function(x){return '<li>'+pplEsc(x)+'</li>';}).join('')+'</ul>'+(result.fit.length?'':'<p>The demands you described lean toward different preferences. Your experience and skills can still make you effective.</p>')+'<h3>Where you may need to stretch</h3><ul>'+result.friction.map(function(x){return '<li>'+pplEsc(x)+'</li>';}).join('')+'</ul>'+(result.friction.length?'':'<p>No clear preference mismatch in the answers you gave.</p>')+(result.mixed.length?'<p class="career-fit-note">'+result.mixed.length+' balanced demands do not favor either style.</p>':'')+variantHtml+'<button class="ts-chip ghost" onclick="roleFitStart()">Refine role demands</button></div><div class="career-suggestions"><h3>Explore your fit</h3><div class="ts-chips"><button class="ts-chip" onclick="careerSituation(\'Which versions of my role would fit me better or worse? Use the demands I described and give specific examples.\')">Which version of this job fits me best?</button><button class="ts-chip" onclick="careerSituation(\'Where do my personality preferences clash with this role, and how can I adapt without changing who I am?\')">How can I handle the friction?</button><button class="ts-chip" onclick="careerSituation(\'What should I ask in an interview to tell whether a role suits the way I work? Use my role demands.\')">What should I ask in an interview?</button></div></div>';
 }
 function roleFitStart() {
  if(document.getElementById('advisor-send-btn').disabled)return;
@@ -13250,6 +13278,12 @@ function appNav(key, opts) {
   document.body.classList.toggle('career-page-active', key === 'advisor' || key === 'compat');
   if (typeof sidebarExpandMoreIfNeeded === 'function') sidebarExpandMoreIfNeeded(key);
   opts = opts || {};
+  if(!opts.preserveRelationship){
+    _compatChat={history:[]}; relationshipSelection=[];
+    document.getElementById('compat-chat-thread').innerHTML='';
+    document.getElementById('relationship-conversation').hidden=true;
+    document.getElementById('person-profile-host').hidden=false;
+  }
   // Push a clean-URL history entry. Routes mapped in NAV_ROUTE_MAP get a real
   // path (/career-planning, /compatibility, etc.). Anything else stays on "/".
   if (!opts.fromPop) {

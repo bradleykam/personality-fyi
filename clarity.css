@@ -256,3 +256,13 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner { paddin
 .industry-role-description { display:block; line-height:1.5; margin-top:4px; }
 .industry-sources { margin-top:20px; font-size:16px; line-height:1.5; }
 .industry-sources summary { cursor:pointer; }
+
+/* Flowing content must determine its column height; never shrink it beneath siblings. */
+#advisor-section .cha-layout { display:block; overflow:visible; }
+#advisor-section .cha-main { display:block; height:auto; max-height:none; overflow:visible; }
+#advisor-section #advisor-side { margin-top:24px; height:auto; max-height:none; }
+#advisor-section .cha-thread { flex:none; overflow:visible; }
+.cha-layout > * { min-width:0; box-sizing:border-box; }
+@media(max-width:768px) {
+  .cha-layout > .cha-main,.cha-layout > .cha-side { flex:none; height:auto; }
+}

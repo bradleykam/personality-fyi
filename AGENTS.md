@@ -35,3 +35,7 @@ Emails should lead to a useful next action. Without a type, prompt choosing a ty
 ## Email cadence (October 3, 2026)
 
 Send at most one recurring lifecycle email per user per local calendar week, scheduled for Saturday at 09:00 in the user's saved IANA time zone. Until a time zone is known, use Saturday 11:00 Europe/London (including British daylight saving). Capture the browser time zone on authenticated visits. Allow at most one additional welcome or useful transactional product email in that Monday–Sunday week, for a total of two. All application email senders must use the shared cap; queue the weekly message with the provider in advance so batch processing does not change delivery time.
+
+## Shared layout release check
+
+For layout or content-size changes, run `tools/layout-audit.js` read-only in the browser against the affected pages at 390, 1024, and 1440 px widths. It checks sibling overlap, content exceeding its allocated height, horizontal overflow, and off-screen composers. Exercise expanded panels and long results as well as empty states. Fix all reported failures before publishing; retain screenshots. Flowing vertical content must determine its own height rather than inherit a shrinking flex basis from a two-column layout.
