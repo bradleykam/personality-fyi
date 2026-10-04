@@ -9,7 +9,7 @@
 <link rel="dns-prefetch" href="https://api.openpsychometrics.org">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google-site-verification" content="kSGxUo6ERTtnEqasUWyRl-w1hHLS3P4lDoFjQuBmSJc" />
-<title>Personality.fyi — Free MBTI Test, Career Planning, and</title>
+<title>Free Personality Test, Careers &amp; Relationships | Personality.fyi</title>
 <meta name="description" content="Free career planning by personality. Take the 60-second test, get AI-powered career recommendations, and see which jobs, friends, and partners fit your.">
 <meta name="keywords" content="free career planning, career planning, careers by personality, personality career test, free MBTI test, MBTI careers, career advisor, what career fits my personality, AI career advice, career change by personality, jobs for my personality type, MBTI compatibility, friendship compatibility, romantic compatibility, dating by personality type">
 <link rel="canonical" href="https://personality.fyi/">
@@ -17,7 +17,7 @@
 <!-- OpenGraph -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="personality.fyi">
-<meta property="og:title" content="Free Career Planning &amp; Personality Test — Careers, Friendships, Relationships">
+<meta property="og:title" content="Free Personality Test, Careers &amp; Relationships | Personality.fyi">
 <meta property="og:description" content="Free career planning by personality. AI-powered Career Planning tool, role recommendations, live job listings, plus friendship and romantic compatibility — all calibrated to your MBTI type.">
 <meta property="og:url" content="https://personality.fyi/">
 <meta property="og:image" content="https://personality.fyi/og-image.png">
@@ -26,7 +26,7 @@
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Free Career Planning &amp; Personality Test — Careers, Friendships, Relationships">
+<meta name="twitter:title" content="Free Personality Test, Careers &amp; Relationships | Personality.fyi">
 <meta name="twitter:description" content="Free career planning by personality — AI-powered tool plus friendship and romantic compatibility.">
 <meta name="twitter:image" content="https://personality.fyi/og-image.png">
 
@@ -3711,7 +3711,7 @@ textarea::placeholder { color: var(--muted); }
 #career-roles:not([open]) { min-height: 0; }
 </style>
 <link rel="alternate" type="application/rss+xml" title="Personality.fyi Blog" href="/feed.xml">
-<script src="/relationship-dynamics.js?v=20261004-pair"></script></head>
+<script src="/relationship-dynamics.js?v=20261004-multi"></script></head>
 <body>
 <!-- Mobile header -->
 <div class="app-mobile-header">
@@ -3771,7 +3771,7 @@ textarea::placeholder { color: var(--muted); }
       </header>
 
   <div id="compat-section" style="display:none">
-    <header class="career-page-header"><h1>Relationships</h1><p class="relationships-intro">Choose someone, or add a person.</p></header>
+    <header class="career-page-header"><h1>Relationships</h1><p class="relationships-intro">Select one person or combine people to explore your group dynamic.</p></header>
     <div id="compat-people-host"></div>
     <div class="cha-container" id="relationship-conversation" hidden>
       <div id="person-profile-host"></div>
@@ -5802,7 +5802,7 @@ function rosterRender() {
   var cards = list.map(function(p, i) {
     var score = (mine && p.t && COMPAT[mine]) ? COMPAT[mine][p.t] : null;
     var col = (score != null) ? TIER_COLORS[compatTier(score)] : null;
-    return '<div class="ppl-card" data-person-index="' + i + '" onclick="rosterOpen(' + i + ')">' +
+    return '<div role="button" tabindex="0" onkeydown="if(event.target===this &amp;&amp; (event.key===&quot;Enter&quot; || event.key===&quot; &quot;)){event.preventDefault();this.click();}" aria-pressed="' + String(relationshipSelection.indexOf(i)>=0) + '" class="ppl-card ' + (relationshipSelection.indexOf(i)>=0 ? 'selected' : '') + '" data-person-index="' + i + '" onclick="rosterOpen(' + i + ')">' +
       '<span class="ppl-type"' + (p.t ? '' : ' style="background:var(--cream,#f6f4ef);color:var(--muted)"') + (p.g ? ' title="AI guess"' : '') + '>' + (p.t ? (p.g ? '≈' : '') + p.t : '?') + '</span>' +
       '<span><span class="ppl-name">' + pplEsc(p.n) + '</span><br><span class="ppl-rel">' + pplEsc(p.r) + '</span></span>' +
       (score != null
@@ -5979,6 +5979,7 @@ function tsChipClick(step, value, el) {
 var TS_CANCEL_CHIP = ['cancel', 'Cancel', true];
 
 function tsStart(opts) {
+  relationshipSelection = [];
   document.querySelectorAll('.ppl-card.selected').forEach(function(card) { card.classList.remove('selected'); card.removeAttribute('aria-current'); });
   if (!currentUser) { openAuthModal('Sign in free to start typing the people in your life.'); return; }
   if (!document.getElementById(tsCtx().thread)) {
@@ -6382,6 +6383,7 @@ function rosterRemove(i) {
   var p = list[i];
   if (!p) return;
   if (!confirm('Remove ' + p.n + ' from your people?')) return;
+  relationshipSelection = [];
   list.splice(i, 1);
   rosterPersist(list, function() {
     if (_compatChat.person && (_compatChat.person.id ? _compatChat.person.id === p.id : _compatChat.person.n === p.n)) {
@@ -6393,9 +6395,17 @@ function rosterRemove(i) {
   });
 }
 
+var relationshipSelection = [];
 function rosterOpen(i) {
+  if (document.getElementById('compat-chat-send').disabled) return;
+  var at = relationshipSelection.indexOf(i);
+  if (at >= 0) relationshipSelection.splice(at,1); else relationshipSelection.push(i);
+  return renderRelationshipSelection();
+}
+function renderRelationshipSelection() {
+  var i = relationshipSelection[0];
   var p = rosterList()[i];
-  if (!p) return;
+  if (!p) { document.getElementById('relationship-conversation').hidden=true; _compatChat={history:[]}; document.querySelectorAll('[data-person-index]').forEach(function(c){c.classList.remove('selected');c.setAttribute('aria-pressed','false');}); return; }
   appNav('compat');
   _tsFlow = null;
   tsHighlightRelationship(null);
@@ -6408,15 +6418,37 @@ function rosterOpen(i) {
   var input = document.getElementById('compat-chat-input');
   input.value = '';
   input.placeholder = ''; 
-  document.querySelectorAll('[data-person-index]').forEach(function(card) { var active = Number(card.dataset.personIndex) === i; card.classList.toggle('selected',active); card.setAttribute('aria-current',String(active)); });
-  renderPersonProfile(i);
-  compatRestoreChat(p.id, p.n);
+  document.querySelectorAll('[data-person-index]').forEach(function(card) { var active = relationshipSelection.indexOf(Number(card.dataset.personIndex)) >= 0; card.classList.toggle('selected',active); card.setAttribute('aria-pressed',String(active)); });
+  if (relationshipSelection.length > 1) {
+    _compatChat.people = relationshipSelection.map(function(idx){return rosterList()[idx];}).filter(Boolean);
+    _compatChat.person = {id:'group-'+_compatChat.people.map(function(p){return p.id || p.n;}).sort().join('|'),n:_compatChat.people.map(function(p){return p.n;}).join(' + '),r:'group'};
+    renderRelationshipGroup();
+  } else { renderPersonProfile(i); }
+  compatRestoreChat(_compatChat.person.id, _compatChat.person.n);
   chaBindInput(input, document.getElementById('compat-chat-send'), compatChatSend);
 }
 
 // "Save this person" hook on the compatibility result: opens the Add Someone
 // widget with the compared type preselected (step 1 asks name + relationship,
 // step 2 arrives with the type already chosen).
+function renderRelationshipGroup() {
+  var people = _compatChat.people, mine = _compatChat.myType;
+  var names = people.map(function(p){return p.n;}).join(' and ');
+  var sections = [];
+  var parent = people.find(function(p){return p.r === 'parent';});
+  var partner = people.find(function(p){return p.r === 'partner';});
+  if (parent && partner) sections.push({title:'You, '+names,text:parent.n+' knows you through a parent-child relationship, while '+partner.n+' relates to you as a partner. Together, decisions about time, traditions, or your future can carry different expectations: family continuity for one, a shared adult life for the other. You may feel pulled into translating between them. Their relationship with each other is still its own story, not something their types can establish.'});
+  else sections.push({title:'You, '+names,text:'In this group, each person knows a different side of you. '+people.map(function(p){return p.n+' is your '+relLabelOf(p.r).toLowerCase();}).join('; ')+'. A conversation that feels natural in one relationship may feel different with everyone present. Shared decisions need room for those different roles, rather than assuming everyone expects the same closeness or authority.'});
+  var members=[{n:'You',t:mine}].concat(people);
+  ['E','F','J'].forEach(function(letter,j){
+    var axis=[0,2,3][j], opposite={E:'I',F:'T',J:'P'}[letter];
+    var a=members.filter(function(p){return p.t && p.t[axis]===letter;}).map(function(p){return p.n;});
+    var b=members.filter(function(p){return p.t && p.t[axis]===opposite;}).map(function(p){return p.n;});
+    if(a.length && b.length) sections.push({title:['Conversation rhythm','How decisions land','Making plans'][j],text:a.join(' and ')+[' may think aloud and draw people into the conversation, while ',' may first notice how a decision affects people, while ',' may want an agreed plan, while '][j]+b.join(' and ')+[' may need time to form a response. In a group, silence can be mistaken for agreement and quick responses can set the direction before everyone has weighed in. Give each person space before deciding.',' may first test whether it makes sense. Together, this can balance care with clarity; it can also turn one disagreement into a feeling of being outnumbered. Name both the practical issue and its personal impact without assigning sides.',' may want room to adapt. A shared gathering can become tense when a suggestion sounds like a commitment to some and an option to others. Agree on what is fixed and what can stay flexible.'][j]});
+  });
+  if(sections.length===1) sections.push({title:'A shared style, different stakes',text:'Similar preferences may make conversation easier, but do not make everyone’s needs identical. The same plan can mean support to one person and lost independence to another. Ask what matters to each person before treating apparent agreement as a shared decision.'});
+  document.getElementById('person-profile-host').innerHTML='<section class="person-match">'+sections.map(function(x){return '<h3>'+pplEsc(x.title)+'</h3><p>'+pplEsc(x.text.replace(/while You/g,'while you'))+'</p>';}).join('')+'<p class="person-dynamics-note">Personality-based possibilities; your history together matters.</p></section><label for="compat-chat-input">Ask a question</label>';
+}
 function compatSavePerson() {
   pplWidgetOpen({ presetType: theirType });
 }
@@ -7112,6 +7144,7 @@ async function compatChatSend() {
     var _pr = ({ partner: 'romantic partner', friend: 'close friend', parent: 'parent', sibling: 'sibling', coworker: 'coworker', family: 'family member' })[_compatChat.person.r] || _compatChat.person.r;
     surfaceRules += " The " + _compatChat.theirType + " is " + _compatChat.person.n + ", the user's " + _pr + (_compatChat.person.est ? " (type is our estimate, not test-verified)" : "") + ". Refer to them by name. Never ask the user to restate the type, name, or relationship.";
   }
+  if (_compatChat.people) surfaceRules = "SURFACE: group relationship advice. The user is " + _compatChat.myType + ". Selected people: " + JSON.stringify(_compatChat.people.map(function(p){return {name:p.n,type:p.t || 'unknown',relationshipToUser:p.r,estimatedType:!!p.g};})) + ". Discuss the whole group INCLUDING the user, interactions between the others, and how each relationship role changes the dynamic. Do not concatenate separate pair reports. Do not assume the others are related to each other, infer gender, invent history, assign alliances, or give a group compatibility score. Use possible tendencies, concrete situations, and practical advice. 2–4 short paragraphs. Never ask for known names, types, or relationships.";
   var calibLabel = "an " + _compatChat.theirType + " reader (the other person in the pairing)";
   var system = _composeChatSystem(surfaceRules, calibLabel, msg, _compatChat.history.slice(0, -1));
   trackAiMessage('compat', { rel: (_compatChat.person && _compatChat.person.r) || null, about_person: !!_compatChat.person });
@@ -8403,7 +8436,9 @@ function pfConvoOpen(ctx) {
   if (ctx.indexOf('person:') === 0) {
     var id = ctx.slice(7);
     var idx = rosterList().findIndex(function(p) { return p && p.id === id; });
-    if (idx !== -1) rosterOpen(idx);
+    if (id.indexOf('group-') === 0) {
+      var ids=id.slice(6).split('|'); relationshipSelection=[]; rosterList().forEach(function(p,i){if(ids.indexOf(p.id || p.n)>=0) relationshipSelection.push(i);}); renderRelationshipSelection();
+    } else if (idx !== -1) { relationshipSelection=[idx]; renderRelationshipSelection(); }
     else appNav('compat');
   }
 }
@@ -8443,7 +8478,7 @@ function careerThreads() {
 function careerSaveThread() {
   if (!advisorHistory.length) return;
   if (!careerActiveThread) careerActiveThread = crypto.randomUUID();
-  if (!careerThreadContext) careerThreadContext = Object.assign({},careerCtx());
+  if (!careerThreadContext) careerThreadContext = Object.assign({},careerSelectedContext());
   var rows = careerThreads().filter(function(t) { return t.id !== careerActiveThread; });
   rows.unshift({id:careerActiveThread,title:String(advisorHistory[0]).slice(0,70),history:advisorHistory.slice(),context:careerThreadContext,at:Date.now()});
   try { localStorage.setItem(careerThreadsKey(),JSON.stringify(rows)); } catch(e) {}
@@ -8518,20 +8553,26 @@ var CAREER_REASONS = {
  'Event management':'Coordinate practical details while adapting to people and changing conditions.'
 };
 function careerLens(type) { return CAREER_LENSES[type] || null; }
+var careerSelection = [];
+function careerSelectedContext() {
+ var c=careerCtx(), selected={};
+ careerSelection.forEach(function(k){if(c[k]) selected[k]=c[k];});
+ return selected;
+}
 function careerQuestions(c) {
- var role = c.role || 'my work';
- return [/sales|business development|account executive/i.test(role) ? 'What kind of sales would suit me best?' : 'How can I use my strengths as a ' + role + '?',
+ var role = c.role || ('someone working in '+c.field);
+ return [/sales|business development|account executive/i.test(role) ? 'What kind of sales would suit me best?' : (c.role ? 'How can I use my strengths as a ' + role + '?' : 'How could '+c.field+' fit my strengths?'),
  'Which parts of my work might drain me, and how can I handle them?',
  'What should my next career move be?'];
 }
 function renderCareerOverview() {
  var host = document.getElementById('career-overview');
  if (!host) return;
- var c = careerCtx(), type = localStorage.getItem('typeread_selected_type'), lens = careerLens(type);
+ var c = careerSelectedContext(), type = localStorage.getItem('typeread_selected_type'), lens = careerLens(type);
  host.hidden = !!advisorHistory.length;
  host.innerHTML = '';
- if (!c.role || !c.field) {
-   host.innerHTML = '<p class="career-intro">Add your job and industry to see what fits—and what could fit better.</p>';
+ if (!c.role && !c.field) {
+   host.innerHTML = '<p class="career-intro">Select your job, your industry, or both to explore your fit.</p>';
    return;
  }
  if (!lens) {
@@ -8543,7 +8584,10 @@ function renderCareerOverview() {
  /engineer|developer|analyst|research/i.test(c.role) ? 'Look at the balance between focused problem solving, collaboration, and delivery.' :
  /manager|director|lead|head/i.test(c.role) ? 'Look at the balance between setting direction, supporting people, and following through.' :
  'Your actual responsibilities and work environment matter more than the title alone.';
- host.innerHTML = '<div class="career-fit-overview"><h2>Your career fit</h2><p class="career-fit-context">' + pplEsc(c.role) + ' · ' + pplEsc(c.field) + '</p>' +
+ var industry = !c.field ? '' : /tech|software|saas|\bit\b/i.test(c.field) ? 'Technology often combines changing products, uncertain priorities, and collaboration across technical and commercial teams.' : /health|medical/i.test(c.field) ? 'Healthcare combines human needs with reliability, regulation, and coordination across specialties.' : /financ|bank|invest/i.test(c.field) ? 'Finance often combines risk decisions, accuracy, and trust under commercial pressure.' : /educat|teach/i.test(c.field) ? 'Education combines explaining ideas, responding to different needs, and working within institutional constraints.' : 'In '+c.field+', compare the pace of change, decision-making culture, and amount of collaboration with how you prefer to work.';
+ if (!c.role) family=industry;
+ else if(c.field) family += ' '+industry+' In '+c.role+', that means applying your strengths while navigating those industry demands.';
+ host.innerHTML = '<div class="career-fit-overview"><h2>Your career fit</h2><p class="career-fit-context">' + pplEsc([c.role,c.field].filter(Boolean).join(' · ')) + '</p>' +
  '<p class="career-fit-note">A starting point based on your ' + pplEsc(type) + ' preferences, not a measured job-fit score.</p>' +
  '<h3>What could fit</h3><p>You may bring ' + pplEsc(lens[0]) + ' to your work. ' + pplEsc(family) + '</p>' +
  '<h3>What might frustrate you</h3><p>Watch for ' + pplEsc(lens[1]) + '.</p>' +
@@ -8560,7 +8604,7 @@ function renderCareerContext() {
   if (!currentUser) { host.innerHTML = ''; return; }
   var selected = careerCtx();
   var card = function(key,label,value) {
-    return '<button type="button" class="ppl-card career-fact ' + (value ? '' : 'career-empty') + '" onclick="careerOpenInfo(\'' + key + '\')"><span>' + label + '</span><strong>' + pplEsc(value || '+ Add ' + label.toLowerCase()) + '</strong></button>';
+    return '<button type="button" aria-pressed="' + String(careerSelection.indexOf(key)>=0) + '" class="ppl-card career-fact ' + (careerSelection.indexOf(key)>=0 ? 'selected ' : '') + (value ? '' : 'career-empty') + '" onclick="careerOpenInfo(\'' + key + '\')"><span>' + label + '</span><strong>' + pplEsc(value || '+ Add ' + label.toLowerCase()) + '</strong></button>';
   };
   host.innerHTML = '<div class="career-facts">' + card('role','Job title',selected.role) + card('field','Industry',selected.field) +
     '</div><div id="career-editor"></div>';
@@ -8569,10 +8613,11 @@ function renderCareerContext() {
 function careerOpenInfo(key) {
   if (!careerCtx()[key]) { careerEdit(key); return; }
   if (document.getElementById('advisor-send-btn').disabled) return;
+  var at=careerSelection.indexOf(key); if(at>=0) careerSelection.splice(at,1); else careerSelection.push(key);
   careerResetChat();
   var cards = document.querySelectorAll('.career-fact');
   cards.forEach(function(card, i) {
-    var selected = i === (key === 'role' ? 0 : 1);
+    var selected = careerSelection.indexOf(i === 0 ? 'role' : 'field') >= 0;
     card.classList.toggle('selected', selected);
     card.setAttribute('aria-pressed', String(selected));
   });
@@ -8583,7 +8628,7 @@ function careerOpenInfo(key) {
   var button = document.createElement('button'); button.type='button'; button.className='ts-chip ghost';
   button.textContent = key === 'role' ? 'Change job title' : 'Change industry';
   button.onclick=function(){careerEdit(key);}; tools.appendChild(button);
-  overview.prepend(tools);
+  if(careerSelection.length) overview.prepend(tools);
 }
 function careerEdit(key) {
   var c = careerCtx();
@@ -9965,7 +10010,7 @@ async function _advisorAskClaude(msg, input, sendBtn) {
     (i % 2 === 0 ? 'User: ' : 'Advisor: ') + m
   ).join('\n');
 
-  var _cc = careerThreadContext || ((typeof careerCtx === 'function') ? careerCtx() : {});
+  var _cc = careerThreadContext || ((typeof careerCtx === 'function') ? careerSelectedContext() : {});
   var _ccLine = [_cc.field ? 'industry: ' + _cc.field : '', _cc.role ? 'current role: ' + _cc.role : '', _cc.goal ? 'goal: ' + _cc.goal : '', _cc.concern ? 'concern: ' + _cc.concern : ''].filter(Boolean).join('; ');
   const userContent = "User’s MBTI type: " + type +
     (_ccLine ? "\nUser’s career context: " + _ccLine : '') + "\n\nUser says: " + msg +
@@ -9992,7 +10037,7 @@ async function _advisorAskClaude(msg, input, sendBtn) {
   if (advisorRewriteMode) {
     advisorSystem = _baseHarness() + "\n\n" + _rewriteHarness("a " + (type && type !== 'unknown' ? type : 'reader') + " (career-context)");
   } else {
-    advisorSystem = _baseHarness() + "\n\nSURFACE: career planning. You help people figure out what jobs fit their background, personality type, and skills.\n\n" +
+    advisorSystem = _baseHarness() + "\n\nSURFACE: career planning. Only selected career fields are in context. If only industry is supplied, discuss that industry without assuming a job; if only job is supplied, discuss it across industries; when both are supplied, synthesize the specific role within that industry. You help people figure out what jobs fit their background, personality type, and skills.\n\n" +
       (type && type !== 'unknown' ? "THE USER IS AN " + type + ". Every piece of advice must be calibrated to how " + type + "s think, what they’re good at, and what drains them. Don’t generalize. Start every recommendation from their cognitive profile.\n\n" : "") +
       "AMBIGUOUS-INDUSTRY CLARIFICATION RULES (CRITICAL — read before answering):\n" +
       "- If the user names an industry that splits sharply along a skill axis and you don’t yet know which side they’re on, you MUST ask one clarifying question and STOP. Do not list roles, do not suggest learning a skill, do not output JOBS_QUERY.\n" +
@@ -13099,7 +13144,7 @@ var NAV_SECTION_MAP = {
 var NAV_ROUTE_MAP = {
   'articles': {path:'/blog/',title:'Articles | Personality.fyi',desc:'Explore personality articles.'},
   'data': {path:'/data',title:'Personality Data | Personality.fyi',desc:'Explore personality data studies.'},
-  'analyze':    { path: '/',                  title: 'Personality.fyi — MBTI test, career planning, compatibility', desc: 'Free 60-second MBTI test, AI career advisor, and compatibility analysis for every personality type.' },
+  'analyze':    { path: '/',                  title: 'Free Personality Test, Careers & Relationships | Personality.fyi', desc: 'Free 60-second MBTI test, AI career advisor, and compatibility analysis for every personality type.' },
   'advisor':    { path: '/career-planning',   title: 'Career Planning by Personality Type | Personality.fyi',       desc: 'AI career advisor calibrated to your MBTI type. Get role recommendations, industry fit, and a path tailored to how you think.' },
   'compat':     { path: '/compatibility',     title: 'MBTI Compatibility Calculator — Score Any Two Types | Personality.fyi', desc: 'Free MBTI compatibility calculator. Pick any two of the 16 types for an instant compatibility score, plus romantic, friendship, and work dynamics.' },
   'ask':        { path: '/ask-a-type',        title: 'Ask a Type — MBTI Q&A | Personality.fyi',                     desc: 'Ask questions about any of the 16 MBTI types. AI advisor calibrated to each type\'s cognitive profile.' },
