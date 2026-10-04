@@ -4198,6 +4198,9 @@ textarea::placeholder { color: var(--muted); }
     </div><!-- /app-main-inner -->
   </main><!-- /app-main -->
 </div><!-- /page -->
+<footer id="app-footer" aria-label="Site information">
+  <a href="/about">About</a><a href="/methodology">Methodology</a><a href="/all-types" onclick="event.preventDefault();appNav('alltypes');">All Types</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/contact">Contact</a><a href="/creators">Creators</a>
+</footer>
 
 
 <script>
@@ -5703,15 +5706,18 @@ function showHomeProfile(type) {
   const el = document.getElementById('home-profile');
   var loginBanner = currentUser ? '' : '<p><button class="ts-chip" onclick="openAuthModal()">Save your profile</button></p>';
   el.innerHTML = loginBanner +
-    '<header class="career-page-header"><h1>You</h1><p>' + type + ' · ' + d.title + '</p><div class="you-destinations"><button class="ts-chip" id="you-change-type" aria-expanded="false" aria-controls="you-type-picker" onclick="youChangeType()">Change type</button></div><div id="you-type-picker" hidden></div></header>' +
-    '<div class="you-overview-layout"><section class="you-overview">' +
+    '<header class="career-page-header"><h1>You</h1></header>' +
+    '<div class="you-overview-layout"><section class="you-next-step" aria-labelledby="you-next-heading">' +
+      '<h2 id="you-next-heading">What would you like to understand better?</h2><p>Put your personality into context with the people and work in your life.</p>' +
+      '<div class="you-action-paths"><button class="you-action-path" onclick="appNav(\'compat\')"><span><strong>Someone in my life</strong><span>Understand your relationships and navigate a situation.</span></span><span aria-hidden="true">→</span></button>' +
+      '<button class="you-action-path" onclick="appNav(\'advisor\')"><span><strong>My work</strong><span>Explore your fit, a decision, or something you’re finding difficult.</span></span><span aria-hidden="true">→</span></button></div>' +
+      '<p class="you-freeform-hint">Or ask your own question below.</p></section>' +
+      '<aside class="you-overview you-profile-secondary" aria-label="Your personality overview"><div class="you-profile-heading"><h2>' + type + ' · ' + d.title + '</h2><button class="you-change-type-link" id="you-change-type" aria-expanded="false" aria-controls="you-type-picker" onclick="youChangeType()">Change type</button></div><div id="you-type-picker" hidden></div>' +
       youBlock('How you think', d.cognitive) + youBlock('Work life', YOU_LIFE[type][0]) +
       youBlock('Personal life', YOU_LIFE[type][1]) +
-      '<div class="you-destinations"><button class="ts-chip" onclick="appNav(\'compat\')">Relationships →</button>' +
-      '<button class="ts-chip" onclick="appNav(\'advisor\')">Career →</button></div>' +
-      '<p style="font-size:13px;line-height:1.7">See how others of your type answered lifestyle questions — <a href="/never-have-i-ever" onclick="event.preventDefault();appNav(\'nhie\')">Click here</a></p></section>' +
-      '<aside class="you-questions"><div class="you-label">Suggested questions</div>' +
-      YOU_SELF_QUESTIONS.slice(0,3).map(function(q) { return '<button class="ts-chip ghost" onclick="youAsk(this.textContent)">' + q + '</button>'; }).join('') +
+      '<p class="you-lifestyle-link">See how others of your type answered lifestyle questions — <a href="/never-have-i-ever" onclick="event.preventDefault();appNav(\'nhie\')">Click here</a></p>' +
+      '<div class="you-questions"><div class="you-label">Questions about you</div>' +
+      YOU_SELF_QUESTIONS.slice(0,3).map(function(q) { return '<button class="ts-chip ghost" onclick="youAsk(this.textContent)">' + q + '</button>'; }).join('') + '</div>' +
       '</aside></div><div class="cha-container"><div class="cha-main self-conversation">' +
       '<div class="cha-thread" id="home-chat-thread"></div>' +
       '<form class="cha-input-bar" onsubmit="event.preventDefault();homeChatSend()">' +
@@ -11167,6 +11173,10 @@ async function refreshCreditBalance() {
 
 // Match the reserved footer region to the notice, including text zoom and wrapping.
 document.addEventListener('DOMContentLoaded', function() {
+  var footer = document.getElementById('app-footer');
+  if (footer && typeof ResizeObserver !== 'undefined') new ResizeObserver(function() {
+    document.documentElement.style.setProperty('--site-footer-space', Math.ceil(footer.getBoundingClientRect().height) + 'px');
+  }).observe(footer);
   var notice = document.getElementById('app-sidebar-credits');
   if (!notice || typeof ResizeObserver === 'undefined') return;
   new ResizeObserver(function() {
