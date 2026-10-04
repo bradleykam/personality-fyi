@@ -8571,6 +8571,7 @@ function renderCareerOverview() {
  var host = document.getElementById('career-overview');
  if (!host) return;
  var c = careerSelectedContext(), type = localStorage.getItem('typeread_selected_type'), lens = careerLens(type);
+ document.getElementById('advisor-side').classList.toggle('industry-only',!!c.field&&!c.role);
  host.hidden = !!advisorHistory.length;
  host.innerHTML = '';
  if (!c.role && !c.field) {
@@ -8582,21 +8583,34 @@ function renderCareerOverview() {
    return;
  }
  if(c.role){renderRoleFit(host,c,type);return;}
- var family = /sales|business development|account executive|account manager/i.test(c.role) ? 'Discovering needs, presenting ideas, and following up are worth examining in this role.' :
- /design|creative|writer|marketing/i.test(c.role) ? 'Look at the balance between creative work, feedback, and delivery deadlines.' :
- /engineer|developer|analyst|research/i.test(c.role) ? 'Look at the balance between focused problem solving, collaboration, and delivery.' :
- /manager|director|lead|head/i.test(c.role) ? 'Look at the balance between setting direction, supporting people, and following through.' :
- 'Your actual responsibilities and work environment matter more than the title alone.';
- var industry = !c.field ? '' : /tech|software|saas|\bit\b/i.test(c.field) ? 'Technology often combines changing products, uncertain priorities, and collaboration across technical and commercial teams.' : /health|medical/i.test(c.field) ? 'Healthcare combines human needs with reliability, regulation, and coordination across specialties.' : /financ|bank|invest/i.test(c.field) ? 'Finance often combines risk decisions, accuracy, and trust under commercial pressure.' : /educat|teach/i.test(c.field) ? 'Education combines explaining ideas, responding to different needs, and working within institutional constraints.' : 'In '+c.field+', compare the pace of change, decision-making culture, and amount of collaboration with how you prefer to work.';
- if (!c.role) family=industry;
- else if(c.field) family += ' '+industry+' In '+c.role+', that means applying your strengths while navigating those industry demands.';
- host.innerHTML = '<div class="career-fit-overview"><h2>Your career fit</h2><p class="career-fit-context">' + pplEsc([c.role,c.field].filter(Boolean).join(' · ')) + '</p>' +
- '<p class="career-fit-note">A starting point based on your ' + pplEsc(type) + ' preferences, not a measured job-fit score.</p>' +
- '<h3>What could fit</h3><p>You may bring ' + pplEsc(lens[0]) + ' to your work. ' + pplEsc(family) + '</p>' +
- '<h3>What might frustrate you</h3><p>Watch for ' + pplEsc(lens[1]) + '.</p>' +
- '<h3>One thing to try</h3><p>' + pplEsc(lens[2]) + '</p></div><div class="career-suggestions"><h3>Ask about your work</h3><div class="ts-chips"></div></div>';
- var chips = host.querySelector('.ts-chips');
- careerQuestions(c).forEach(function(q) { var b=document.createElement('button');b.type='button';b.className='ts-chip';b.textContent=q;b.onclick=function(){careerSituation(q);};chips.appendChild(b); });
+ renderIndustryOverview(host,c.field,type,lens);
+}
+
+// Employment shares describe US software publishers, not all technology or personal fit.
+var TECHNOLOGY_ROLE_FAMILIES = [
+ {name:'Engineering',share:30.22,work:'Build software, test it, and solve technical problems.',angle:'complex systems, focused problem solving, and practical delivery',soc:['15-1252','15-1253','15-1251','15-1254']},
+ {name:'Sales',share:10.45,work:'Find customers and turn their needs into business.',angle:'enterprise deals versus high-volume selling and relationship-led sales',soc:['41-0000']},
+ {name:'Customer & technical support',share:8.52,work:'Help people resolve problems and use products.',angle:'deep technical troubleshooting versus a constant queue of customer conversations',soc:['15-1232','15-1231','43-4051']},
+ {name:'Operations',share:8.24,work:'Coordinate delivery and improve how the business runs.',angle:'designing better systems versus maintaining routines and coordinating people',soc:['11-1021','13-1082','13-1111','13-1199']},
+ {name:'Marketing',share:5.80,work:'Understand buyers and help the right people discover products.',angle:'market research and positioning versus campaigns and public-facing communication',soc:['13-1161','11-2021']},
+ {name:'Design',share:2.14,work:'Make products and communication clearer and easier to use.',angle:'systems design versus visual expression and customer research',soc:['15-1255','27-1024']},
+ {name:'Data & research',share:1.93,work:'Investigate patterns and turn evidence into decisions.',angle:'independent analysis versus explaining findings and influencing decisions',soc:['15-2051','15-2031','15-1221']},
+ {name:'Product management',share:null,work:'Decide what to build and align people around it.',angle:'long-term product strategy versus daily coordination and stakeholder negotiation',soc:[]},
+ {name:'Account management / customer success',share:null,work:'Help existing customers get value, renew, and grow.',angle:'strategic account planning versus frequent relationship maintenance',soc:[]}
+];
+function renderIndustryOverview(host,field,type,lens) {
+ var tech=/technology|tech|software|saas|^it$|information technology|computing/i.test(field);
+ var intro=tech?'Technology companies need many kinds of people: those who build products, sell them, support customers, and keep the business running.':'An industry contains many different jobs. The kind of work you do matters as much as the sector you work in.';
+ var personal='Your '+type+' preferences may lend themselves to '+lens[0]+'. Look closely at roles that demand '+lens[1]+'.';
+ if(tech&&type==='INTJ')personal='For an INTJ, technology can offer complex systems to understand and long-term problems to solve. Engineering, product strategy, and complex enterprise sales are worth exploring; the amount of routine coordination and social upkeep matters just as much as the title.';
+ var evidence=tech&&type==='INTJ'?'<p class="career-fit-note">A <a href="https://arxiv.org/abs/2504.17248" target="_blank" rel="noopener">2025 research review (preprint)</a> found INTJs overrepresented in its combined computing samples. That is not a population estimate for the entire technology industry or evidence of individual ability.</p>':'';
+ host.innerHTML='<div class="career-fit-overview"><h2>'+pplEsc(field)+' &amp; you</h2><p>'+intro+'</p><p>'+pplEsc(personal)+'</p>'+evidence+'<h3>'+(tech?'Roles in technology':'Find your place in '+pplEsc(field))+'</h3><p>'+(tech?'Explore a role to see which versions could suit you.':'Ask about the main role families in this industry and how they could fit you.')+'</p><div class="industry-roles"></div>'+(tech?'<details class="industry-sources"><summary>How the roles are ordered</summary><p>Measured groups are ordered by their share of employment in US software publishers, May 2023, using <a href="https://www.bls.gov/oes/2023/may/naics4_513200.htm" target="_blank" rel="noopener">BLS occupation estimates</a>. This is a software-industry example, not all technology companies or current vacancies. Related occupations are grouped; the list does not cover every job. Support includes internal IT. Product management and customer success are not separately counted and are shown without a frequency rank.</p><ul>'+TECHNOLOGY_ROLE_FAMILIES.filter(function(r){return r.share!==null;}).map(function(r){return '<li>'+r.name+': '+r.share.toFixed(1)+'% (occupation codes '+r.soc.join(', ')+')</li>';}).join('')+'</ul></details>':'')+'</div>';
+ var list=host.querySelector('.industry-roles');
+ (tech?TECHNOLOGY_ROLE_FAMILIES:[{name:'Explore roles in '+field,work:'See the main kinds of work and where your preferences could fit.',angle:'the main role families in this industry',share:null}]).forEach(function(r){
+  var b=document.createElement('button');b.type='button';b.className='industry-role';
+  b.innerHTML='<span><strong>'+pplEsc(r.name)+'</strong><span class="industry-role-description">'+pplEsc(r.work)+'</span></span><span aria-hidden="true">→</span>';
+  b.onclick=function(){careerSituation('How could '+(tech?r.name+' in ':'roles in ')+field+' fit my '+type+' preferences? Compare '+r.angle+'. Explain where I might thrive or struggle, and give concrete examples. I am exploring this industry, not changing my saved job title.');};list.appendChild(b);
+ });
 }
 
 var roleFitDraft = null;

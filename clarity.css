@@ -245,3 +245,14 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner { paddin
 
 .role-fit-options{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin:24px 0}.role-fit-options .ts-chip{text-align:left;white-space:normal;min-height:48px}.role-fit-controls{display:flex;gap:12px}
 .role-fit-options .ts-chip,.role-fit-options .ts-chip:hover,.role-fit-options .ts-chip:focus{color:#17201c;background:#fff}.role-fit-options .ts-chip[aria-pressed="true"]{background:#edf2ed;border-color:#56705c;color:#17201c}
+
+/* Industry cards use the same direct-to-conversation behavior as other suggestions. */
+#advisor-section #advisor-side.industry-only { display:none !important; }
+.industry-roles { display:flex; flex-direction:column; }
+.industry-role { display:flex; align-items:center; justify-content:space-between; gap:20px; width:100%; text-align:left; padding:15px 0; border:0; border-bottom:1px solid var(--border,#d3d7d1); border-radius:0; background:transparent; color:inherit; font:inherit; cursor:pointer; min-height:56px; }
+.industry-role:hover { background:rgba(80,110,90,.06); }
+.industry-role:focus-visible { outline:2px solid #276ba5; outline-offset:3px; }
+.industry-role strong { font-size:18px; }
+.industry-role-description { display:block; line-height:1.5; margin-top:4px; }
+.industry-sources { margin-top:20px; font-size:16px; line-height:1.5; }
+.industry-sources summary { cursor:pointer; }
