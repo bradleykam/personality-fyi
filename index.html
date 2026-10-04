@@ -3845,13 +3845,13 @@ textarea::placeholder { color: var(--muted); }
       <div id="advisor-team-invite" style="display:none"></div>
       <div class="cha-layout">
         <div class="cha-main">
-          <div class="cha-thread" id="advisor-chat"></div>
+          <div id="career-overview"></div><div class="cha-thread" id="advisor-chat"></div>
           <form class="cha-input-bar" onsubmit="event.preventDefault();advisorSend()">
-            <textarea class="cha-input" id="advisor-input" placeholder="Tell me what’s on your mind at work…" rows="1"></textarea>
+            <textarea class="cha-input" id="advisor-input" placeholder="Ask about your work…" rows="1"></textarea>
             <button type="submit" class="cha-send-btn" id="advisor-send-btn">Send</button>
           </form>
         </div>
-        <aside class="cha-side" id="advisor-side"><details id="career-roles" open><summary>Explore career ideas</summary>
+        <aside class="cha-side" id="advisor-side"><details id="career-roles"><summary>Explore other careers</summary>
           <button class="cha-side-close" onclick="advisorSideClose()" aria-label="Close panel" style="display:none">&times;</button>
           <div id="advisor-browse-block" class="career-role-picker">
             <label for="advisor-browse-type">Explore roles for</label>
@@ -6021,10 +6021,10 @@ function tsStart(opts) {
     tsFocus();
     return;
   }
-  var relChips = OBP_RELS.map(function(r) { return [r.key, r.label]; });
-  relChips.push(TS_CANCEL_CHIP);
-  tsBubble('Who do you want to understand?' + tsChips('rel', relChips));
-  tsFocus();
+  // The relationship cards above are the one canonical picker, including email entry.
+  _tsFlow = null;
+  document.getElementById('relationship-conversation').hidden = true;
+  tsHighlightRelationship(null);
 }
 
 // Pull a valid 4-letter type out of any phrasing ("she's an enfp i think").
@@ -8461,6 +8461,96 @@ function careerOpenThread(id) {
   advisorHistory.forEach(function(m,i) { advisorAddBubble(i % 2 === 0 ? m : advisorMarkdown(m),i % 2 === 0 ? 'user' : 'app'); });
   document.getElementById('advisor-input').placeholder = '';
 }
+// A short, transparent starting point; never an automatic paid AI question.
+var CAREER_LENSES = {
+ INTJ:['turning complex problems into a clear strategy','constant interruptions and relationship upkeep','Protect planning time, then make your thinking visible to colleagues.',['Strategy','Product management','Research']],
+ INTP:['analyzing problems and finding better explanations','repetitive follow-through and rigid processes','Pair exploration with one concrete deliverable and a deadline.',['Research','Software development','Data analysis']],
+ ENTJ:['setting direction and turning decisions into action','slow decisions and unclear ownership','Agree on the outcome and decision owner before pushing the pace.',['Business leadership','Strategy consulting','Sales leadership']],
+ ENTP:['persuasion, reframing problems, and spotting opportunities','repetitive administration and long stretches of routine','Use a simple follow-up system so strong ideas turn into completed work.',['Sales','Business development','Entrepreneurship']],
+ INFJ:['understanding people and connecting work to a larger purpose','constant conflict or work with no clear human benefit','Connect one weekly goal to a specific person or outcome it helps.',['Counseling','User research','Learning and development']],
+ INFP:['original thinking and work that reflects personal values','high-pressure persuasion or inflexible routines','Define what meaningful progress looks like before taking on more work.',['Writing','Design','Counseling']],
+ ENFJ:['building trust and helping people move toward a shared goal','carrying everyone’s needs without clear boundaries','Make ownership explicit so supporting others does not become doing their work.',['Learning and development','People management','Consultative sales']],
+ ENFP:['creating possibilities and getting people excited about them','repetitive detail work and narrow scripts','Choose one promising idea and give it a short execution plan.',['Marketing','Consultative sales','Entrepreneurship']],
+ ISTJ:['reliable execution, accuracy, and clear standards','changing expectations and poorly defined responsibilities','Agree on priorities and a change process before starting the work.',['Operations','Accounting','Quality assurance']],
+ ISFJ:['practical support and remembering details that matter to people','unpredictable demands and unacknowledged support work','Make your workload visible and agree on what can wait.',['Healthcare','Customer success','Operations']],
+ ESTJ:['organizing people and resources to get things done','vague plans and inconsistent follow-through','Check that the process serves the outcome before adding another rule.',['Operations management','Project management','Sales management']],
+ ESFJ:['coordinating people and building dependable relationships','unresolved tension and unclear expectations','Ask for explicit priorities instead of trying to satisfy everyone at once.',['Customer success','People operations','Healthcare']],
+ ISTP:['hands-on problem solving and staying practical under pressure','long meetings and tightly controlled methods','Seek a concrete problem with room to choose how you solve it.',['Engineering','Skilled trades','Technical operations']],
+ ISFP:['practical creativity and attention to individual experience','aggressive competition and overly abstract planning','Use a small prototype or example to show what you mean.',['Design','Skilled crafts','Healthcare']],
+ ESTP:['negotiating, adapting quickly, and acting on opportunities','slow feedback and repetitive desk work','Balance quick action with a short check on risks and follow-through.',['Sales','Business development','Operations']],
+ ESFP:['connecting with people and responding to immediate needs','isolated work and distant, abstract outcomes','Look for work with direct feedback from the people you help.',['Sales','Hospitality','Event management']]
+};
+var CAREER_REASONS = {
+ 'Sales':'Persuasion, discovery, and negotiation can reward responsive thinking.',
+ 'Consultative sales':'Understanding a customer’s situation turns conversation into practical help.',
+ 'Business development':'Connect opportunities, people, and commercial goals.',
+ 'Entrepreneurship':'Test ideas and build something, with responsibility for execution and risk.',
+ 'Strategy':'Turn complex information into priorities and decisions.',
+ 'Product management':'Connect customer needs with trade-offs and a clear direction.',
+ 'Research':'Investigate difficult questions and develop deeper understanding.',
+ 'Software development':'Solve structured problems by building and improving systems.',
+ 'Data analysis':'Find patterns and turn evidence into useful decisions.',
+ 'Business leadership':'Set direction, align people, and take responsibility for results.',
+ 'Strategy consulting':'Structure ambiguous problems and explain actionable options.',
+ 'Sales leadership':'Coach a team, set priorities, and turn commercial goals into execution.',
+ 'Counseling':'Listen closely and help people understand their circumstances; qualifications matter.',
+ 'User research':'Investigate people’s needs and translate them into product decisions.',
+ 'Learning and development':'Help people build skills through clear, practical learning.',
+ 'Writing':'Shape ideas into language that informs or connects with readers.',
+ 'Design':'Make experiences clearer through creative, practical choices.',
+ 'People management':'Help a team develop while coordinating goals and responsibilities.',
+ 'Marketing':'Connect audience insight with ideas that earn attention.',
+ 'Operations':'Improve the systems and routines that keep work running.',
+ 'Accounting':'Apply accuracy and clear standards to financial information.',
+ 'Quality assurance':'Find problems, test assumptions, and improve reliability.',
+ 'Healthcare':'Combine practical care with attention to individual needs; training requirements vary.',
+ 'Customer success':'Understand a customer’s goals and help them get lasting value.',
+ 'Operations management':'Coordinate resources, improve processes, and keep delivery dependable.',
+ 'Project management':'Make priorities, ownership, and progress clear across a team.',
+ 'Sales management':'Organize a commercial team around goals, coaching, and follow-through.',
+ 'People operations':'Support people through clear processes and reliable coordination.',
+ 'Engineering':'Solve practical problems within real technical constraints.',
+ 'Skilled trades':'Use hands-on judgment to build, diagnose, or repair.',
+ 'Technical operations':'Troubleshoot systems and keep them working under real conditions.',
+ 'Skilled crafts':'Combine hands-on skill, aesthetics, and attention to detail.',
+ 'Hospitality':'Respond to people’s needs and create a good immediate experience.',
+ 'Event management':'Coordinate practical details while adapting to people and changing conditions.'
+};
+function careerLens(type) { return CAREER_LENSES[type] || null; }
+function careerQuestions(c) {
+ var role = c.role || 'my work';
+ return [/sales|business development|account executive/i.test(role) ? 'What kind of sales would suit me best?' : 'How can I use my strengths as a ' + role + '?',
+ 'Which parts of my work might drain me, and how can I handle them?',
+ 'What should my next career move be?'];
+}
+function renderCareerOverview() {
+ var host = document.getElementById('career-overview');
+ if (!host) return;
+ var c = careerCtx(), type = localStorage.getItem('typeread_selected_type'), lens = careerLens(type);
+ host.hidden = !!advisorHistory.length;
+ host.innerHTML = '';
+ if (!c.role || !c.field) {
+   host.innerHTML = '<p class="career-intro">Add your job and industry to see what fits—and what could fit better.</p>';
+   return;
+ }
+ if (!lens) {
+   host.innerHTML = '<p class="career-intro">Add your personality type on You to explore how it relates to your work.</p>';
+   return;
+ }
+ var family = /sales|business development|account executive|account manager/i.test(c.role) ? 'Discovering needs, presenting ideas, and following up are worth examining in this role.' :
+ /design|creative|writer|marketing/i.test(c.role) ? 'Look at the balance between creative work, feedback, and delivery deadlines.' :
+ /engineer|developer|analyst|research/i.test(c.role) ? 'Look at the balance between focused problem solving, collaboration, and delivery.' :
+ /manager|director|lead|head/i.test(c.role) ? 'Look at the balance between setting direction, supporting people, and following through.' :
+ 'Your actual responsibilities and work environment matter more than the title alone.';
+ host.innerHTML = '<div class="career-fit-overview"><h2>Your career fit</h2><p class="career-fit-context">' + pplEsc(c.role) + ' · ' + pplEsc(c.field) + '</p>' +
+ '<p class="career-fit-note">A starting point based on your ' + pplEsc(type) + ' preferences, not a measured job-fit score.</p>' +
+ '<h3>What could fit</h3><p>You may bring ' + pplEsc(lens[0]) + ' to your work. ' + pplEsc(family) + '</p>' +
+ '<h3>What might frustrate you</h3><p>Watch for ' + pplEsc(lens[1]) + '.</p>' +
+ '<h3>One thing to try</h3><p>' + pplEsc(lens[2]) + '</p></div><div class="career-suggestions"><h3>Ask about your work</h3><div class="ts-chips"></div></div>';
+ var chips = host.querySelector('.ts-chips');
+ careerQuestions(c).forEach(function(q) { var b=document.createElement('button');b.type='button';b.className='ts-chip';b.textContent=q;b.onclick=function(){careerSituation(q);};chips.appendChild(b); });
+}
+
 var careerEditing = null;
 var careerSaving = false;
 function renderCareerContext() {
@@ -8472,8 +8562,8 @@ function renderCareerContext() {
     return '<button type="button" class="ppl-card career-fact ' + (value ? '' : 'career-empty') + '" onclick="careerEdit(\'' + key + '\')"><span>' + label + '</span><strong>' + pplEsc(value || '+ Add ' + label.toLowerCase()) + '</strong></button>';
   };
   host.innerHTML = '<div class="career-facts">' + card('role','Job title',selected.role) + card('field','Industry',selected.field) +
-    ((selected.role || selected.field) ? '<button type="button" class="ts-chip ghost career-edit" onclick="careerEdit()">Edit</button>' : '') + '</div><div id="career-editor"></div>' +
-    (selected.role && selected.field ? '<button type="button" class="ts-chip" onclick="careerCheckFit()">See my career fit</button>' : '');
+    ((selected.role || selected.field) ? '<button type="button" class="ts-chip ghost career-edit" onclick="careerEdit()">Edit</button>' : '') + '</div><div id="career-editor"></div>';
+  renderCareerOverview();
 }
 function careerEdit(key) {
   var c = careerCtx();
@@ -9637,8 +9727,9 @@ function advisorInit() {
   trackEvent('career_planning_started', {});
   if (typeof renderCareerContext === 'function') renderCareerContext();
   advisorInited = true;
-  advisorIntake.done = !!careerCtx().field;
-  if (!advisorIntake.done) advisorAddBubble(chaRenderMarkdown(ADVISOR_INTAKE_QS[0]), 'app');
+  advisorIntake.done = true;
+  document.getElementById('career-roles').open = false;
+  document.getElementById('advisor-input').placeholder = 'Ask about your work…';
   advisorUpdateBadge();
   advisorLoadJobsList();
   var input = document.getElementById('advisor-input');
@@ -9754,61 +9845,8 @@ function normalizeTitle(t) {
     .trim();
 }
 
-async function advisorLoadJobsList() {
-  var type = localStorage.getItem('typeread_selected_type');
-  var listEl = document.getElementById('advisor-jobs-list');
-  var typeEl = document.getElementById('advisor-jobs-type');
-  var countEl = document.getElementById('advisor-jobs-count');
-  if (!type) { return; }
-  typeEl.textContent = type;
-  listEl.innerHTML = '<div style="color:var(--muted);font-size:12px">Loading...</div>';
-  var jobs = await loadTechJobs();
-  if (!jobs) { listEl.innerHTML = '<div style="color:var(--muted);font-size:12px">Failed to load</div>'; return; }
-
-  // Get all jobs matching this type
-  var matched = jobs.filter(function(j) { return j['1'] === type || j['2'] === type; });
-
-  // Deduplicate by normalized title, keep the most common raw title per group
-  var titleGroups = {};
-  matched.forEach(function(j) {
-    var norm = normalizeTitle(j.t);
-    if (!titleGroups[norm]) titleGroups[norm] = {};
-    var raw = j.t;
-    titleGroups[norm][raw] = (titleGroups[norm][raw] || 0) + 1;
-  });
-
-  // Pick best raw title per group, sort by count desc
-  var roles = [];
-  for (var norm in titleGroups) {
-    var group = titleGroups[norm];
-    var bestTitle = '', bestCount = 0, totalCount = 0;
-    for (var raw in group) {
-      totalCount += group[raw];
-      if (group[raw] > bestCount) { bestCount = group[raw]; bestTitle = raw; }
-    }
-    var desc = roleDescLookup(bestTitle);
-    roles.push({ title: bestTitle, desc: desc, count: totalCount });
-  }
-  roles.sort(function(a, b) { return b.count - a.count; });
-
-  countEl.textContent = roles.length + ' roles';
-  var side = document.getElementById('advisor-side');
-  if (roles.length === 0) {
-    listEl.innerHTML = '<div style="color:var(--muted);font-size:12px">No roles found for ' + type + '</div>';
-    if (side) side.style.display = 'block';
-    return;
-  }
-  listEl.innerHTML = '';
-  roles.forEach(function(r) {
-    var div = document.createElement('div');
-    div.className = 'advisor-jobs-list-item' + (r.desc ? ' collapsible' : '');
-    div.innerHTML = '<div class="adj-li-title">' + esc(r.title) + '</div>' + (r.desc ? '<div class="adj-li-desc">' + esc(r.desc) + '</div>' : '');
-    if (r.desc) {
-      div.addEventListener('click', function() { div.classList.toggle('expanded'); });
-    }
-    listEl.appendChild(div);
-  });
-  if (side) side.style.display = 'block';
+function advisorLoadJobsList() {
+  advisorBrowseType(localStorage.getItem('typeread_selected_type'));
 }
 
 function advisorUpdateBadge() {
@@ -9822,6 +9860,8 @@ function advisorUpdateBadge() {
 }
 
 function advisorAddBubble(content, who) {
+  var overview = document.getElementById('career-overview');
+  if (overview) overview.hidden = true;
   var input = document.getElementById('advisor-input');
   if (input) input.placeholder = '';
   const chat = document.getElementById('advisor-chat');
@@ -9848,8 +9888,8 @@ function advisorAddJobCards(jobs) {
   var countEl = document.getElementById('advisor-jobs-count');
   if (titleEl) titleEl.textContent = 'your query';
   document.getElementById('career-roles').open = true;
-  if (countEl) countEl.textContent = jobs.length + ' match' + (jobs.length === 1 ? '' : 'es');
-  jobs.forEach(function(j) {
+  if (countEl) countEl.textContent = 'Up to three relevant openings';
+  jobs.slice(0,3).forEach(function(j) {
     var a = document.createElement('a');
     a.className = 'advisor-jobs-list-item expanded';
     a.href = j.u;
@@ -9877,7 +9917,7 @@ function advisorInitBrowser() {
   var ALL = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP',
              'ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
   var savedType = localStorage.getItem('typeread_selected_type');
-  var defaultType = savedType && ALL.indexOf(savedType) >= 0 ? savedType : 'INTJ';
+  var defaultType = savedType && ALL.indexOf(savedType) >= 0 ? savedType : '';
   sel.innerHTML = ALL.map(function(t) {
     return '<option value="' + t + '"' + (t === defaultType ? ' selected' : '') + '>' + t + '</option>';
   }).join('');
@@ -9886,37 +9926,20 @@ function advisorInitBrowser() {
 }
 
 function advisorBrowseType(type) {
-  if (!type) return;
-  var typeEl = document.getElementById('advisor-jobs-type');
-  var headerEl = document.getElementById('advisor-jobs-header');
-  var browseEl = document.getElementById('advisor-browse-block');
-  var countEl = document.getElementById('advisor-jobs-count');
-  var listEl = document.getElementById('advisor-jobs-list');
-  if (!listEl) return;
-  if (typeEl) typeEl.textContent = type;
-  if (headerEl) headerEl.style.display = 'block';
-  // Dropdown now lives in the header — keep it shown as flex.
-  if (browseEl) browseEl.style.display = 'flex';
-  var data = (typeof JOB_DATA !== 'undefined' && JOB_DATA[type]) ? JOB_DATA[type] : null;
-  if (!data) {
-    listEl.innerHTML = '<div style="color:var(--muted);font-size:12px">No role data for ' + type + '.</div>';
-    if (countEl) countEl.textContent = '';
-    return;
-  }
-  var industries = Object.keys(data);
-  if (countEl) countEl.textContent = industries.length + ' industries';
-  listEl.innerHTML = '';
-  industries.forEach(function(industry) {
-    var roles = (data[industry] || '').split(',').map(function(s) { return s.trim(); }).filter(Boolean);
-    var div = document.createElement('div');
-    div.className = 'advisor-jobs-list-item collapsible';
-    div.innerHTML = '<div class="adj-li-title">' + esc(industry) + ' <span style="opacity:.55;font-weight:400">· ' + roles.length + '</span></div>' +
-                    '<div class="adj-li-desc">' + roles.map(esc).join(', ') + '</div>';
-    div.addEventListener('click', function() { div.classList.toggle('expanded'); });
-    listEl.appendChild(div);
+  var list = document.getElementById('advisor-jobs-list');
+  var lens = careerLens(type);
+  document.getElementById('advisor-jobs-count').textContent = lens ? 'Three directions to explore—not a ranking of your abilities.' : 'Choose your type to explore career ideas.';
+  list.innerHTML = '';
+  if (!lens) return;
+  lens[3].forEach(function(role) {
+    var item = document.createElement('div'); item.className = 'career-idea';
+    var title = document.createElement('h3'); title.textContent = role; item.appendChild(title);
+    var reason = document.createElement('p'); reason.textContent = CAREER_REASONS[role]; item.appendChild(reason);
+    var button = document.createElement('button'); button.type='button'; button.className='ts-chip ghost'; button.textContent='Ask about ' + role.toLowerCase();
+    button.onclick=function(){careerSituation('Would '+role.toLowerCase()+' suit me, given my current work and personality? Explain the fit, trade-offs, and what I would need to learn.');};
+    item.appendChild(button); list.appendChild(item);
   });
-  var side = document.getElementById('advisor-side');
-  if (side) side.style.display = 'block';
+  document.getElementById('advisor-side').style.display='block';
 }
 
 async function careerCheckFit() {

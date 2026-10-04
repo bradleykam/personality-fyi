@@ -173,3 +173,21 @@ test('career cards can save job and industry independently without clearing the 
  delete nodes['cc-role'];nodes['cc-field']={value:'Healthcare'};
  await ctx.careerCtxSave();assert.equal(saved.field,'Healthcare');assert.equal(saved.role,'Designer');
 });
+
+test('email add-person entry reuses the existing relationship picker; preset proceeds to name',()=>{
+ const {c,nodes,bubbles}=setup();c.currentUser={id:'u'};
+ c.document.querySelectorAll=()=>[];c.tsCtx=()=>({thread:'compat-chat-thread',input:'compat-chat-input'});
+ c.chaBindInput=()=>{};c.compatChatSend=()=>{};c.OBP_RELS=[{key:'friend',label:'Friend'}];
+ c.tsHighlightRelationship=()=>{};c.tsBubble=x=>bubbles.push(x);c.tsFocus=()=>{};
+ c.tsHandle=x=>{c.handled=x;c._tsFlow.step='name';};
+ vm.runInContext(fn('tsStart'),c);c.tsStart({});
+ assert.equal(bubbles.length,0);assert.equal(nodes.get('relationship-conversation').hidden,true);assert.equal(c._tsFlow,null);
+ c.tsStart({presetRel:'friend'});assert.equal(c.handled,'friend');assert.equal(nodes.get('relationship-conversation').hidden,false);
+});
+test('career overview does not spend a question and suggested prompts use the saved role',()=>{
+ const {c,calls}=setup();vm.runInContext(fn('careerQuestions'),c);
+ assert.match(c.careerQuestions({role:'Business development',field:'Technology'})[0],/sales/);
+ assert.match(c.careerQuestions({role:'Product designer'})[0],/Product designer/);
+ assert.equal(c.careerQuestions({role:'Product designer'}).length,3);
+ assert.equal(calls.length,0);
+});
