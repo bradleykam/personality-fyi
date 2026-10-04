@@ -8,7 +8,7 @@ for (const relative of require('./publish-files.json')) {
   fs.mkdirSync(path.dirname(destination), { recursive: true });
   if (relative.endsWith('.html')) {
     const html = fs.readFileSync(path.join(root, relative), 'utf8');
-    fs.writeFileSync(destination, html.replace('</head>', '<script>if(window.self!==window.top)document.documentElement.classList.add("embedded-content")</script><link rel="stylesheet" href="/clarity.css?v=20261004-mobile"><script defer src="/email-attribution.js"></script></head>'));
+    fs.writeFileSync(destination, html.replace('</head>', '<script>if(window.self!==window.top)document.documentElement.classList.add("embedded-content")</script><link rel="stylesheet" href="/clarity.css?v=20261004-career-editor"><script defer src="/email-attribution.js"></script></head>'));
   } else fs.copyFileSync(path.join(root, relative), destination);
 }
 console.log('Prepared the production file set.');

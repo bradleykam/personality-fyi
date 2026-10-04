@@ -8472,7 +8472,7 @@ function renderCareerContext() {
     return '<button type="button" class="ppl-card career-fact ' + (value ? '' : 'career-empty') + '" onclick="careerEdit(\'' + key + '\')"><span>' + label + '</span><strong>' + pplEsc(value || '+ Add ' + label.toLowerCase()) + '</strong></button>';
   };
   host.innerHTML = '<div class="career-facts">' + card('role','Job title',selected.role) + card('field','Industry',selected.field) +
-    ((selected.role || selected.field) ? '<button type="button" class="ghost career-edit" onclick="careerEdit()">Edit</button>' : '') + '</div><div id="career-editor"></div>' +
+    ((selected.role || selected.field) ? '<button type="button" class="ts-chip ghost career-edit" onclick="careerEdit()">Edit</button>' : '') + '</div><div id="career-editor"></div>' +
     (selected.role && selected.field ? '<button type="button" class="ts-chip" onclick="careerCheckFit()">See my career fit</button>' : '');
 }
 function careerEdit(key) {
@@ -8482,7 +8482,7 @@ function careerEdit(key) {
   document.getElementById('career-editor').innerHTML = '<form class="career-profile-form" onsubmit="event.preventDefault();careerCtxSave()">' +
     (key !== 'field' ? input('role','Job title',c.role,'e.g. Account executive') : '') +
     (key !== 'role' ? input('field','Industry',c.field,'e.g. Technology') : '') +
-    '<button type="submit">Save</button><button type="button" onclick="renderCareerContext()">Cancel</button><p id="career-save-error" role="alert"></p></form>';
+    '<button type="submit" class="ts-chip">Save</button><button type="button" class="ts-chip ghost" onclick="renderCareerContext()">Cancel</button><p id="career-save-error" role="alert"></p></form>';
   document.getElementById(key === 'field' ? 'cc-field' : 'cc-role').focus();
 }
 
