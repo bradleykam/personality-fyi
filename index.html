@@ -11171,6 +11171,31 @@ async function refreshCreditBalance() {
   } catch (e) {}
 }
 
+// Keep scrolling content physically above every visible bottom control.
+document.addEventListener('DOMContentLoaded', function() {
+  var queued = false;
+  var observed = new WeakSet();
+  var resize = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null;
+  function measure() {
+    queued = false;
+    var bottom = 0;
+    document.querySelectorAll('.cha-input-bar,#app-footer,#app-sidebar-credits').forEach(function(el) {
+      if (resize && !observed.has(el)) { observed.add(el); resize.observe(el); }
+      if (!el.getClientRects().length || getComputedStyle(el).visibility === 'hidden') return;
+      var r = el.getBoundingClientRect();
+      bottom = Math.max(bottom, window.innerHeight - r.top);
+    });
+    var value = Math.ceil(bottom + 12) + 'px';
+    if (document.documentElement.style.getPropertyValue('--content-bottom') !== value)
+      document.documentElement.style.setProperty('--content-bottom', value);
+  }
+  function schedule() { if (!queued) { queued = true; requestAnimationFrame(measure); } }
+  new MutationObserver(schedule).observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['style','class','hidden']});
+  window.addEventListener('resize', schedule);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', schedule);
+  schedule();
+});
+
 // Match the reserved footer region to the notice, including text zoom and wrapping.
 document.addEventListener('DOMContentLoaded', function() {
   var footer = document.getElementById('app-footer');
