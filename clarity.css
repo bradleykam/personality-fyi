@@ -99,3 +99,35 @@ small { font-size: 14px; }
   #advisor-side { max-height: none !important; overflow: visible; }
   #advisor-jobs-list { max-height: 240px; }
 }
+/* Reserve a separate bottom region for usage; chat fields cannot scroll behind it. */
+body:has(#app-sidebar-credits[style*="display: block"]) .app-main {
+  height: calc(100dvh - var(--usage-footer-space, 112px));
+  min-height: 0;
+  overflow-y: auto;
+}
+body:has(#app-sidebar-credits[style*="display: block"]) .cha-container {
+  height: calc(100dvh - 140px - var(--usage-footer-space, 112px));
+}
+body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner {
+  padding-bottom: 24px !important;
+}
+#app-sidebar-credits { max-width: calc(100vw - 268px); }
+@media(max-width:768px) { #app-sidebar-credits { max-width: calc(100vw - 32px); } }
+
+/* Keep the selected person's match readable in the conversation column. */
+#person-profile-host { width: 100%; max-width: 820px; margin: 0 auto; }
+.person-match { max-width: 720px; margin: 28px auto; text-align: center; font-size: 20px; line-height: 1.65; }
+.person-match-score { font-size: 48px; line-height: 1.1; font-weight: 700; }
+.person-match-score span { font-size: 22px; color: var(--muted); }
+.person-match .person-match-caption { font-size: 16px; color: var(--muted); margin-top: 8px; }
+#relationship-conversation { height: auto; min-height: 420px; }
+#relationship-conversation .cha-layout { min-height: 300px; }
+@media(max-width:768px) { .person-match { font-size: 18px; margin: 20px auto; } }
+.career-cards { display:flex; flex-wrap:wrap; gap:12px; margin:20px 0; }
+.career-card { display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
+.career-card[aria-pressed="true"] { border:2px solid var(--ink); background:var(--ink); color:var(--paper); }
+.career-selected { display:flex; justify-content:space-between; align-items:center; font-weight:600; }
+.career-selected button { font-size:14px; padding:6px 10px; }
+.career-profile-form { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin:20px 0; }
+.career-profile-form label { display:flex; flex:1; min-width:180px; flex-direction:column; gap:8px; }
+.career-profile-form input { padding:12px; width:100%; box-sizing:border-box; }

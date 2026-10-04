@@ -427,10 +427,10 @@ exports.handler = async (event) => {
     {
       const {allUsers,allRows}=require('../lib/product-data');
       const now=Date.now(), until=new Date(now).toISOString();
-      const [users,events,credits]=await Promise.all([allUsers(sb),allRows(sb,'funnel_events','*','id',until),allRows(sb,'user_credits','*','user_id')]);
+      const [users,events,credits,votes]=await Promise.all([allUsers(sb),allRows(sb,'funnel_events','*','id',until),allRows(sb,'user_credits','*','user_id'),allRows(sb,'nhie_votes','id,user_id,statement_id,answer,created_at','id',until)]);
       const {buildReport,billingSnapshot}=require('../lib/admin-report');
       const billing=await billingSnapshot(users,credits);
-      return {statusCode:200,headers:CORS,body:JSON.stringify(buildReport({users,events,billing,now,days:[7,30,90].includes(Number(body.days))?Number(body.days):30}))};
+      return {statusCode:200,headers:CORS,body:JSON.stringify(buildReport({users,events,votes,billing,now,days:[7,30,90].includes(Number(body.days))?Number(body.days):30}))};
     }
 
   } catch (e) {

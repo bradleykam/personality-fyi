@@ -100,3 +100,47 @@ test('all inline application scripts parse',()=>{
     new vm.Script(match[1]);
   }
 });
+
+test('suggested self and career questions submit immediately; career skips intake', () => {
+  const source = html;
+  for (const [name, inputId, sendId, sender] of [
+    ['youAsk', 'home-chat-input', 'home-chat-send', 'homeChatSend'],
+    ['careerSituation', 'advisor-input', 'advisor-send-btn', 'advisorSend']
+  ]) {
+    const start = source.indexOf('function ' + name + '(');
+    const end = source.indexOf('\n}', start) + 2;
+    const input = {value: ''};
+    const send = {disabled: false};
+    let calls = 0;
+    const ctx = {document: {getElementById: id => id === inputId ? input : id === sendId ? send : null}, trackEvent() {}, advisorIntake: {done: false}};
+    ctx[sender] = () => { calls++; assert.equal(input.value, 'What should I do next?'); input.value = ''; };
+    vm.runInNewContext(source.slice(start, end), ctx);
+    ctx[name]('What should I do next?');
+    assert.equal(calls, 1);
+    assert.equal(input.value, '');
+    if (name === 'careerSituation') assert.equal(ctx.advisorIntake.done, true);
+    send.disabled = true;
+    ctx[name]('What should I do next?');
+    assert.equal(calls, 1);
+  }
+});
+
+test('careers preserve legacy context, add independently, and edit without duplicates', async () => {
+  let n = 0;
+  const ctx = {currentUser:{id:'u1',user_metadata:{career:{field:'Technology',role:'Designer',goal:'Lead a team'}}},careerSaving:false,crypto:{randomUUID:()=> 'career-'+(++n)},document:{getElementById:()=>({disabled:false})},trackEvent(){},careerResetChat(){},alert(){}};
+  ctx.supabaseClient = {auth:{updateUser:async ({data})=>({data:{user:{...ctx.currentUser,user_metadata:{...ctx.currentUser.user_metadata,...data}}}})}};
+  vm.runInNewContext(fn('careerList')+'\n'+fn('careerCtx')+'\n'+fn('careerPersist')+'\n'+fn('careerChatKey'),ctx);
+  assert.equal(ctx.careerList()[0].goal,'Lead a team');
+  await ctx.careerPersist({field:'Healthcare',role:'Sales'},null);
+  assert.equal(ctx.careerList().length,2);
+  const firstKey = ctx.careerChatKey();
+  await ctx.careerPersist({field:'Healthcare',role:'Sales manager'},ctx.careerCtx().id);
+  assert.equal(ctx.careerList().length,2);
+  assert.equal(ctx.careerCtx().role,'Sales manager');
+  assert.equal(ctx.careerList()[0].goal,'Lead a team');
+  await ctx.careerPersist({field:'Education',role:'Teacher'},null);
+  assert.notEqual(ctx.careerChatKey(),firstKey);
+  ctx.supabaseClient.auth.updateUser = async()=>({error:{message:'failed'}});
+  await ctx.careerPersist({field:'Other',role:'Unsaved'},null);
+  assert.equal(ctx.careerList().length,3);
+});

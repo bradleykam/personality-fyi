@@ -5757,7 +5757,7 @@ function homeGoCompare(type) {
 // in user_metadata.people. Each card shows the pairwise compatibility score
 // with the user's own type; tapping opens the full compatibility reading in
 // the mode matching the relationship.
-var PPL_MODES = { partner: 'romantic', friend: 'friends', family: 'friends', parent: 'friends', sibling: 'friends', coworker: 'colleagues', boss: 'colleagues' };
+var PPL_MODES = { partner: 'romantic', friend: 'friends', family: 'friends', parent: 'friends', sibling: 'friends', roommate: 'friends', coworker: 'colleagues', boss: 'colleagues' };
 var PPL_RELS = ['friend', 'partner', 'family', 'coworker'];
 
 function pplEsc(s) {
@@ -5857,16 +5857,11 @@ function renderPersonProfile(i) {
       '<button class="ts-chip ghost" onclick="personRelChips(' + i + ', this)">Edit relationship</button>' +
       '<button class="ts-chip ghost" onclick="rosterAddOpen(' + i + ')">' + (p.t ? 'Update type' : 'Find their type') + '</button>' +
     '</div></div>' +
-    '<details class="relationship-about"><summary>About this relationship</summary>' +
-      '<div class="relationship-details">' +
-        '<p>' + guide.frame.replace(/NAME/g, pplEsc(p.n)) + '</p>' +
-        '<p>Your type: ' + pplEsc(mine || 'not set') + ' · Their type: ' + pplEsc(p.t || 'not set') +
-          (p.g || p.st === 'estimated' ? ' (estimated)' : '') + '</p>' +
-        (score !== null ? '<p>Compatibility score: ' + score + '/100</p>' : '') +
-        (p.t && COMM_TIPS[p.t] ? '<p>' + COMM_TIPS[p.t] + '</p>' : '') +
-      '</div>' +
-      '</div>' +
-    '</details>' +
+    '<section class="person-match" aria-label="Match details">' +
+      (score !== null ? '<div class="person-match-score">' + score + '<span>/100</span></div><p class="person-match-caption">Personality compatibility estimate</p>' : '') +
+      '<p>' + guide.frame.replace(/NAME/g, pplEsc(p.n)) + '</p>' +
+      (p.t && COMM_TIPS[p.t] ? '<p>' + COMM_TIPS[p.t] + '</p>' : '') +
+    '</section>' +
     '<label for="compat-chat-input" style="display:block;margin-top:24px;font-size:18px;font-weight:700;cursor:text">Ask a question</label>';
   if (_compatChat.person) { _compatChat.person.n = p.n; _compatChat.person.r = p.r; }
 }
@@ -5918,6 +5913,8 @@ function personAsk(i, q) {
   trackEvent('compatibility_ai_prompt_clicked', { via: 'person_profile', rel: p.r });
   var input = document.getElementById('compat-chat-input');
   if (!input) return;
+  var send = document.getElementById('compat-chat-send');
+  if (send && send.disabled) return;
   input.value = q;
   if (typeof compatChatSend === 'function') compatChatSend();
 }
@@ -8409,41 +8406,95 @@ function pfConvoOpen(ctx) {
 }
 
 // ── Career context (S34): lightweight, progressive, never required ──
-function careerCtx() {
-  return ((typeof currentUser !== 'undefined' && currentUser && currentUser.user_metadata) || {}).career || {};
+function careerList() {
+  var md = (currentUser && currentUser.user_metadata) || {};
+  if (Array.isArray(md.careers)) return md.careers;
+  var c = md.career || {};
+  return Object.keys(c).some(function(k) { return c[k]; }) ? [Object.assign({id:'legacy'}, c)] : [];
 }
+function careerCtx() {
+  var md = (currentUser && currentUser.user_metadata) || {};
+  var list = careerList();
+  return list.find(function(c) { return c.id === md.active_career_id; }) || list[0] || {};
+}
+function careerChatKey() { return 'pf_chat_career_' + (currentUser ? currentUser.id : 'anonymous') + '_' + (careerCtx().id || 'general'); }
+var careerEditing = null;
+var careerSaving = false;
 function renderCareerContext() {
   var host = document.getElementById('career-context-host');
   if (!host) return;
-  if (typeof currentUser === 'undefined' || !currentUser) { host.innerHTML = ''; return; }
-  var c = careerCtx();
-  var field = function(key, label, val) {
-    return '<label style="display:flex;flex-direction:column;gap:3px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);flex:1;min-width:150px">' + label +
-      '<input id="cc-' + key + '" value="' + pplEsc(val || '') + '" onblur="careerCtxSave()" placeholder="optional" style="padding:8px 10px;font-family:inherit;font-size:13px;border:1px solid var(--border);border-radius:6px;background:var(--paper);color:var(--ink);text-transform:none;letter-spacing:0"></label>';
-  };
-  host.innerHTML =
-    '<details class="career-background">' +
-      '<summary>Your background <span>(optional)</span></summary>' +
-      '<div class="career-background-fields">' +
-        field('role', 'Current role', c.role) + field('goal', 'Career goal', c.goal) + field('concern', 'Biggest concern', c.concern) +
-      '</div>' +
-    '</details>';
-
+  if (!currentUser) { host.innerHTML = ''; return; }
+  var selected = careerCtx();
+  host.innerHTML = '<div class="career-cards">' + careerList().map(function(c, i) {
+    return '<button type="button" class="ts-chip career-card" aria-pressed="' + (c.id === selected.id) + '" onclick="careerSelect(' + i + ')"><strong>' + pplEsc(c.role || 'Career') + '</strong><span>' + pplEsc(c.field || '') + '</span></button>';
+  }).join('') + '<button type="button" class="ts-chip" onclick="careerEdit(-1)">+ Add career</button></div>' +
+    (selected.id ? '<div class="career-selected"><span>Ask a question</span><button type="button" class="ghost" onclick="careerEdit(careerList().findIndex(function(c){return c.id===careerCtx().id}))">Edit</button></div>' : '') + '<div id="career-editor"></div>';
 }
-function careerCtxSave() {
-  if (typeof currentUser === 'undefined' || !currentUser || !supabaseClient) return;
-  var read = function(id) { var el = document.getElementById('cc-' + id); return el ? el.value.trim().slice(0, 120) : ''; };
-  var next = { field: careerCtx().field || '', role: read('role'), goal: read('goal'), concern: read('concern') };
-  var cur = careerCtx();
-  if (next.role === (cur.role || '') && next.goal === (cur.goal || '') && next.concern === (cur.concern || '')) return;
-  supabaseClient.auth.updateUser({ data: { career: next } }).then(function(res) {
-    if (res && !res.error && res.data && res.data.user) { currentUser = res.data.user; trackEvent('career_context_saved', { has_role: !!next.role, has_goal: !!next.goal, has_concern: !!next.concern }); }
-  }).catch(function() {});
+function careerEdit(i) {
+  var c = careerList()[i] || {};
+  careerEditing = c.id || null;
+  document.getElementById('career-editor').innerHTML = '<form class="career-profile-form" onsubmit="event.preventDefault();careerCtxSave()">' +
+    '<label>Industry<input id="cc-field" required maxlength="120" value="' + pplEsc(c.field || '') + '" placeholder="e.g. Technology"></label>' +
+    '<label>Job title<input id="cc-role" required maxlength="120" value="' + pplEsc(c.role || '') + '" placeholder="e.g. Account executive"></label>' +
+    '<button type="submit">Save career</button><button type="button" onclick="renderCareerContext()">Cancel</button><p id="career-save-error" role="alert"></p></form>';
+  document.getElementById('cc-field').focus();
+}
+async function careerPersist(next, editing) {
+  if (!currentUser || !supabaseClient || careerSaving || document.getElementById('advisor-send-btn').disabled) return false;
+  careerSaving = true;
+  try {
+    var list = careerList().slice();
+    var idx = editing ? list.findIndex(function(c) { return c.id === editing; }) : list.findIndex(function(c) { return c.field === next.field && c.role === next.role; });
+    var c = Object.assign({}, idx >= 0 ? list[idx] : {}, next, {id: idx >= 0 ? list[idx].id : crypto.randomUUID()});
+    if (idx >= 0) list[idx] = c; else list.push(c);
+    var res = await supabaseClient.auth.updateUser({data:{careers:list,active_career_id:c.id,career:c}});
+    if (res.error || !res.data || !res.data.user) throw new Error('Save failed');
+    currentUser = res.data.user;
+    trackEvent('career_context_saved', {has_role:!!c.role,has_field:!!c.field});
+    careerResetChat();
+    return true;
+  } catch (e) {
+    var err = document.getElementById('career-save-error');
+    if (err) err.textContent = 'Could not save. Please try again.';
+    else alert('Could not save your career. Please try again.');
+    return false;
+  } finally { careerSaving = false; }
+}
+async function careerCtxSave() {
+  var field = document.getElementById('cc-field').value.trim();
+  var role = document.getElementById('cc-role').value.trim();
+  if (field && role) await careerPersist({field:field,role:role}, careerEditing);
+}
+async function careerSelect(i) {
+  var c = careerList()[i];
+  if (!c || careerSaving || document.getElementById('advisor-send-btn').disabled) return;
+  careerSaving = true;
+  try {
+    var res = await supabaseClient.auth.updateUser({data:{careers:careerList(),active_career_id:c.id,career:c}});
+    if (res.error || !res.data || !res.data.user) throw new Error('Save failed');
+    currentUser = res.data.user;
+    careerResetChat();
+  } catch(e) { alert('Could not select this career. Please try again.'); }
+  finally { careerSaving = false; }
+}
+function careerResetChat() {
+  advisorHistory = [];
+  advisorInited = false;
+  advisorIntake = {step:0,answers:[],done:!!careerCtx().field};
+  document.getElementById('advisor-chat').innerHTML = '';
+  document.getElementById('advisor-input').value = '';
+  advisorInit();
 }
 function careerSituation(q) {
   trackEvent('career_situation_clicked', {});
   var input = document.getElementById('advisor-input');
-  if (input) { input.value = q.replace(' (paste the description)', ': '); input.focus(); }
+  if (input) {
+    var send = document.getElementById('advisor-send-btn');
+    if (send && send.disabled) return;
+    advisorIntake.done = true;
+    input.value = q;
+    advisorSend();
+  }
 }
 
 // ── Analytics core ──────────────────────────────────────────────────
@@ -9098,6 +9149,7 @@ var OBP_RELS = [
   { key: 'friend',   label: 'Friend',           mode: 'friends' },
   { key: 'parent',   label: 'Parent',           mode: 'friends', family: true },
   { key: 'sibling',  label: 'Sibling',          mode: 'friends', family: true },
+  { key: 'roommate', label: 'Roommate', mode: 'friends' },
   { key: 'coworker', label: 'Coworker',         mode: 'colleagues' },
   { key: 'boss',     label: 'Boss',             mode: 'colleagues' }
 ];
@@ -9105,6 +9157,12 @@ var OBP_RELS = [
 // Relationship-specific voice: what each profile emphasizes, the situations
 // it surfaces, and one framing line. Boss is deliberately not Coworker.
 var REL_GUIDE = {
+  roommate: {
+    my: 'my roommate',
+    frame: 'Living with NAME works best when expectations about shared space, chores, guests, and quiet time are explicit.',
+    situations: ['Set a boundary with NAME', 'Agree on chores with NAME'],
+    starters: ['How should NAME and I split household responsibilities?', 'How do I bring up a problem with NAME without making home awkward?', 'What boundaries would help us live together better?']
+  },
   partner: {
     my: 'my romantic partner',
     frame: 'Romantic pairs live and die on how they handle friction and how each one feels supported.',
@@ -9528,7 +9586,12 @@ function advisorInit() {
   if (typeof renderCareerContext === 'function') renderCareerContext();
   // Continuity: restore the last career conversation instead of restarting.
   try {
-    var savedC = JSON.parse(localStorage.getItem('pf_chat_career') || 'null');
+    var storedC = localStorage.getItem(careerChatKey());
+    if (!storedC && careerCtx().id === 'legacy') {
+      storedC = localStorage.getItem('pf_chat_career');
+      if (storedC) localStorage.setItem(careerChatKey(), storedC);
+    }
+    var savedC = JSON.parse(storedC || 'null');
     if (savedC && savedC.length) {
       advisorInited = true;
       advisorIntake.done = true;
@@ -9544,7 +9607,8 @@ function advisorInit() {
     }
   } catch (e) {}
   advisorInited = true;
-  advisorAddBubble(chaRenderMarkdown(ADVISOR_INTAKE_QS[0]), 'app');
+  advisorIntake.done = !!careerCtx().field;
+  if (!advisorIntake.done) advisorAddBubble(chaRenderMarkdown(ADVISOR_INTAKE_QS[0]), 'app');
   advisorUpdateBadge();
   advisorLoadJobsList();
   var input = document.getElementById('advisor-input');
@@ -9831,7 +9895,7 @@ async function careerCheckFit() {
   if (!field || !job) return;
   var type = localStorage.getItem('typeread_selected_type');
   if (!type) { appNav('analyze'); return; }
-  if(currentUser && supabaseClient) { const saved = await supabaseClient.auth.updateUser({data:{career:Object.assign({},careerCtx(),{field:field,role:job})}}); if(saved.error){alert('Could not save your career details. Please try again.');return;} if(saved.data?.user)currentUser=saved.data.user; trackEvent('career_context_saved',{has_role:true,has_field:true}); }
+  if (currentUser && supabaseClient && !await careerPersist({field:field,role:job}, null)) return;
   advisorIntake.done = true;
   var input = document.getElementById('advisor-input');
   input.value = 'How compatible is working as a ' + job + ' in ' + field + ' with my ' + type + ' personality? Give me an estimated score out of 100, the main strengths and friction, and one practical suggestion.';
@@ -9878,7 +9942,7 @@ async function _advisorAskClaude(msg, input, sendBtn) {
   ).join('\n');
 
   var _cc = (typeof careerCtx === 'function') ? careerCtx() : {};
-  var _ccLine = [_cc.role ? 'current role: ' + _cc.role : '', _cc.goal ? 'goal: ' + _cc.goal : '', _cc.concern ? 'concern: ' + _cc.concern : ''].filter(Boolean).join('; ');
+  var _ccLine = [_cc.field ? 'industry: ' + _cc.field : '', _cc.role ? 'current role: ' + _cc.role : '', _cc.goal ? 'goal: ' + _cc.goal : '', _cc.concern ? 'concern: ' + _cc.concern : ''].filter(Boolean).join('; ');
   const userContent = "User’s MBTI type: " + type +
     (_ccLine ? "\nUser’s career context: " + _ccLine : '') + "\n\nUser says: " + msg +
     (contextStr ? "\n\nConversation so far:\n" + contextStr : '');
@@ -9956,7 +10020,7 @@ async function _advisorAskClaude(msg, input, sendBtn) {
     }
 
     advisorHistory.push(prose);
-    try { localStorage.setItem('pf_chat_career', JSON.stringify(advisorHistory.slice(-12))); pfConvoTouch('career', 'Career'); } catch (e) {}
+    try { localStorage.setItem(careerChatKey(), JSON.stringify(advisorHistory.slice(-12))); pfConvoTouch('career', 'Career'); } catch (e) {}
 
     // Remove typing indicator
     typingDiv.remove();
@@ -10332,7 +10396,12 @@ var YOU_SELF_QUESTIONS = [
 function youAsk(q) {
   trackEvent('self_ai_clicked', {});
   var i = document.getElementById('home-chat-input');
-  if (i) { i.value = q; i.focus(); }
+  if (i) {
+    var send = document.getElementById('home-chat-send');
+    if (send && send.disabled) return;
+    i.value = q;
+    homeChatSend();
+  }
 }
 
 
@@ -10945,6 +11014,15 @@ async function refreshCreditBalance() {
     refreshCreditDisplay();
   } catch (e) {}
 }
+
+// Match the reserved footer region to the notice, including text zoom and wrapping.
+document.addEventListener('DOMContentLoaded', function() {
+  var notice = document.getElementById('app-sidebar-credits');
+  if (!notice || typeof ResizeObserver === 'undefined') return;
+  new ResizeObserver(function() {
+    document.documentElement.style.setProperty('--usage-footer-space', (Math.ceil(notice.getBoundingClientRect().height) + 32) + 'px');
+  }).observe(notice);
+});
 
 function refreshCreditDisplay() {
   var el = document.getElementById('app-sidebar-credits');
