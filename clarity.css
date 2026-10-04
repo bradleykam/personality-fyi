@@ -131,3 +131,8 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner {
 .career-profile-form { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin:20px 0; }
 .career-profile-form label { display:flex; flex:1; min-width:180px; flex-direction:column; gap:8px; }
 .career-profile-form input { padding:12px; width:100%; box-sizing:border-box; }
+
+/* Embedded studies retain the app sidebar instead of introducing another nav. */
+.embedded-content .blog-header { display:none!important; }
+.embedded-content .blog-article, .embedded-content .blog-index, .embedded-content .blog-footer { margin-left:0!important; max-width:100%; }
+.embedded-content body { padding:0!important; }
