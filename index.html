@@ -3899,6 +3899,7 @@ textarea::placeholder { color: var(--muted); }
     </article>
   </div>
 
+  <div id="data-section" style="display:none"><iframe id="data-reader" title="Personality data studies" style="width:100%;height:calc(100dvh - 140px);min-height:480px;border:0" onload="dataReaderLoaded(this)"></iframe></div>
   <div id="blog-section" style="display:none">
     <div id="blog-app-content"></div>
   </div>
@@ -4836,7 +4837,12 @@ function youRenderThreads() {
 function youChangeType() {
   var host = document.getElementById('you-type-picker');
   host.hidden = !host.hidden;
-  if (!host.hidden) host.innerHTML = typeDropdownHTML(localStorage.getItem('typeread_selected_type'), 'selectAnalyzeType');
+  if (!host.hidden) host.innerHTML = '<div class="you-destinations"><button class="ts-chip" onclick="youEnterType()">Enter a new type</button><button class="ts-chip" onclick="appNav(\'test\')">Retake test</button></div><div id="you-new-type"></div>';
+  var trigger = document.getElementById('you-change-type');
+  if (trigger) trigger.setAttribute('aria-expanded', String(!host.hidden));
+}
+function youEnterType() {
+  document.getElementById('you-new-type').innerHTML = typeDropdownHTML(localStorage.getItem('typeread_selected_type'), 'selectAnalyzeType');
 }
 function homeChatInit(type, saved) {
   _homeChat = { type: type, history: saved ? saved.history.slice() : [], id: saved ? saved.id : null };
@@ -5702,7 +5708,7 @@ function showHomeProfile(type) {
   const el = document.getElementById('home-profile');
   var loginBanner = currentUser ? '' : '<p><button class="ts-chip" onclick="openAuthModal()">Save your profile</button></p>';
   el.innerHTML = loginBanner +
-    '<header class="career-page-header"><h1>You</h1><p>' + type + ' · ' + d.title + '</p><div class="you-destinations"><button class="ts-chip" onclick="youChangeType()">Change type</button><button class="ts-chip" onclick="appNav(\'test\')">Retake test</button></div><div id="you-type-picker" hidden></div></header>' +
+    '<header class="career-page-header"><h1>You</h1><p>' + type + ' · ' + d.title + '</p><div class="you-destinations"><button class="ts-chip" id="you-change-type" aria-expanded="false" aria-controls="you-type-picker" onclick="youChangeType()">Change type</button></div><div id="you-type-picker" hidden></div></header>' +
     '<div class="you-overview-layout"><section class="you-overview">' +
       youBlock('How you think', d.cognitive) + youBlock('Work life', YOU_LIFE[type][0]) +
       youBlock('Personal life', YOU_LIFE[type][1]) +
@@ -10374,7 +10380,7 @@ function _navMoreGroup() {
     _navBtn('nhie', 'Never Have I Ever', true) +
     _navBtn('alltypes', 'All Types', true) +
     _navBtn('characters', 'Fictional Characters', true) +
-    '<a class="app-nav-item" href="/blog/data" style="text-decoration:none;padding-left:1.75rem">Data</a>' +
+    _navBtn('data', 'Data', true) +
     '<a class="app-nav-item" href="/blog/" style="text-decoration:none;padding-left:1.75rem">Articles</a>' +
     '</div>';
 }
@@ -11684,7 +11690,7 @@ const ALL_SECTION_IDS = [
   'input-section', 'compat-section', 'ask-section', 'translate-section',
   'tasks-section', 'job-section', 'alltypes-section', 'test-section',
   'advisor-section', 'account-section', 'nhie-section', 'employer-landing-section',
-  'employer-signup-section', 'employer-dashboard-section', 'why-section', 'blog-section', 'characters-section'
+  'employer-signup-section', 'employer-dashboard-section', 'why-section', 'blog-section', 'data-section', 'characters-section'
 ];
 
 function hideAllSections() {
@@ -13082,6 +13088,7 @@ var NAV_SECTION_MAP = {
   'nhie':       'nhie-section',
   'why':        'why-section',
   'blog':       'blog-section',
+  'data':       'data-section',
   'characters': 'characters-section',
   'employer-landing':   'employer-landing-section',
   'employer-signup':    'employer-signup-section',
@@ -13091,6 +13098,7 @@ var NAV_SECTION_MAP = {
 // Pretty-URL routing: each tab key maps to a path + a per-route <title> +
 // description. Keys not listed stay on "/" with the SPA’s default meta.
 var NAV_ROUTE_MAP = {
+  'data': {path:'/data',title:'Personality Data | Personality.fyi',desc:'Explore personality data studies.'},
   'analyze':    { path: '/',                  title: 'Personality.fyi — MBTI test, career planning, compatibility', desc: 'Free 60-second MBTI test, AI career advisor, and compatibility analysis for every personality type.' },
   'advisor':    { path: '/career-planning',   title: 'Career Planning by Personality Type | Personality.fyi',       desc: 'AI career advisor calibrated to your MBTI type. Get role recommendations, industry fit, and a path tailored to how you think.' },
   'compat':     { path: '/compatibility',     title: 'MBTI Compatibility Calculator — Score Any Two Types | Personality.fyi', desc: 'Free MBTI compatibility calculator. Pick any two of the 16 types for an instant compatibility score, plus romantic, friendship, and work dynamics.' },
@@ -13107,6 +13115,16 @@ Object.keys(NAV_ROUTE_MAP).forEach(function(k) {
   NAV_PATH_TO_KEY[NAV_ROUTE_MAP[k].path] = k;
 });
 
+function dataReaderLoaded(frame) {
+  try {
+    var doc = frame.contentDocument;
+    doc.querySelectorAll('a[href]').forEach(function(a) {
+      var url = new URL(a.href, location.origin);
+      if (url.origin !== location.origin || !url.pathname.startsWith('/blog/')) a.target = '_top';
+    });
+  } catch(e) {}
+}
+
 function sidebarToggleMore() {
   var grp = document.getElementById('sidebar-more-group');
   var caret = document.getElementById('sidebar-more-caret');
@@ -13118,7 +13136,7 @@ function sidebarToggleMore() {
   if (btn) btn.setAttribute('aria-expanded', open ? 'false' : 'true');
 }
 function sidebarExpandMoreIfNeeded(key) {
-  if (['alltypes', 'nhie', 'characters'].indexOf(key) === -1) return;
+  if (['alltypes', 'nhie', 'characters', 'data'].indexOf(key) === -1) return;
   var grp = document.getElementById('sidebar-more-group');
   if (grp && grp.style.display === 'none') sidebarToggleMore();
 }
@@ -13184,6 +13202,10 @@ function appNav(key, opts) {
   }
   if (key === 'nhie') {
     if (typeof nhieInit === 'function') nhieInit();
+  }
+  if (key === 'data') {
+    var reader = document.getElementById('data-reader');
+    if (!reader.getAttribute('src')) reader.src = '/blog/data';
   }
   if (key === 'blog') {
     var postSlug = '';

@@ -2327,3 +2327,8 @@ force = false
   [redirects.conditions]
 
   [redirects.headers]
+
+[[redirects]]
+from = "/data"
+to = "/index.html"
+status = 200
