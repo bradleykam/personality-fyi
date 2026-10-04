@@ -15,7 +15,7 @@ function validAnswers(a){return a&&questions.every(q=>[-1,0,1].includes(a[q.id])
 function score(type,answers){
  if(!types.includes(type)||!validAnswers(answers))return null;
  const active=questions.filter(q=>answers[q.id]!==0);
- if(!active.length)return null;
+ if(!active.length)return 50;
  let sum=0;for(const q of active){const preferred=answers[q.id]===-1?q.axis[0]:q.axis[1];sum+=type.includes(preferred)?1:0;}
  return Math.round(sum/active.length*100);
 }
@@ -30,6 +30,7 @@ function report(type,answers){
 // Role hypotheses compare the described work, independently of the user's type.
 function roleMatches(role,answers){
  if(!validAnswers(answers)||questions.filter(q=>answers[q.id]!==0).length<3)return [];
+ if(/product.*manag|product owner|customer success|account manag/i.test(role||'')){return rolePatterns(role).map(p=>({...p,note:'Illustrative work pattern based on the demands you described.',distance:questions.reduce((n,q,i)=>n+(answers[q.id]===0?0:Math.abs(answers[q.id]-p.a[i])),0)})).sort((a,b)=>a.distance-b.distance).slice(0,3);}
  const engineering=/engineer|developer|programmer|software|technical/i.test(role||'');
  const sales=/sales|business development|account|partnership/i.test(role||'');
  const patterns=[
@@ -61,19 +62,32 @@ function suggestedQuestions(type,career){
  return labels;
 }
 function context(type,career){
- if(!validAnswers(career?.demands))return '';
+ if(!career?.role)return '';
+ const broad=categoryScore(type,career.role), vs=variants(type,career.role);
+ const baseline='Estimated category preference fit: '+broad+'%. Role variants: '+vs.map(v=>v.name+' '+v.score+'%, best-aligned styles '+v.ideal.join('/')).join('; ')+'. Always include the relevant estimated fit percentage when discussing a role or comparing variants. Use these scores consistently; clarify assumptions if discussing a new variant. These are illustrative preference estimates, not success probabilities. ';
+ if(!validAnswers(career.demands))return baseline;
  const r=report(type,career.demands);
- return 'User-described role demands: '+questions.map(q=>q.title+' '+(career.demands[q.id]===-1?q.low:career.demands[q.id]===1?q.high:'Both about equally')).join('; ')+'. Preference-fit heuristic: '+(r.score===null?'no differentiated score':r.score+'/100')+'. Equally best-aligned styles: '+(r.ideal.join(', ')||'no single style')+'. Closest work-pattern role hypotheses: '+roleMatches(career.role,career.demands).map(x=>x.name+' ('+x.note+')').join('; ')+'. These describe the job, independently of the user’s personality. This is an equal-weight preference comparison, not ability, performance, or a validated career prediction. Explain specific role variants that better match these demands and the user; do not flatter the user or claim their type is automatically ideal.';
+ return baseline+'User-described role demands: '+questions.map(q=>q.title+' '+(career.demands[q.id]===-1?q.low:career.demands[q.id]===1?q.high:'Both about equally')).join('; ')+'. Preference-fit heuristic: '+(r.score===null?'no differentiated score':r.score+'/100')+'. Equally best-aligned styles: '+(r.ideal.join(', ')||'no single style')+'. Closest work-pattern role hypotheses: '+roleMatches(career.role,career.demands).map(x=>x.name+' ('+x.note+')').join('; ')+'. These describe the job, independently of the user’s personality. This is an equal-weight preference comparison, not ability, performance, or a validated career prediction. Explain specific role variants that better match these demands and the user; do not flatter the user or claim their type is automatically ideal.';
 }
-function variants(type,role){
- const bd=/sales|business development|account executive|partnership/i.test(role||'');
- const rows=[
- {name:bd?'Complex enterprise deals':'Strategy and complex problem solving',description:'Long cycles, custom solutions, prepared negotiation, and a small number of consequential decisions.',a:[-1,-1,1,1,-1,-1,-1,-1]},
- {name:bd?'High-volume prospecting and sales':'Fast-paced persuasion and execution',description:'Frequent contact, quick decisions, clear targets, and adapting in the moment.',a:[1,1,-1,1,1,-1,1,1]},
- {name:bd?'Relationship-led account growth':'Relationship-centered coordination',description:'Ongoing personal rapport, frequent contact, human alignment, and reliable follow-through.',a:[-1,1,-1,-1,1,1,-1,1]}
- ];
- return rows.map(v=>({name:v.name,description:v.description,score:score(type,Object.fromEntries(questions.map((q,i)=>[q.id,v.a[i]])))})).sort((a,b)=>b.score-a.score);
+function rolePatterns(role){
+ const r=role||'';
+ const strategy=[-1,-1,1,1,-1,-1,-1,-1], delivery=[-1,1,-1,1,1,-1,-1,-1], rapport=[-1,1,-1,-1,1,1,-1,1];
+ const row=(name,description,a)=>({name,description,a});
+ if(/product.*manag|product owner/i.test(r))return [row('Technical / platform product manager','Complex systems, technical trade-offs, and long-term platform decisions.',strategy),row('Growth product manager','Rapid experiments, commercial trade-offs, and frequent cross-team influence.',[1,-1,-1,1,-1,-1,1,1]),row('Delivery-focused product manager','Coordinate stakeholders, clarify requirements, and deliver dependable releases.',delivery)];
+ if(/customer success|account manag/i.test(r))return [row('Strategic / enterprise customer success','A few complex accounts, business cases, adoption strategy, and prepared executive conversations.',[-1,-1,0,1,-1,-1,-1,-1]),row('Relationship-led account management','Frequent check-ins, personal rapport, renewals, and stakeholder alignment.',rapport),row('Technical customer success','Deep product expertise, troubleshooting, and tailored implementation plans.',[-1,-1,1,1,1,-1,-1,-1])];
+ if(/engineer|developer|programmer/i.test(r))return [row('Systems / platform engineer','Design complex systems through independent technical work.',strategy),row('Implementation engineer','Build reliable solutions using established methods.',[-1,1,1,1,1,-1,-1,-1]),row('Engineering manager','Coach people and coordinate long-term delivery.',[-1,1,-1,-1,0,1,-1,1])];
+ if(/support/i.test(r))return [row('Technical troubleshooting','Investigate difficult issues through focused analysis.',[0,-1,1,1,1,-1,-1,-1]),row('Customer-facing support','Handle frequent conversations with empathy and quick practical responses.',[1,1,-1,-1,1,1,1,1])];
+ if(/market/i.test(r))return [row('Market research / positioning','Analyze markets and develop a differentiated strategy.',strategy),row('Campaign / community marketing','Coordinate campaigns and engage audiences frequently.',[1,1,-1,-1,-1,1,-1,1])];
+ if(/design/i.test(r))return [row('Systems / product design','Resolve complex interaction and system problems.',[-1,-1,1,1,-1,0,-1,-1]),row('User research / collaborative design','Understand people through interviews and iterative collaboration.',[0,-1,-1,-1,-1,1,1,1])];
+ if(/data|research/i.test(r))return [row('Research / modeling','Explore novel questions through independent analysis.',[-1,-1,1,1,-1,-1,1,-1]),row('Applied analytics','Deliver accurate reporting and practical recommendations.',[-1,1,1,1,1,-1,-1,-1])];
+ if(/operation/i.test(r))return [row('Operations strategy','Redesign systems and solve structural problems.',strategy),row('Delivery operations','Maintain processes and coordinate dependable execution.',delivery)];
+ const bd=/sales|business development|partnership/i.test(r);
+ return [row(bd?'Complex enterprise deals':'Strategy and complex problem solving','Long cycles, custom solutions, and prepared negotiation.',strategy),row(bd?'High-volume sales':'Fast-paced execution','Frequent contact, quick decisions, and adapting in the moment.',[1,1,-1,1,1,-1,1,1]),row(bd?'Relationship-led account growth':'Relationship-centered coordination','Personal rapport, frequent contact, and reliable follow-through.',rapport)];
 }
-const api={questions,types,validAnswers,score,report,context,variants,roleMatches,suggestedQuestions};
+function answersFor(p){return Object.fromEntries(questions.map((q,i)=>[q.id,p.a[i]]));}
+function variants(type,role){return rolePatterns(role).map(p=>({...p,score:score(type,answersFor(p)),ideal:report(type,answersFor(p)).ideal})).sort((a,b)=>b.score-a.score);}
+function categoryScore(type,role){if(!types.includes(type))return null;const rows=variants(type,role);return Math.round(rows.reduce((n,r)=>n+r.score,0)/rows.length);}
+function provisional(type,role,answers){const rows=rolePatterns(role).map(p=>score(type,Object.assign(answersFor(p),answers||{})));return Math.round(rows.reduce((n,v)=>n+v,0)/rows.length);}
+const api={questions,types,validAnswers,score,report,context,variants,roleMatches,suggestedQuestions,categoryScore,provisional};
 if(typeof module!=='undefined')module.exports=api;else root.careerFit=api;
 })(typeof window!=='undefined'?window:globalThis);
