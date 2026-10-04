@@ -6064,7 +6064,7 @@ function tsHandle(msg) {
     _tsFlow.r = tsParseRel(m);
     trackEvent('person_relationship_selected', { rel: _tsFlow.r });
     tsHighlightRelationship(_tsFlow.r);
-    var relationshipName = { partner: 'romantic partner', friend: 'friend', parent: 'parent', sibling: 'sibling', coworker: 'coworker', boss: 'boss', family: 'family member' }[_tsFlow.r] || 'person';
+    var relationshipName = { partner: 'romantic partner', friend: 'friend', parent: 'parent', sibling: 'sibling', roommate: 'roommate', coworker: 'coworker', boss: 'boss', family: 'family member' }[_tsFlow.r] || 'person';
     tsBubble('What’s your ' + relationshipName + '’s first name?');
     _tsFlow.step = 'name';
     return;
