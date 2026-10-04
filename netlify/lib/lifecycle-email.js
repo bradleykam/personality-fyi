@@ -6,8 +6,9 @@ const SITE='https://personality.fyi';
 const escape=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function historyFor(user,events){
  const deliveredTokens=new Set(events.filter(e=>e.event==='mail_webhook'&&['sent','delivered','opened','clicked'].includes(e.props?.kind)).map(e=>e.props.email_token).filter(Boolean));
+ const canceled=new Set(events.filter(e=>e.event==='mail_schedule_canceled'||(e.event==='mail_webhook'&&e.props?.kind==='canceled')).map(e=>e.props?.email_token));
  const accepted=new Map();
- events.forEach(e=>{const p=e.props||{};if(p.user_id!==user.id)return;if(e.event==='mail_accepted'||(e.event==='mail_queued'&&deliveredTokens.has(p.email_token))){if(!accepted.has(p.email_token))accepted.set(p.email_token,e);}});
+ events.forEach(e=>{const p=e.props||{};if(p.user_id!==user.id||canceled.has(p.email_token))return;if(e.event==='mail_accepted'||(e.event==='mail_queued'&&deliveredTokens.has(p.email_token))){if(!accepted.has(p.email_token))accepted.set(p.email_token,e);}});
  return [...accepted.values()].sort((a,b)=>date(a.created_at)-date(b.created_at));
 }
 function lastActivity(user,events,now){
@@ -26,7 +27,7 @@ function selectEmail(user,events,now=Date.now(),nhie={}) {
  const userMail=events.filter(e=>(e.props?.user_id===user.id||ownTokens.has(e.props?.email_token))&&/^mail_/.test(e.event));
  if(userMail.some(e=>e.event==='mail_send_failed'&&now-date(e.created_at)<6*3600000))return null;
  // Uncertain sends stay blocked until provider evidence arrives; never create a second delivery by guessing.
- const rejected=new Set(userMail.filter(e=>(e.event==='mail_send_failed'&&e.props.reason!=='network-outcome-unknown')||(e.event==='mail_webhook'&&e.props.kind==='failed')).map(e=>e.props.email_token));
+ const rejected=new Set(userMail.filter(e=>e.event==='mail_schedule_canceled'||(e.event==='mail_send_failed'&&e.props.reason!=='network-outcome-unknown')||(e.event==='mail_webhook'&&e.props.kind==='failed')).map(e=>e.props.email_token));
  if(userMail.some(e=>e.event==='mail_queued'&&!acceptedTokens.has(e.props.email_token)&&!rejected.has(e.props.email_token)))return null;
  const latest=sent.at(-1),lastSent=Math.max(date(latest?.created_at),date(md.weekly_digest_last),date(md.welcomed_at),date(md.activation_nudge_at),date(md.est_reminder_at),date(md.lifecycle_last_at));
  if(now-date(user.created_at)<3600000||now-lastSent<3*DAY)return null;

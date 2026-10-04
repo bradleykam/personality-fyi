@@ -10261,6 +10261,8 @@ function onLogin(user) {
   // signup_country is missing and the pf_country cookie is present.)
   try {
     const data = {};
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timezone && meta.timezone !== timezone) data.timezone = timezone;
     if (!meta.signup_attribution) {
       const attrRaw = localStorage.getItem('pf_attribution');
       if (attrRaw) data.signup_attribution = JSON.parse(attrRaw);

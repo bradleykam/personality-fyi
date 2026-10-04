@@ -31,3 +31,7 @@ For substantive recommendations, explain whose real problem is solved, what valu
 ## Lifecycle email priorities
 
 Emails should lead to a useful next action. Without a type, prompt choosing a type or taking the test. With a type, prioritize relationship and career context; with context, prompt specific questions and further exploration in the area the person uses. Articles and Never Have I Ever are secondary, only after at least seven days without recorded activity. Preserve seed content in the product, but exclude seed/internal accounts from reporting and email statistics. Unknown measurement must be labeled unavailable, never converted into a reassuring zero.
+
+## Email cadence (October 3, 2026)
+
+Send at most one recurring lifecycle email per user per local calendar week, scheduled for Saturday at 09:00 in the user's saved IANA time zone. Until a time zone is known, use Saturday 11:00 Europe/London (including British daylight saving). Capture the browser time zone on authenticated visits. Allow at most one additional welcome or useful transactional product email in that Monday–Sunday week, for a total of two. All application email senders must use the shared cap; queue the weekly message with the provider in advance so batch processing does not change delivery time.
