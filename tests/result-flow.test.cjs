@@ -144,3 +144,28 @@ test('careers preserve legacy context, add independently, and edit without dupli
   await ctx.careerPersist({field:'Other',role:'Unsaved'},null);
   assert.equal(ctx.careerList().length,3);
 });
+
+test('career history migrates to named threads without being rendered on entry', () => {
+  const data = new Map([['pf_chat_career', JSON.stringify(['Is sales a fit?', '**Yes**, consider consultative sales.'])]]);
+  const ctx = {currentUser:{id:'u1'},localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)},careerList:()=>[{id:'legacy',field:'Technology',role:'Sales'}],Date,JSON};
+  vm.runInNewContext(fn('careerThreadsKey')+'\n'+fn('careerThreads'),ctx);
+  const rows = ctx.careerThreads();
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].title,'Is sales a fit?');
+  assert.equal(rows[0].history[1],'**Yes**, consider consultative sales.');
+  assert.equal(ctx.careerThreads().length,1);
+  assert.ok(!fn('advisorInit').includes('localStorage.getItem'));
+  assert.ok(!fn('advisorInit').includes('Earlier conversation'));
+});
+
+test('career thread saving keeps distinct conversations and updates only the selected thread', () => {
+  const data = new Map(); let n=0;
+  const ctx={currentUser:{id:'u1'},careerActiveThread:null,careerThreadContext:null,advisorHistory:['First question','First answer'],careerList:()=>[],careerCtx:()=>({field:'Tech',role:'Sales'}),localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)},crypto:{randomUUID:()=>String(++n)},youRenderThreads(){}};
+  vm.runInNewContext(fn('careerThreadsKey')+'\n'+fn('careerThreads')+'\n'+fn('careerSaveThread'),ctx);
+  ctx.careerSaveThread();
+  ctx.careerActiveThread=null;ctx.advisorHistory=['Second question','Second answer'];ctx.careerSaveThread();
+  assert.equal(ctx.careerThreads().length,2);
+  ctx.advisorHistory.push('Follow up','Reply');ctx.careerSaveThread();
+  assert.equal(ctx.careerThreads().length,2);
+  assert.equal(ctx.careerThreads()[0].history.length,4);
+});
