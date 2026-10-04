@@ -4,3 +4,12 @@ test('complex long-cycle prepared enterprise role aligns with INTJ',()=>{const r
 test('high-contact rapport role favors different styles, not automatic user flattery',()=>{const a={cycle:1,complexity:1,contact:-1,trust:-1,thinking:1,decisions:1,pace:1,influence:1};assert.equal(fit.report('INTJ',a).score,0);assert.deepEqual(fit.report('INTJ',a).ideal,['ESFP']);});
 test('balanced and missing answers never invent a score',()=>{assert.equal(fit.report('INTJ',{}),null);const a=Object.fromEntries(fit.questions.map(q=>[q.id,0]));assert.equal(fit.report('INTJ',a).score,null);assert.deepEqual(fit.report('INTJ',a).ideal,[]);assert.equal(fit.score('unknown',enterprise),null);});
 test('chat includes actual role demands and limitations',()=>{assert.match(fit.context('INTJ',{demands:enterprise}),/Patient progress/);assert.match(fit.context('INTJ',{demands:enterprise}),/not ability/);assert.equal(fit.context('INTJ',{}),'');});
+test('engineer coordination demands surface management independently of user type',()=>{
+ const fit=require('../career-fit.js');
+ const answers={complexity:1,contact:-1,cycle:-1,decisions:0,influence:-1,pace:-1,thinking:0,trust:0};
+ assert.equal(fit.roleMatches('engineer',answers)[0].name,'Engineering manager');
+ assert.match(fit.context('INTJ',{role:'engineer',demands:answers}),/Engineering manager/);
+ const independent={cycle:-1,complexity:-1,contact:1,trust:1,thinking:-1,decisions:-1,pace:-1,influence:-1};
+ assert.equal(fit.roleMatches('engineer',independent)[0].name,'Systems architect / staff engineer');
+ assert.deepEqual(fit.roleMatches('engineer',Object.fromEntries(fit.questions.map(q=>[q.id,0]))),[]);
+});
