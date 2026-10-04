@@ -191,3 +191,13 @@ test('career overview does not spend a question and suggested prompts use the sa
  assert.equal(c.careerQuestions({role:'Product designer'}).length,3);
  assert.equal(calls.length,0);
 });
+test('roommate and its synonyms retain their own relationship category',()=>{
+ const {c}=setup();vm.runInContext(fn('tsParseRel'),c);
+ for(const text of ['roommate','my roommate','room mate','flatmate','housemate']) assert.equal(c.tsParseRel(text),'roommate');
+ assert.equal(c.tsParseRel('friend'),'friend');
+});
+test('roommate name step uses roommate label and selection',()=>{
+ const {c,bubbles}=setup();c._tsFlow={active:true,step:'rel'};c.tsBubble=x=>bubbles.push(x);c.tsHighlightRelationship=x=>{c.selected=x;};
+ vm.runInContext(fn('tsParseRel'),c);vm.runInContext(fn('tsHandle'),c);c.tsHandle('roommate');
+ assert.equal(c.selected,'roommate');assert.equal(bubbles[0],'What’s your roommate’s first name?');
+});
