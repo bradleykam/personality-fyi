@@ -206,3 +206,32 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner { paddin
   .app-topbar-creators,#app-topbar-creators { font-size:12px!important; padding:8px!important; }
   .app-mobile-header { font-size:15px; }
 }
+
+/* Career follows the same single-content-column pattern as Relationships. */
+#advisor-section .cha-layout { display:flex; flex-direction:column; gap:24px; }
+#advisor-section .cha-container { height:auto; min-height:0; }
+#advisor-section .cha-main { min-height:0; overflow:visible; }
+#advisor-section #advisor-side { width:100%; max-width:760px; min-width:0; border:0; padding:0; background:transparent; }
+#advisor-section #career-roles > summary { font-size:16px; color:var(--muted); }
+#advisor-section .career-role-picker { display:none!important; }
+.career-fit-overview { max-width:760px; }
+.career-fit-overview h2 { font-size:26px; margin:4px 0 8px; }
+.career-fit-context { font-size:18px; margin:0 0 8px; }
+.career-fit-note { color:var(--muted); font-size:14px; }
+.career-fit-overview h3,.career-suggestions h3,.career-idea h3 { font-size:17px; margin:22px 0 6px; }
+.career-fit-overview p,.career-idea p { line-height:1.6; }
+.career-suggestions { max-width:760px; margin-top:24px; }
+.career-suggestions .ts-chips { flex-direction:column; align-items:flex-start; }
+.career-suggestions .ts-chip { text-align:left; white-space:normal; }
+.career-idea { padding:0 0 20px; border-bottom:1px solid var(--border); }
+.career-intro { max-width:580px; color:var(--muted); }
+@media(max-width:768px) { .career-fit-overview h2 { font-size:23px; } .career-suggestions .ts-chip { width:100%; } }
+
+#advisor-section .cha-main { order:0; }
+#advisor-section #advisor-side { order:1; }
+#career-overview { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(230px,1fr); gap:36px; }
+#career-overview[hidden] { display:none; }
+#career-overview .career-suggestions { margin-top:0; }
+.career-fit-overview h3 { margin-top:18px; }
+.career-fit-overview p { margin-top:6px; margin-bottom:12px; }
+@media(max-width:900px) { #career-overview { display:block; } #career-overview .career-suggestions { margin-top:24px; } }
