@@ -647,5 +647,6 @@
   ".well-known/ai-plugin.json",
   "email-attribution.js",
   "clarity.css",
-  "relationship-dynamics.js"
+  "relationship-dynamics.js",
+  "career-fit.js"
 ]

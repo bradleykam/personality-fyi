@@ -242,3 +242,6 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner { paddin
 
 .person-match h3 { text-align:left; font-size:18px; margin:24px 0 8px; }
 .person-match .person-dynamics-note { font-size:14px; color:var(--muted); }
+
+.role-fit-options{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin:24px 0}.role-fit-options .ts-chip{text-align:left;white-space:normal;min-height:48px}.role-fit-controls{display:flex;gap:12px}
+.role-fit-options .ts-chip,.role-fit-options .ts-chip:hover,.role-fit-options .ts-chip:focus{color:#17201c;background:#fff}.role-fit-options .ts-chip[aria-pressed="true"]{background:#edf2ed;border-color:#56705c;color:#17201c}
