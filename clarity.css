@@ -136,3 +136,32 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner {
 .embedded-content .blog-header { display:none!important; }
 .embedded-content .blog-article, .embedded-content .blog-index, .embedded-content .blog-footer { margin-left:0!important; max-width:100%; }
 .embedded-content body { padding:0!important; }
+
+/* One navigation width and one composer position across the product. */
+:root { --sidebar-width:275px; --composer-bottom:24px; }
+.app-sidebar { width:var(--sidebar-width); min-width:var(--sidebar-width); }
+.app-main { margin-left:var(--sidebar-width); }
+#app-sidebar-credits { left:calc(var(--sidebar-width) + 24px); }
+body:has(#app-sidebar-credits[style*="display: block"]) { --composer-bottom:var(--usage-footer-space,112px); }
+#home-profile .cha-input-bar, #relationship-conversation .cha-input-bar, #advisor-section .cha-input-bar,
+#ask-section .cha-input-bar {
+  position:fixed; left:calc(var(--sidebar-width) + 32px); right:32px;
+  bottom:var(--composer-bottom); z-index:80; margin:0; padding:8px 0;
+}
+.app-main-inner { padding-bottom:200px!important; }
+body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner { padding-bottom:120px!important; }
+.ppl-card.selected { background:#eef2ee; border-color:#506b55; box-shadow:0 0 0 2px #506b5533; }
+.app-sidebar { overflow-y:auto; }
+@media(max-width:768px) {
+  .app-main { margin-left:0; }
+  #app-sidebar-credits { left:16px; }
+  #home-profile .cha-input-bar, #relationship-conversation .cha-input-bar, #advisor-section .cha-input-bar,
+  #ask-section .cha-input-bar { left:16px; right:16px; }
+}
+/* Standalone pages inside the common shell do not introduce a second nav. */
+.embedded-content .site-header, .embedded-content .site-nav, .embedded-content .sidebar { display:none!important; }
+.career-facts { display:flex; align-items:center; gap:16px; margin:24px 0; flex-wrap:wrap; }
+.career-fact { display:flex; flex-direction:column; gap:6px; padding:16px 20px; border:1px solid var(--border); border-radius:12px; min-width:180px; background:#fff; }
+.career-fact > span { color:var(--muted); font-size:15px; }
+.career-fact > strong { font-size:18px; font-weight:600; }
+.career-edit { margin-left:auto; font-size:14px; padding:8px; }
