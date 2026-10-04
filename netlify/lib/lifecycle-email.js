@@ -1,5 +1,5 @@
 const {createHash}=require('node:crypto');
-const {excluded}=require('./email-reporting');
+const {excluded,emailExcluded}=require('./email-reporting');
 const {TYPES,DAY,date,careerFilled}=require('./product-data');
 const BLOCKED=new Set(['CU','IR','KP','SY','IQ','RU','BY','VE','MV','LB','YE','SD','ZW']);
 const SITE='https://personality.fyi';
@@ -19,7 +19,7 @@ function lastActivity(user,events,now){
 }
 function selectEmail(user,events,now=Date.now(),nhie={}) {
  const md=user.user_metadata||{};
- if(excluded(user)||!user.email_confirmed_at||md.digest_unsub===true||BLOCKED.has(String(md.signup_country||'').toUpperCase()))return null;
+ if(emailExcluded(user)||!user.email_confirmed_at||md.digest_unsub===true||BLOCKED.has(String(md.signup_country||'').toUpperCase()))return null;
  const sent=historyFor(user,events);
  const acceptedTokens=new Set(sent.map(e=>e.props.email_token));
  const ownTokens=new Set(events.filter(e=>e.props?.user_id===user.id&&/^mail_/.test(e.event)).map(e=>e.props.email_token).filter(Boolean));

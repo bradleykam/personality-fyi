@@ -3852,12 +3852,6 @@ textarea::placeholder { color: var(--muted); }
           </form>
         </div>
         <aside class="cha-side" id="advisor-side"><details id="career-roles" open><summary>Explore career ideas</summary>
-          <form onsubmit="event.preventDefault();careerCheckFit()" style="display:grid;gap:12px;margin:12px 0 24px">
-            <label>Enter your field<input id="career-fit-field" placeholder="e.g. Technology" style="display:block;width:100%;padding:10px;margin-top:6px" required></label>
-            <label>Enter your job<input id="career-fit-job" placeholder="e.g. Product designer" style="display:block;width:100%;padding:10px;margin-top:6px" required></label>
-            <button class="ts-chip" type="submit">Check compatibility →</button>
-            <div style="font-size:11px;color:var(--muted)">An estimated fit based on your personality, field, and role.</div>
-          </form>
           <button class="cha-side-close" onclick="advisorSideClose()" aria-label="Close panel" style="display:none">&times;</button>
           <div id="advisor-browse-block" class="career-role-picker">
             <label for="advisor-browse-type">Explore roles for</label>
@@ -8474,20 +8468,24 @@ function renderCareerContext() {
   if (!host) return;
   if (!currentUser) { host.innerHTML = ''; return; }
   var selected = careerCtx();
-  host.innerHTML = '<div class="career-facts"><div class="career-fact"><span>Job title</span><strong>' + pplEsc(selected.role || 'Not set') + '</strong></div>' +
-    '<div class="career-fact"><span>Industry</span><strong>' + pplEsc(selected.field || 'Not set') + '</strong></div>' +
-    '<button type="button" class="ghost career-edit" onclick="careerEdit()">Edit</button></div><div id="career-editor"></div>';
-
+  var card = function(key,label,value) {
+    return '<button type="button" class="ppl-card career-fact ' + (value ? '' : 'career-empty') + '" onclick="careerEdit(\'' + key + '\')"><span>' + label + '</span><strong>' + pplEsc(value || '+ Add ' + label.toLowerCase()) + '</strong></button>';
+  };
+  host.innerHTML = '<div class="career-facts">' + card('role','Job title',selected.role) + card('field','Industry',selected.field) +
+    ((selected.role || selected.field) ? '<button type="button" class="ghost career-edit" onclick="careerEdit()">Edit</button>' : '') + '</div><div id="career-editor"></div>' +
+    (selected.role && selected.field ? '<button type="button" class="ts-chip" onclick="careerCheckFit()">See my career fit</button>' : '');
 }
-function careerEdit(i) {
+function careerEdit(key) {
   var c = careerCtx();
   careerEditing = c.id || null;
+  var input = function(k,label,value,example) { return '<label>' + label + '<input id="cc-' + k + '" required maxlength="120" value="' + pplEsc(value || '') + '" placeholder="' + example + '"></label>'; };
   document.getElementById('career-editor').innerHTML = '<form class="career-profile-form" onsubmit="event.preventDefault();careerCtxSave()">' +
-    '<label>Industry<input id="cc-field" required maxlength="120" value="' + pplEsc(c.field || '') + '" placeholder="e.g. Technology"></label>' +
-    '<label>Job title<input id="cc-role" required maxlength="120" value="' + pplEsc(c.role || '') + '" placeholder="e.g. Account executive"></label>' +
-    '<button type="submit">Save career</button><button type="button" onclick="renderCareerContext()">Cancel</button><p id="career-save-error" role="alert"></p></form>';
-  document.getElementById('cc-field').focus();
+    (key !== 'field' ? input('role','Job title',c.role,'e.g. Account executive') : '') +
+    (key !== 'role' ? input('field','Industry',c.field,'e.g. Technology') : '') +
+    '<button type="submit">Save</button><button type="button" onclick="renderCareerContext()">Cancel</button><p id="career-save-error" role="alert"></p></form>';
+  document.getElementById(key === 'field' ? 'cc-field' : 'cc-role').focus();
 }
+
 async function careerPersist(next, editing) {
   if (!currentUser || !supabaseClient || careerSaving || document.getElementById('advisor-send-btn').disabled) return false;
   careerSaving = true;
@@ -8511,9 +8509,11 @@ async function careerPersist(next, editing) {
   } finally { careerSaving = false; }
 }
 async function careerCtxSave() {
-  var field = document.getElementById('cc-field').value.trim();
-  var role = document.getElementById('cc-role').value.trim();
-  if (field && role) await careerPersist({field:field,role:role}, careerEditing);
+  var fieldInput = document.getElementById('cc-field'), roleInput = document.getElementById('cc-role');
+  var field = fieldInput ? fieldInput.value.trim() : careerCtx().field || '';
+  var role = roleInput ? roleInput.value.trim() : careerCtx().role || '';
+  if ((fieldInput && !field) || (roleInput && !role)) return;
+  await careerPersist({field:field,role:role}, careerEditing);
 }
 async function careerSelect(i) {
   var c = careerList()[i];
@@ -9920,12 +9920,12 @@ function advisorBrowseType(type) {
 }
 
 async function careerCheckFit() {
-  var field = document.getElementById('career-fit-field').value.trim();
-  var job = document.getElementById('career-fit-job').value.trim();
-  if (!field || !job) return;
+  var field = careerCtx().field || '';
+  var job = careerCtx().role || '';
+  if (!field || !job) { careerEdit(!job ? 'role' : 'field'); return; }
   var type = localStorage.getItem('typeread_selected_type');
   if (!type) { appNav('analyze'); return; }
-  if (currentUser && supabaseClient && !await careerPersist({field:field,role:job}, null)) return;
+  if (document.getElementById('advisor-send-btn').disabled) return;
   advisorIntake.done = true;
   var input = document.getElementById('advisor-input');
   input.value = 'How compatible is working as a ' + job + ' in ' + field + ' with my ' + type + ' personality? Give me an estimated score out of 100, the main strengths and friction, and one practical suggestion.';
@@ -13423,6 +13423,19 @@ document.addEventListener('DOMContentLoaded', function() {
   appNav(NAV_PATH_TO_KEY[location.pathname] || 'analyze', {fromPop:true});
 });
 
+
+(function() {
+  if (!window.visualViewport) return;
+  function updateKeyboardLayout() {
+    var viewport = window.visualViewport;
+    var inset = viewport.scale === 1 ? Math.max(0,window.innerHeight - viewport.height - viewport.offsetTop) : 0;
+    document.documentElement.style.setProperty('--keyboard-inset',inset + 'px');
+    document.body.classList.toggle('keyboard-open', window.innerWidth <= 768 && inset > 120);
+  }
+  window.visualViewport.addEventListener('resize',updateKeyboardLayout);
+  window.visualViewport.addEventListener('scroll',updateKeyboardLayout);
+  updateKeyboardLayout();
+})();
 </script>
 </body>
 </html>
