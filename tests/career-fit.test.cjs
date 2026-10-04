@@ -1,0 +1,6 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fit=require('../career-fit');
+const enterprise={cycle:-1,complexity:-1,contact:1,trust:1,thinking:-1,decisions:-1,pace:-1,influence:-1};
+test('complex long-cycle prepared enterprise role aligns with INTJ',()=>{const r=fit.report('INTJ',enterprise);assert.equal(r.score,100);assert.deepEqual(r.ideal,['INTJ']);});
+test('high-contact rapport role favors different styles, not automatic user flattery',()=>{const a={cycle:1,complexity:1,contact:-1,trust:-1,thinking:1,decisions:1,pace:1,influence:1};assert.equal(fit.report('INTJ',a).score,0);assert.deepEqual(fit.report('INTJ',a).ideal,['ESFP']);});
+test('balanced and missing answers never invent a score',()=>{assert.equal(fit.report('INTJ',{}),null);const a=Object.fromEntries(fit.questions.map(q=>[q.id,0]));assert.equal(fit.report('INTJ',a).score,null);assert.deepEqual(fit.report('INTJ',a).ideal,[]);assert.equal(fit.score('unknown',enterprise),null);});
+test('chat includes actual role demands and limitations',()=>{assert.match(fit.context('INTJ',{demands:enterprise}),/Patient progress/);assert.match(fit.context('INTJ',{demands:enterprise}),/not ability/);assert.equal(fit.context('INTJ',{}),'');});
