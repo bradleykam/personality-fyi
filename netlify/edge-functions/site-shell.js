@@ -2,7 +2,7 @@
 // retain the original page, including its scripts, forms, and access controls.
 export default async function siteShell(request, context) {
   const url = new URL(request.url);
-  if (request.method !== 'GET' || url.pathname === '/' || url.pathname === '/index.html' || url.pathname.startsWith('/.netlify/') || url.searchParams.get('_content') === '1') return;
+  if (request.method !== 'GET' || request.headers.get('sec-fetch-dest') === 'iframe' || url.pathname === '/' || url.pathname === '/index.html' || url.pathname.startsWith('/.netlify/') || url.searchParams.get('_content') === '1') return;
   const response = await context.next();
   if (!response.ok || !(response.headers.get('content-type') || '').includes('text/html')) return response;
   const original = await response.text();
