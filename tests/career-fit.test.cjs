@@ -13,3 +13,10 @@ test('engineer coordination demands surface management independently of user typ
  assert.equal(fit.roleMatches('engineer',independent)[0].name,'Systems architect / staff engineer');
  assert.deepEqual(fit.roleMatches('engineer',Object.fromEntries(fit.questions.map(q=>[q.id,0]))),[]);
 });
+test('follow-ups reflect the described role and actual preference mismatch',()=>{
+ const fit=require('../career-fit.js'),demands={complexity:1,contact:-1,cycle:-1,decisions:0,influence:-1,pace:-1,thinking:0,trust:0};
+ const q=fit.suggestedQuestions('INTJ',{role:'engineer',demands});
+ assert.deepEqual(q,['Would I enjoy managing engineers?','Would I be happier staying technical?','How can I handle a meeting-heavy role?']);
+ assert.notDeepEqual(q,fit.suggestedQuestions('ESTJ',{role:'engineer',demands}));
+ assert.deepEqual(fit.suggestedQuestions('INTJ',{role:'engineer'}),[]);
+});
