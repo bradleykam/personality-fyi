@@ -165,3 +165,43 @@ body:has(#app-sidebar-credits[style*="display: block"]) .app-main-inner { paddin
 .career-fact > span { color:var(--muted); font-size:15px; }
 .career-fact > strong { font-size:18px; font-weight:600; }
 .career-edit { margin-left:auto; font-size:14px; padding:8px; }
+.career-facts .career-fact { text-align:left; align-items:flex-start; cursor:pointer; color:var(--ink); font-family:inherit; }
+.career-facts .career-empty { background:transparent; border-style:dashed; }
+.career-facts .career-fact:hover,.career-facts .career-fact:focus-visible { border-color:#506b55; background:#eef2ee; }
+@media(max-width:768px) {
+  input,textarea,select,.cha-input { font-size:16px!important; }
+  button,.ts-chip,.app-nav-item,.ppl-add { min-height:44px; }
+  .app-main-inner { padding:20px 16px 180px!important; }
+  .career-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .career-facts .career-fact { min-width:0; width:100%; margin:0; padding:14px; min-height:90px; }
+  .career-fact strong { font-size:16px; overflow-wrap:anywhere; }
+  .career-edit { grid-column:2; justify-self:end; min-height:44px; }
+  .career-profile-form { display:grid; grid-template-columns:1fr 1fr; }
+  .career-profile-form label,.career-profile-form p { grid-column:1/-1; min-width:0; }
+  .ppl-add-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .ppl-add { width:100%; padding:10px; white-space:normal; font-size:15px; }
+  .ppl-row { flex-wrap:nowrap; overflow-x:auto; padding:4px; scroll-snap-type:x proximity; }
+  .ppl-row .ppl-card { flex:0 0 auto; scroll-snap-align:start; }
+  .ppl-x { min-width:32px; min-height:32px; }
+  .cha-container,body:has(#app-sidebar-credits[style*="display: block"]) .cha-container { height:auto!important; min-height:0!important; }
+  .cha-layout { display:flex; flex-direction:column; gap:20px; }
+  .cha-main { min-height:0; overflow:visible; }
+  .cha-thread { max-height:none; overflow:visible; }
+  #advisor-side { width:100%; min-width:0; padding:18px; box-sizing:border-box; }
+  #relationship-conversation .cha-layout { min-height:0; }
+  .person-match { font-size:17px; line-height:1.55; margin:20px auto; }
+  .person-match-score { font-size:38px; }
+  #data-reader { min-height:0!important; height:calc(100dvh - 110px - var(--usage-footer-space,0px))!important; }
+  .embedded-content .blog-article,.embedded-content .blog-index { padding:16px!important; }
+  .embedded-content table { display:block; max-width:100%; overflow:auto; }
+  #app-sidebar-credits { bottom:max(8px,env(safe-area-inset-bottom)); }
+  body.keyboard-open #app-sidebar-credits { visibility:hidden; }
+  body.keyboard-open { --composer-bottom:calc(var(--keyboard-inset,0px) + 8px)!important; }
+  .cha-input { max-height:120px; }
+  .you-overview-layout { display:flex; flex-direction:column; gap:20px; }
+  .you-questions .ts-chip { width:100%; text-align:left; white-space:normal; }
+}
+@media(max-width:380px) {
+  .app-topbar-creators,#app-topbar-creators { font-size:12px!important; padding:8px!important; }
+  .app-mobile-header { font-size:15px; }
+}

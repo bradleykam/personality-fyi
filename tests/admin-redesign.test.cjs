@@ -106,3 +106,12 @@ test('authenticated submitted questions are recorded before provider failures, w
  await c.exports.handler({httpMethod:'POST',headers:{authorization:'Bearer valid','x-pf-answer':'1','x-pf-surface':'career'},body:JSON.stringify({messages:[{role:'user',content:'Private career question'}]})});
  assert.equal(written[0][0],'server_ai_question');assert.equal(written[0][1],'actual');assert.equal(written[0][2].surface,'career');assert.equal(written[1][0],'server_ai_failure');assert.doesNotMatch(JSON.stringify(written),/Private career question/);
 });
+
+test('owner email opt-in stays excluded from reporting and still respects unsubscribe',()=>{
+ const u={...user('owner',{mbti_type:'ENTP'}),email:'brad@real.photos'};
+ assert.ok(selectEmail(u,[],now));
+ assert.equal(buildReport({users:[u],events:[],now}).snapshot.accounts,0);
+ assert.equal(selectEmail({...u,user_metadata:{...u.user_metadata,digest_unsub:true}},[],now),null);
+ assert.equal(selectEmail({...u,user_metadata:{seed:true}},[],now),null);
+ assert.equal(selectEmail({...u,email:'info@real.photos'},[],now),null);
+});

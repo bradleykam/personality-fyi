@@ -163,3 +163,13 @@ test('career thread saving keeps distinct conversations and updates only the sel
   assert.equal(ctx.careerThreads().length,2);
   assert.equal(ctx.careerThreads()[0].history.length,4);
 });
+
+test('career cards can save job and industry independently without clearing the other',async()=>{
+ let saved;
+ const nodes={'cc-role':{value:'Sales'}};
+ const ctx={document:{getElementById:id=>nodes[id]||null},careerCtx:()=>({field:'Technology',role:'Designer'}),careerEditing:'legacy',careerPersist:async v=>{saved=v}};
+ vm.runInNewContext(fn('careerCtxSave'),ctx);
+ await ctx.careerCtxSave();assert.equal(saved.field,'Technology');assert.equal(saved.role,'Sales');
+ delete nodes['cc-role'];nodes['cc-field']={value:'Healthcare'};
+ await ctx.careerCtxSave();assert.equal(saved.field,'Healthcare');assert.equal(saved.role,'Designer');
+});

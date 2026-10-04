@@ -5,6 +5,11 @@ function excluded(user) {
   const email = (user.email || '').toLowerCase();
   return !email || user.user_metadata?.seed === true || INTERNAL.has(email) || email.endsWith('@real.photos');
 }
+// Owner explicitly opted into lifecycle emails; reporting still excludes this account.
+function emailExcluded(user) {
+  if ((user.email || '').toLowerCase() === 'brad@real.photos' && user.user_metadata?.seed !== true) return false;
+  return excluded(user);
+}
 function taggedLinks(content, campaign, token) {
   return String(content || '').replace(/https:\/\/personality\.fyi(?=\/|[?#\s<>"']|$)(?:[/?#][^\s<>"']*)?/g, raw => {
     const url = new URL(raw.replace(/&amp;/g, '&'));
@@ -100,4 +105,4 @@ function emailReport(users, events, now = Date.now(), days) {
     webhookConfigured:!!process.env.RESEND_WEBHOOK_SECRET,
     definitions:'Unique messages per outcome, grouped by campaign and send week. Seeds/internal accounts excluded. Returns are tagged browser visits; meaningful returns require a saved result/person, recorded NHIE answer, or successful AI response by the recipient within the 30-minute email visit. Opens/clicks can include automated scanners. Historical sends cannot be reconstructed from old counters.'};
 }
-module.exports={excluded,taggedLinks,record,sendTracked,emailReport};
+module.exports={excluded,emailExcluded,taggedLinks,record,sendTracked,emailReport};
