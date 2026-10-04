@@ -42,6 +42,24 @@ function roleMatches(role,answers){
  const active=questions.filter(q=>answers[q.id]!==0);
  return patterns.map(p=>{let distance=0;active.forEach(q=>{const i=questions.indexOf(q);distance+=Math.abs(answers[q.id]-p.a[i]);});return {...p,distance};}).sort((a,b)=>a.distance-b.distance).slice(0,3);
 }
+function suggestedQuestions(type,career){
+ const a=career.demands,r=report(type,a),matches=roleMatches(career.role,a);
+ if(!r)return [];
+ if(!matches.length)return ['Which parts of my '+career.role+' role would I enjoy most?','What would a typical day in this role feel like for me?','Which job demands should I clarify to understand my fit?'];
+ const engineering=/engineer|developer|programmer|software|technical/i.test(career.role||'');
+ const managing=matches[0].name==='Engineering manager';
+ const title=matches[0].name.toLowerCase();
+ const labels=engineering?(managing?['Would I enjoy managing engineers?','Would I be happier staying technical?']:['Would I enjoy leading an engineering team?','Which engineering roles would suit me?']):['Would I enjoy working as a '+title+'?','What would a better-fitting '+career.role+' role look like?'];
+ let third='What could make this job draining for me?';
+ if(a.contact===-1&&type[0]==='I')third='How can I handle a meeting-heavy role?';
+ else if(a.complexity===1&&type[1]==='N')third='How can I stay interested when the work is repetitive?';
+ else if(a.pace===-1&&type[3]==='P')third='How can I keep up with rigid deadlines?';
+ else if(a.trust===-1&&type[2]==='T')third='How can I build trust without constant small talk?';
+ else if(a.contact===1&&type[0]==='E')third='How can I make solo work less isolating?';
+ else if(!r.friction.length)third='What should I check before committing to this role?';
+ labels.push(third);
+ return labels;
+}
 function context(type,career){
  if(!validAnswers(career?.demands))return '';
  const r=report(type,career.demands);
@@ -56,6 +74,6 @@ function variants(type,role){
  ];
  return rows.map(v=>({name:v.name,description:v.description,score:score(type,Object.fromEntries(questions.map((q,i)=>[q.id,v.a[i]])))})).sort((a,b)=>b.score-a.score);
 }
-const api={questions,types,validAnswers,score,report,context,variants,roleMatches};
+const api={questions,types,validAnswers,score,report,context,variants,roleMatches,suggestedQuestions};
 if(typeof module!=='undefined')module.exports=api;else root.careerFit=api;
 })(typeof window!=='undefined'?window:globalThis);
